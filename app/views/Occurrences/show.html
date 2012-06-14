@@ -1,5 +1,146 @@
 #{extends 'main.html' /}
 #{set title:'Home' /}
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+
+ lat=${occurrence.decimalLatitude};
+  lng=${occurrence.decimalLongitude};
+taxa='${occurrence.scientificName}';
+
+var kingdom='${occurrence.kingdom_interpreted}'
+var phylum='${occurrence.phylum_interpreted}' 
+var classs='${occurrence.classs_interpreted}'
+var order='${occurrence.orderr_interpreted}'
+var family='${occurrence.family_interpreted}' 
+genus='${occurrence.genus_interpreted}' 
+ 
+var specificEpithet='${specificEpithet_interpreted}'
+
+//alert('${taxa.canonicalKingdom}')
+if (lat && lng)
+{
+var geojson;
+$('#map').show();
+var latlng=new L.LatLng(lat,lng);
+
+var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	var osmAttrib='Map data © OpenStreetMap contributors';
+	var osm = new L.TileLayer(osmUrl, {minZoom: 5, maxZoom: 12, attribution: osmAttrib});
+			
+map = new L.Map('map', {
+						layers: [osm]
+		});
+     	map.addLayer(new L.Marker(latlng));	
+   	
+map.setView(latlng, 6); 
+
+var geojsonMarkerOptions = {
+    radius: 8,
+    fillColor: "#ff7800",
+    color: "#000",
+    weight: 1,
+    fillOpacity: 0.6
+};
+
+
+
+
+$('#geo_genus').click(function()
+{
+geojson = new L.GeoJSON(null, {
+    pointToLayer: function(latlng) { 
+    return new L.CircleMarker(latlng,geojsonMarkerOptions)
+     }
+});
+
+
+//this symbology function is applied each time we add data to our geojson
+geojson.on('featureparse', function(e) {
+
+ var count=e.properties.count;        
+//to improve symbology, not proportional
+    if (count){
+if (count>150) 
+	{
+    radius=150
+    e.layer.setRadius(radius/5);
+    }
+else
+{
+  if (count<=10)
+      e.layer.setRadius(10);
+  else
+  {
+    e.layer.setRadius(count/5);
+  }
+}
+
+if (e.properties && e.properties.style && e.layer.setStyle){
+this_count=count;
+
+if (this_count>=geojson_min && this_count<interval_1)
+{
+ e.layer.setStyle({fillColor:'#E0E043'});
+}
+if (this_count>=interval_1 && this_count<geojson_medium)
+{
+ e.layer.setStyle({fillColor:'#64E580'});
+}
+if 
+(this_count>=geojson_medium && this_count<interval_2)
+{
+e.layer.setStyle({fillColor:'#6391ED'});
+}
+if (this_count>=interval_2 && this_count<=geojson_max)
+{
+e.layer.setStyle({fillColor:'#EA38D5'});
+
+}
+
+   
+} 
+
+    }  
+    var popupContent='Here we found '+ count+' occurrences for taxa '+taxa;
+    e.layer.bindPopup(popupContent);
+});
+//for the moment only INPN and Genus type applied for testing
+
+//my PHP folder!
+jQuery.ajax({url:'http://localhost:8887/gbif_portal/geojson.php',
+  data: {taxa:genus,type:'genus',collection:'simple_inpn2'},
+  type: 'GET',
+  dataType: "jsonp", 
+    crossDomain : true,
+  
+ success: function(data)
+ {
+ geojson_max=data.max;
+ geojson_min=data.min;
+
+ geojson_medium=data.medium;
+ interval_1=data.interval_1;
+ interval_2=data.interval_2; 	
+ geojson.clearLayers()
+ geojson.addGeoJSON(data);
+ 
+ map.addLayer(geojson)
+ },
+ error:function (e)
+ {
+
+ alert('error')
+ }
+ })
+
+	 })
+}
+ 
+  
+});
+</script>
 <div class="container">
   <div class="page-header well">
   #{if occurrence.specificEpithet_interpreted}
@@ -39,9 +180,13 @@
   #{/else}
   </div> 
   #{if occurrence.decimalLatitude && occurrence.decimalLongitude}
-  <div>
+
+
+  <!--<div>
     <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=${occurrence.decimalLatitude}+${occurrence.decimalLongitude}&z=12&amp;output=embed"></iframe>
   </div>
+  -->
+ 
   #{/if}
   #{if occurrence.occurrenceID || 
 	   occurrence.catalogNumber || 
@@ -94,6 +239,10 @@
 	  #{if occurrence.associatedTaxa}<tr><th>associatedTaxa</th><td>${occurrence.associatedTaxa}</td></tr>#{/if}	  
 	  </tbody>
 	</table>
+	
+	<div id='map' style='display:none;width:70%px;height:300px'>
+	
+	</div>
   </div>
   #{/if}
   #{if occurrence.typee || 
@@ -117,6 +266,8 @@
 	   occurrence.dynamicProperties
   }
   <div class="record-info">
+  <!-- to extend to all taxa levels, this is just for testing -->
+    <button id='geo_genus'>All occurrences for Genus</button>
     <h3>Record</h3>
     <table class="table table-condensed table-striped">
       <tbody>

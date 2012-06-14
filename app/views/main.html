@@ -4,9 +4,14 @@
     <head>
       <title>#{get 'title' /}</title>
       <meta charset="${_response_encoding}">
-      <meta http-equiv="content-type" content="text/html; charset=UTF-8">
       <link rel="stylesheet" media="screen" href="@{'/public/bootstrap/css/bootstrap.css'}">
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/main.css'}">
+       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}">
+      
+      <script src="@{'/public/javascripts/mapping/leaflet_stable/dist/leaflet-include.js'}"></script>
+      <script src="@{'/public/javascripts/mapping/wax.leaf.min.js'}"></script>
+      
+
       #{get 'moreStyles' /}
       <link rel="shortcut icon" type="image/png" href="@{'/public/images/favicon.png'}">
       <script src="@{'/public/javascripts/jquery-1.7.1.js'}" type="text/javascript" charset="${_response_encoding}"></script>
@@ -18,7 +23,7 @@
         <div class="navbar navbar-top-fixed">
           <div class="navbar-inner">
             <div class="container">
-              <div class="brand"><h2><a href="@{Application.index()}"><img height="50" width="50" src="http://www.gbif.fr/wp-content/themes/gbif/img/gbif-logo3.gif"/></a></h2></div>
+              <div class="brand"><h2><a href="@{Application.index()}"><img height="50" width="50" src="http://www.gbif.fr/wp-content/themes/gbif/img/gbif-logo3.gif"/></a></h2></div>        
               <div id="search-navbar" class="navbar-search pull-right">
                 #{form @Application.search() , id:'searchForm'}
                   <input class="search-query" type="text" id="search-box" name="search"/>
@@ -31,4 +36,8 @@
       #{doLayout /}
       <div class="hero-unit"></div>
     </body>
+          <script type='text/javascript'>
+    
+         //   map = new L.Map('map',{ 'crs': L.CRS.EPSG900913});
+          </script>
 </html>
