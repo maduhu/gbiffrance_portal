@@ -1,0 +1,75 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+<script type="text/javascript" >
+  var taxas = #{jsAction @Taxas.search(':search', ':page') /}  
+  var occurrences = #{jsAction @Occurrences.search(':search', ':from') /}  
+  var places = #{jsAction @Places.search(':search') /}
+  var datasets = #{jsAction @Datasets.search(':search') /}
+  function searchTaxas(search, page)
+  {  
+	// temporary solution
+	search = search.replace(/ /g,"%20");
+    $('#taxas').load(taxas({search: search, page: page}));
+    $('#taxas').show()
+  }
+  
+  function searchOccurrences(search, from)
+  {
+    // temporary solution
+	search = search.replace(/ /g,"%20");
+    $('#occurrences').load(occurrences({search: search, from: from}));
+    $('#occurrences').show() 
+  }
+  
+  function searchPlaces(search)
+  {
+	search = search.replace(/ /g,"%20");  
+    $('#places').load(places({search: search}));
+    $('#places').show() 
+  }
+  
+  function searchDatasets(search)
+  {
+    search = search.replace(/ /g,"%20");  
+    $('#datasets').load(datasets({search: search}));
+    $('#datasets').show() 
+  }
+  
+  $(document).ready(function() {
+	searchOccurrences('${search}', 0)
+    searchTaxas('${search}','1');
+    searchPlaces('${search}', 0);
+    searchDatasets('${search}');
+  });
+</script>
+
+<div class="container">
+  <div class="form-search well alert alert-info">
+    #{form @Application.search(), id:'searchForm', class:'form-search well alert alert-info'}
+      <h2>Découvrez la biodiversité française</h2><br/>
+      <div>
+        <input class="input-large search-query" type="text" id="search-box" name="search"/>
+        <input class="btn btn-large" id="test" type="submit" value="Rechercher"/>
+      </div>
+    #{/form}
+  </div>
+  #{if search}
+    <h1>Recherche: <span id="taxonName" >${search}</span></h1>
+  #{/if}
+  <div id="datasets"></div>
+  <div id="places"></div>
+  <div id="taxas"></div>
+  #{if dataPublishers}
+  <div style="margin-top:20px;">
+    <h3>Institutions</h3>
+    <table class="table table-condensed table-striped">
+    #{list items:dataPublishers, as:'dataPublisher'}
+      <td><a href="@{DataPublishers.show(dataPublisher.id)}">${dataPublisher.name}</a></td>
+    #{/list}
+    </table>
+  </div>
+  #{/if}
+  
+  <div id="occurrences"></div>
+  
+</div>

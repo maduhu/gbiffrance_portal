@@ -1,0 +1,440 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+<div class="container">
+  <div class="page-header well">
+  #{if occurrence.specificEpithet_interpreted}
+    <div class="btn-group">
+    <h4>
+      <a class="btn btn-large" href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a>
+      <a class="btn btn-large" href="@{Taxas.show(taxa.phylumID)}">${taxa.canonicalPhylum}</a>
+      <a class="btn btn-large" href="@{Taxas.show(taxa.classID)}">${taxa.canonicalClass}</a>
+      <a class="btn btn-large" href="@{Taxas.show(taxa.orderID)}">${taxa.canonicalOrder}</a>
+      <a class="btn btn-large" href="@{Taxas.show(taxa.familyID)}">${taxa.canonicalFamily}</a>
+      <a class="btn btn-large" href="@{Taxas.show(taxa.genusID)}">${taxa.canonicalGenus}</a>
+      #{if taxa.species}
+        <a class="btn btn-large" href="@{Taxas.show(taxa.speciesID)}">${taxa.canonicalSpecies}</a>
+      #{/if}
+    </h4>
+    </div>
+    <br/>
+    <div>  
+      <div  class="page-header">
+        <h1>${occurrence.scientificName}</h1>
+        #{if taxa.canonicalSpecies}
+          <h3><i>${taxa.canonicalSpecies}</i> ${taxa.speciesIdentifiedBy}</h3>
+        #{/if}
+        #{elseif taxa.canonicalGenus}
+          <h3><i>${taxa.canonicalGenus}</i> ${taxa.genusIdentifiedBy}</h3>
+        #{/elseif}
+      </div>
+      <h4>${occurrence.institutionCode}</h4>
+    </div>
+  #{/if}
+  #{else}
+    <h6>
+      No references
+    </h6>
+    <h1>${occurrence.scientificName}</h1>
+    <h4>${occurrence.institutionCode}</h4>
+  #{/else}
+  </div> 
+  #{if occurrence.decimalLatitude && occurrence.decimalLongitude}
+  <div>
+    <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=${occurrence.decimalLatitude}+${occurrence.decimalLongitude}&z=12&amp;output=embed"></iframe>
+  </div>
+  #{/if}
+  #{if occurrence.occurrenceID || 
+	   occurrence.catalogNumber || 
+	   occurrence.occurrenceRemarks || 
+	   occurrence.recordNumber || 
+	   occurrence.recordedBy || 
+	   occurrence.individualID || 
+	   occurrence.individualCount || 
+	   occurrence.sex || 
+	   occurrence.lifeStage || 
+	   occurrence.reproductiveCondition || 
+	   occurrence.behavior || 
+	   occurrence.establishmentMeans || 
+	   occurrence.occurrenceStatus || 
+	   occurrence.preparations || 
+	   occurrence.disposition || 
+	   occurrence.otherCatalogNumbers || 
+	   occurrence.previousIdentifications || 
+	   occurrence.associatedMedia || 
+	   occurrence.associatedReferences || 
+	   occurrence.associatedOccurrences || 
+	   occurrence.associatedSequences || 
+	   occurrence.associatedTaxa
+  }
+  <div class="occurrence-info">
+    <h3>Occurrence</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+      #{if occurrence.occurrenceID}<tr><th>Occurrence ID</th><td>${occurrence.occurrenceID}</td></tr>#{/if}
+      #{if occurrence.catalogNumber}<tr><th>Catalog number</th><td>${occurrence.catalogNumber}</td></tr>#{/if}
+      #{if occurrence.occurrenceRemarks}<tr><th>occurrenceRemarks</th><td>${occurrence.occurrenceRemarks}</td></tr>#{/if}
+      #{if occurrence.recordNumber}<tr><th>recordNumber</th><td>${occurrence.recordNumber}</td></tr>#{/if}
+      #{if occurrence.recordedBy}<tr><th>recordedBy</th><td>${occurrence.recordedBy}</td></tr>#{/if}
+	  #{if occurrence.individualID}<tr><th>individualID</th><td>${occurrence.individualID}</td></tr>#{/if}
+	  #{if occurrence.individualCount}<tr><th>individualCount</th><td>${occurrence.individualCount}</td></tr>#{/if}
+	  #{if occurrence.sex}<tr><th>sex</th><td>${occurrence.sex}</td></tr>#{/if}
+	  #{if occurrence.lifeStage}<tr><th>lifeStage</th><td>${occurrence.lifeStage}</td></tr>#{/if}
+	  #{if occurrence.reproductiveCondition}<tr><th>reproductiveCondition</th><td>${occurrence.reproductiveCondition}</td></tr>#{/if}
+	  #{if occurrence.behavior}<tr><th>behavior</th><td>${occurrence.behavior}</td></tr>#{/if}
+	  #{if occurrence.establishmentMeans}<tr><th>establishmentMeans</th><td>${occurrence.establishmentMeans}</td></tr>#{/if}
+	  #{if occurrence.occurrenceStatus}<tr><th>occurrenceStatus</th><td>${occurrence.occurrenceStatus}</td></tr>#{/if}
+	  #{if occurrence.preparations}<tr><th>preparations</th><td>${occurrence.preparations}</td></tr>#{/if}
+	  #{if occurrence.disposition}<tr><th>disposition</th><td>${occurrence.disposition}</td></tr>#{/if}
+	  #{if occurrence.otherCatalogNumbers}<tr><th>otherCatalogNumbers</th><td>${occurrence.otherCatalogNumbers}</td></tr>#{/if}
+	  #{if occurrence.previousIdentifications}<tr><th>previousIdentifications</th><td>${occurrence.previousIdentifications}</td></tr>#{/if}
+	  #{if occurrence.associatedMedia}<tr><th>associatedMedia</th><td>${occurrence.associatedMedia} <img style="floatright;" width="200" height="150" src="${occurrence.associatedMedia}"/></td></tr>#{/if}
+	  #{if occurrence.associatedReferences}<tr><th>associatedReferences</th><td>${occurrence.associatedReferences}</td></tr>#{/if}
+	  #{if occurrence.associatedOccurrences}<tr><th>associatedOccurrences</th><td>${occurrence.associatedOccurrences}</td></tr>#{/if}
+	  #{if occurrence.associatedSequences}<tr><th>associatedSequences</th><td>${occurrence.associatedSequences}</td></tr>#{/if}
+	  #{if occurrence.associatedTaxa}<tr><th>associatedTaxa</th><td>${occurrence.associatedTaxa}</td></tr>#{/if}	  
+	  </tbody>
+	</table>
+  </div>
+  #{/if}
+  #{if occurrence.typee || 
+	   occurrence.modified || 
+	   occurrence.language || 
+	   occurrence.rights || 
+	   occurrence.rightsHolder || 
+	   occurrence.accessRights || 
+	   occurrence.bibliographicCitation || 
+	   occurrence.referencess || 
+	   occurrence.institutionID || 
+	   occurrence.collectionID || 
+	   occurrence.datasetID || 
+	   occurrence.institutionCode || 
+	   occurrence.collectionCode || 
+	   occurrence.datasetName || 
+	   occurrence.ownerInstitutionCode || 
+	   occurrence.basisOfRecord || 
+	   occurrence.informationWithheld || 
+	   occurrence.dataGeneralizations || 
+	   occurrence.dynamicProperties
+  }
+  <div class="record-info">
+    <h3>Record</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+      #{if occurrence.typee}<tr><th>Type </th><td> ${occurrence.basisOfRecord}</td></tr>#{/if}
+      #{if occurrence.modified}<tr><th>Modified </th><td> <b>${occurrence.modified}</b></td></tr>#{/if}
+      #{if occurrence.language}<tr><th>Language </th><td> ${occurrence.language}</td></tr>#{/if}
+      #{if occurrence.rights}<tr><th>Rights </th><td> ${occurrence.rights}</td></tr>#{/if}
+	  #{if occurrence.rightsHolder}<tr><th>Rights Holder </th><td> ${occurrence.rightsHolder}</td></tr>#{/if}
+	  #{if occurrence.accessRights}<tr><th>Access Rights </th><td> ${occurrence.accessRights}</td></tr>#{/if}
+	  #{if occurrence.bibliographicCitation}<tr><th>Bibliographic Citation </th><td> ${occurrence.bibliographicCitation}</td></tr>#{/if}
+	  #{if occurrence.referencess}<tr><th>References </th><td> ${occurrence.referencess}</td></tr>#{/if}
+	  #{if occurrence.institutionID}<tr><th>Institution ID  </th><td> ${occurrence.institutionID}</td></tr>#{/if}
+	  #{if occurrence.collectionID}<tr><th>Collection ID  </th><td> ${occurrence.collectionID}</td></tr>#{/if}
+	  #{if occurrence.datasetID}<tr><th>Dataset ID  </th><td> ${occurrence.datasetID}</td></tr>#{/if}
+	  #{if occurrence.institutionCode}<tr><th>Institution Code  </th><td> ${occurrence.institutionCode}</td></tr>#{/if}
+	  #{if occurrence.collectionCode}<tr><th>Collection Code </th><td> ${occurrence.collectionCode}</td></tr>#{/if}
+	  #{if occurrence.datasetName}<tr><th>Dataset Name  </th><td> ${occurrence.datasetName}</td></tr>#{/if}
+	  #{if occurrence.ownerInstitutionCode}<tr><th>Owner Institution Code  </th><td> ${occurrence.ownerInstitutionCode}</td></tr>#{/if}
+	  #{if occurrence.informationWithheld}<tr><th>Information With Held  </th><td> ${occurrence.informationWithheld}</td></tr>#{/if}
+	  #{if occurrence.dataGeneralizations}<tr><th>Data Generalizations  </th><td> ${occurrence.dataGeneralizations}</td></tr>#{/if}
+	  #{if occurrence.dynamicProperties}<tr><th>Dynamic Properties  </th><td> ${occurrence.dynamicProperties}</td></tr>#{/if}
+      </tbody>
+    </table>  
+  </div>
+  #{/if}
+  #{if occurrence.	taxonID		 || 
+	   occurrence.scientificNameID || 
+	   occurrence.acceptedNameUsageID || 
+	   occurrence.parentNameUsageID || 
+	   occurrence.originalNameUsageID || 
+	   occurrence.nameAccordingToID || 
+	   occurrence.namePublishedInID || 
+	   occurrence.taxonConceptID || 
+	   occurrence.scientificName || 
+	   occurrence.acceptedNameUsage || 
+	   occurrence.parentNameUsage || 
+	   occurrence.originalNameUsage || 
+	   occurrence.nameAccordingTo || 
+	   occurrence.namePublishedIn || 
+	   occurrence.namePublishedInYear || 
+	   occurrence.higherClassification || 
+	   occurrence.kingdom || 
+	   occurrence.phylum || 
+	   occurrence.classs || 
+	   occurrence.orderr || 
+	   occurrence.family || 
+	   occurrence.genus || 
+	   occurrence.subgenus || 
+	   occurrence.specificEpithet || 
+	   occurrence.infraSpecificEpithet || 
+	   occurrence.kingdom_interpreted || 
+	   occurrence.phylum_interpreted || 
+	   occurrence.classs_interpreted || 
+	   occurrence.orderr_interpreted || 
+	   occurrence.family_interpreted || 
+	   occurrence.genus_interpreted || 
+	   occurrence.subgenus_interpreted || 
+	   occurrence.specificEpithet_interpreted || 
+	   occurrence.infraSpecificEpithet_interpreted || 
+	   occurrence.taxonRank || 
+	   occurrence.verbatimTaxonRank || 
+	   occurrence.scientificNameAuthorship || 
+	   occurrence.vernacularName || 
+	   occurrence.nomenclaturalCode || 
+	   occurrence.taxonomicStatus || 
+	   occurrence.nomenclaturalStatus || 
+	   occurrence.taxonRemarks || 
+	   occurrence.taxonStatus  ||
+	   occurrence.ecatConceptId ||
+	   occurrence.ecatParentId 
+  }
+  <div class="taxon-info">
+    <h3>Taxon</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+    #{if occurrence.taxonID}<tr><th>taxonID </th><td> ${occurrence.taxonID}</td></tr>#{/if}
+    #{if occurrence.scientificNameID}<tr><th>scientificNameID </th><td> ${occurrence.scientificNameID}</td></tr>#{/if}
+    #{if occurrence.acceptedNameUsageID}<tr><th>acceptedNameUsageID </th><td> ${occurrence.acceptedNameUsageID}</td></tr>#{/if}
+    #{if occurrence.parentNameUsageID}<tr><th>parentNameUsageID </th><td> ${occurrence.parentNameUsageID}</td></tr>#{/if}
+    #{if occurrence.originalNameUsageID}<tr><th>originalNameUsageID </th><td> ${occurrence.originalNameUsageID}</td></tr>#{/if}
+    #{if occurrence.nameAccordingToID}<tr><th>nameAccordingToID </th><td> ${occurrence.nameAccordingToID}</td></tr>#{/if}
+    #{if occurrence.namePublishedInID}<tr><th>namePublishedInID </th><td> ${occurrence.namePublishedInID}</td></tr>#{/if}
+    #{if occurrence.taxonConceptID}<tr><th>taxonConceptID </th><td> ${occurrence.taxonConceptID}</td></tr>#{/if}
+    #{if occurrence.scientificName}<tr><th>scientificName </th><td> ${occurrence.scientificName}</td></tr>#{/if}
+    #{if occurrence.acceptedNameUsage}<tr><th>acceptedNameUsage </th><td> ${occurrence.acceptedNameUsage}</td></tr>#{/if}
+    #{if occurrence.parentNameUsage}<tr><th>parentNameUsage </th><td> ${occurrence.parentNameUsage}</td></tr>#{/if}
+    #{if occurrence.originalNameUsage}<tr><th>originalNameUsage </th><td> ${occurrence.originalNameUsage}</td></tr>#{/if}
+    #{if occurrence.nameAccordingTo}<tr><th>nameAccordingTo </th><td> ${occurrence.nameAccordingTo}</td></tr>#{/if}
+    #{if occurrence.namePublishedIn}<tr><th>namePublishedIn </th><td> ${occurrence.namePublishedIn}</td></tr>#{/if}
+    #{if occurrence.namePublishedInYear}<tr><th>namePublishedInYear </th><td> ${occurrence.namePublishedInYear}</td></tr>#{/if}
+    #{if occurrence.higherClassification}<tr><th>higherClassification </th><td> ${occurrence.higherClassification}</td></tr>#{/if}
+    #{if occurrence.kingdom}<tr><th>kingdom </th><td> ${occurrence.kingdom}</td></tr>#{/if}
+    #{if occurrence.phylum}<tr><th>phylum </th><td> ${occurrence.phylum}</td></tr>#{/if}
+    #{if occurrence.classs}<tr><th>class </th><td> ${occurrence.classs}</td></tr>#{/if}
+    #{if occurrence.orderr}<tr><th>order </th><td> ${occurrence.orderr}</td></tr>#{/if}
+    #{if occurrence.family}<tr><th>family </th><td> ${occurrence.family}</td></tr>#{/if}
+    #{if occurrence.genus}<tr><th>genus </th><td> ${occurrence.genus}</td></tr>#{/if}
+    #{if occurrence.subgenus}<tr><th>subgenus </th><td> ${occurrence.subgenus}</td></tr>#{/if}
+    #{if occurrence.specificEpithet}<tr><th>specificEpithet </th><td> ${occurrence.specificEpithet}</td></tr>#{/if}
+    #{if occurrence.infraSpecificEpithet}<tr><th>infraSpecificEpithet </th><td> ${occurrence.infraSpecificEpithet}</td></tr>#{/if}
+    #{if occurrence.taxonRank}<tr><th>taxonRank </th><td> ${occurrence.taxonRank}</td></tr>#{/if}
+    #{if occurrence.verbatimTaxonRank}<tr><th>verbatimTaxonRank </th><td> ${occurrence.verbatimTaxonRank}</td></tr>#{/if}
+    #{if occurrence.scientificNameAuthorship}<tr><th>scientificNameAuthorship </th><td> ${occurrence.scientificNameAuthorship}</td></tr>#{/if}
+    #{if occurrence.vernacularName}<tr><th>vernacularName </th><td> ${occurrence.vernacularName}</td></tr>#{/if}
+    #{if occurrence.nomenclaturalCode}<tr><th>nomenclaturalCode </th><td> ${occurrence.nomenclaturalCode}</td></tr>#{/if}
+    #{if occurrence.taxonomicStatus}<tr><th>taxonomicStatus </th><td> ${occurrence.taxonomicStatus}</td></tr>#{/if}
+    #{if occurrence.nomenclaturalStatus}<tr><th>nomenclaturalStatus </th><td> ${occurrence.nomenclaturalStatus}</td></tr>#{/if}
+    #{if occurrence.taxonRemarks}<tr><th>taxonRemarks </th><td> ${occurrence.taxonRemarks}</td></tr>#{/if}
+    #{if occurrence.taxonStatus}<tr><th>taxonStatus </th><td> ${occurrence.taxonStatus}</td></tr>#{/if}  
+    #{if occurrence.ecatConceptId}<tr><th>ecatConceptId </th><td> ${occurrence.ecatConceptId}</td></tr>#{/if}  
+    #{if occurrence.ecatParentId}<tr><th>ecatParentId </th><td> ${occurrence.ecatParentId}</td></tr>#{/if}  
+      
+    </tbody>
+    </table>  
+  </div>
+  #{/if}
+  #{if occurrence.identificationID || 
+	   occurrence.identifiedBy || 
+	   occurrence.dateIdentified || 
+	   occurrence.identificationVerificationStatus || 
+	   occurrence.identificationRemarks || 
+	   occurrence.identificationQualifier
+  }
+  <div class="identification-info">
+    <h3>Identification</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+    #{if occurrence.identificationID}<tr><th>identificationID </th><td> ${occurrence.identificationID}</td></tr>#{/if}
+    #{if occurrence.identifiedBy}<tr><th>identifiedBy </th><td> ${occurrence.identifiedBy}</td></tr>#{/if}
+    #{if occurrence.dateIdentified}<tr><th>dateIdentified </th><td> ${occurrence.dateIdentified}</td></tr>#{/if}
+    #{if occurrence.identificationVerificationStatus}<tr><th>identificationVerificationStatus </th><td> ${occurrence.identificationVerificationStatus}</td></tr>#{/if}
+    #{if occurrence.identificationRemarks}<tr><th>identificationRemarks </th><td> ${occurrence.identificationRemarks}</td></tr>#{/if}
+    #{if occurrence.identificationQualifier}<tr><th>identificationQualifier </th><td> ${occurrence.identificationQualifier}</td></tr>#{/if}
+    </tbody>
+    </table>  
+  </div>
+  #{/if}
+  #{if occurrence.eventID || 
+	   occurrence.samplingProtocol || 
+	   occurrence.samplingEffort || 
+	   occurrence.eventDate || 
+	   occurrence.eventTime || 
+	   occurrence.startDayOfYear || 
+	   occurrence.endDayofYear || 
+	   occurrence.year || 
+	   occurrence.month || 
+	   occurrence.day || 
+	   occurrence.verbatimEventDate || 
+	   occurrence.habitat || 
+	   occurrence.fieldNumber || 
+	   occurrence.fieldNotes || 
+	   occurrence.eventRemarks || 
+	   occurrence.typeStatus  
+  }
+  <div class="event-info">
+    <h3>Event</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+      #{if occurrence.eventID}<tr><th>Event ID</th><td> ${occurrence.eventID}</td></tr>#{/if}
+      #{if occurrence.samplingProtocol}<tr><th>Sampling protocol </th><td> ${occurrence.samplingProtocol}</td></tr>#{/if}
+      #{if occurrence.samplingEffort}<tr><th>Sampling effort </th><td> ${occurrence.samplingEffort}</td></tr>#{/if}
+      #{if occurrence.eventDate}<tr><th>Event date </th><td> ${occurrence.eventDate}</td></tr>#{/if}
+      #{if occurrence.eventTime}<tr><th>Event time </th><td> ${occurrence.eventTime}</td></tr>#{/if}
+      #{if occurrence.startDayOfYear}<tr><th>Start day of year </th><td> ${occurrence.startDayOfYear}</td></tr>#{/if}
+      #{if occurrence.endDayofYear}<tr><th>End day of year </th><td> ${occurrence.endDayofYear}</td></tr>#{/if}
+      #{if occurrence.year}<tr><th>Year </th><td> ${occurrence.year}</td></tr>#{/if}
+      #{if occurrence.month}<tr><th>Month </th><td> ${occurrence.month}</td></tr>#{/if}
+      #{if occurrence.day}<tr><th>Day </th><td> ${occurrence.day}</td></tr>#{/if}
+      #{if occurrence.verbatimEventDate}<tr><th>Verbatim event date </th><td> ${occurrence.verbatimEventDate}</td></tr>#{/if}
+      #{if occurrence.habitat}<tr><th>Habitat </th><td> ${occurrence.habitat}</td></tr>#{/if}
+      #{if occurrence.fieldNumber}<tr><th>Field number </th><td> ${occurrence.fieldNumber}</td></tr>#{/if}
+      #{if occurrence.fieldNotes}<tr><th>Fields notes </th><td> ${occurrence.fieldNotes}</td></tr>#{/if}
+      #{if occurrence.eventRemarks}<tr><th>Event remarks </th><td> ${occurrence.eventRemarks}</td></tr>#{/if}
+      #{if occurrence.typeStatus}<tr><th>typeStatus </th><td> ${occurrence.typeStatus}</td></tr>#{/if}
+    </tbody>
+    </table>  
+  </div>
+  #{/if}
+  #{if occurrence.locationID || 
+	   occurrence.higherGeographyID || 
+	   occurrence.higherGeography || 
+	   occurrence.continent || 
+	   occurrence.waterBody || 
+	   occurrence.islandGroup || 
+	   occurrence.island || 
+	   occurrence.country || 
+	   occurrence.countryCode || 
+	   occurrence.stateProvince || 
+	   occurrence.county || 
+	   occurrence.municipality || 
+	   occurrence.locality || 
+	   occurrence.verbatimLocality || 
+	   occurrence.verbatimElevation || 
+	   occurrence.minimumElevationInMeters || 
+	   occurrence.maximumElevationInMeters || 
+	   occurrence.verbatimDepth || 
+	   occurrence.minimumDepthInMeters || 
+	   occurrence.maximumDepthInMeters || 
+	   occurrence.minimumDistanceAboveSurfaceInMeters || 
+	   occurrence.maximumDistanceAboveSurfaceInMeters || 
+	   occurrence.locationAccordingTo || 
+	   occurrence.locationRemarks || 
+	   occurrence.verbatimCoordinates || 
+	   occurrence.verbatimLatitude || 
+	   occurrence.verbatimLongitude || 
+	   occurrence.verbatimCoordinateSystem || 
+	   occurrence.verbatimSRS || 
+	   occurrence.decimalLatitude || 
+	   occurrence.decimalLongitude || 
+	   occurrence.geodeticDatum || 
+	   occurrence.coordinateUncertaintyInMeters || 
+	   occurrence.coordinatePrecision || 
+	   occurrence.pointRadiusSpatialFit || 
+	   occurrence.footprintWKT || 
+	   occurrence.footprintSRS || 
+	   occurrence.footprintSpatialFit || 
+	   occurrence.georeferencedBy || 
+	   occurrence.georeferencedDate || 
+	   occurrence.georeferenceProtocol || 
+	   occurrence.georeferenceSources || 
+	   occurrence.georeferenceVerificationStatus || 
+	   occurrence.georeferenceRemarks
+  }
+  <div class="location-info">
+    <h3>Location</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+    #{if occurrence.locationID}<tr><th>locationID </th><td> ${occurrence.locationID}</td></tr>#{/if}
+    #{if occurrence.higherGeographyID}<tr><th>higherGeographyID </th><td> ${occurrence.higherGeographyID}</td></tr>#{/if}
+    #{if occurrence.higherGeography}<tr><th>higherGeography </th><td> ${occurrence.higherGeography}</td></tr>#{/if}
+    #{if occurrence.continent}<tr><th>continent </th><td> ${occurrence.continent}</td></tr>#{/if}
+    #{if occurrence.waterBody}<tr><th>waterBody </th><td> ${occurrence.waterBody}</td></tr>#{/if}
+    #{if occurrence.islandGroup}<tr><th>islandGroup </th><td> ${occurrence.islandGroup}</td></tr>#{/if}
+    #{if occurrence.island}<tr><th>island </th><td> ${occurrence.island}</td></tr>#{/if}
+    #{if occurrence.country}<tr><th>country </th><td> ${occurrence.country}</td></tr>#{/if}
+    #{if occurrence.countryCode}<tr><th>countryCode </th><td> ${occurrence.countryCode}</td></tr>#{/if}
+    #{if occurrence.stateProvince}<tr><th>stateProvince </th><td> ${occurrence.stateProvince}</td></tr>#{/if}
+    #{if occurrence.county}<tr><th>county </th><td> ${occurrence.county}</td></tr>#{/if}
+    #{if occurrence.municipality}<tr><th>municipality </th><td> ${occurrence.municipality}</td></tr>#{/if}
+    #{if occurrence.locality}<tr><th>locality </th><td> ${occurrence.locality}</td></tr>#{/if}
+    #{if occurrence.verbatimLocality}<tr><th>verbatimLocality </th><td> ${occurrence.verbatimLocality}</td></tr>#{/if}
+    #{if occurrence.verbatimElevation}<tr><th>verbatimElevation </th><td> ${occurrence.verbatimElevation}</td></tr>#{/if}
+    #{if occurrence.minimumElevationInMeters}<tr><th>minimumElevationInMeters </th><td> ${occurrence.minimumElevationInMeters}</td></tr>#{/if}
+    #{if occurrence.maximumElevationInMeters}<tr><th>maximumElevationInMeters </th><td> ${occurrence.maximumElevationInMeters}</td></tr>#{/if}
+    #{if occurrence.verbatimDepth}<tr><th>verbatimDepth </th><td> ${occurrence.verbatimDepth}</td></tr>#{/if}
+    #{if occurrence.minimumDepthInMeters}<tr><th>minimumDepthInMeters </th><td> ${occurrence.minimumDepthInMeters}</td></tr>#{/if}
+    #{if occurrence.maximumDepthInMeters}<tr><th>maximumDepthInMeters </th><td> ${occurrence.maximumDepthInMeters}</td></tr>#{/if}
+    #{if occurrence.minimumDistanceAboveSurfaceInMeters}<tr><th>minimumDistanceAboveSurfaceInMeters </th><td> ${occurrence.minimumDistanceAboveSurfaceInMeters}</td></tr>#{/if}
+    #{if occurrence.maximumDistanceAboveSurfaceInMeters}<tr><th>maximumDistanceAboveSurfaceInMeters </th><td> ${occurrence.maximumDistanceAboveSurfaceInMeters}</td></tr>#{/if}
+    #{if occurrence.locationAccordingTo}<tr><th>locationAccordingTo </th><td> ${occurrence.locationAccordingTo}</td></tr>#{/if}
+    #{if occurrence.locationRemarks}<tr><th>locationRemarks </th><td> ${occurrence.locationRemarks}</td></tr>#{/if}
+    #{if occurrence.verbatimCoordinates}<tr><th>verbatimCoordinates </th><td> ${occurrence.verbatimCoordinates}</td></tr>#{/if}
+    #{if occurrence.verbatimLatitude}<tr><th>verbatimLatitude </th><td> ${occurrence.verbatimLatitude}</td></tr>#{/if}
+    #{if occurrence.verbatimLongitude}<tr><th>verbatimLongitude </th><td> ${occurrence.verbatimLongitude}</td></tr>#{/if}
+    #{if occurrence.verbatimCoordinateSystem}<tr><th>verbatimCoordinateSystem </th><td> ${occurrence.verbatimCoordinateSystem}</td></tr>#{/if}
+    #{if occurrence.verbatimSRS}<tr><th>verbatimSRS </th><td> ${occurrence.verbatimSRS}</td></tr>#{/if}
+    #{if occurrence.decimalLatitude}<tr><th>decimalLatitude </th><td> ${occurrence.decimalLatitude}</td></tr>#{/if}
+    #{if occurrence.decimalLongitude}<tr><th>decimalLongitude </th><td> ${occurrence.decimalLongitude}</td></tr>#{/if}
+    #{if occurrence.geodeticDatum}<tr><th>geodeticDatum </th><td> ${occurrence.geodeticDatum}</td></tr>#{/if}
+    #{if occurrence.coordinateUncertaintyInMeters}<tr><th>coordinateUncertaintyInMeters </th><td> ${occurrence.coordinateUncertaintyInMeters}</td></tr>#{/if}
+    #{if occurrence.coordinatePrecision}<tr><th>coordinatePrecision </th><td> ${occurrence.coordinatePrecision}</td></tr>#{/if}
+    #{if occurrence.pointRadiusSpatialFit}<tr><th>pointRadiusSpatialFit </th><td> ${occurrence.pointRadiusSpatialFit}</td></tr>#{/if}
+    #{if occurrence.footprintWKT}<tr><th>footprintWKT </th><td> ${occurrence.footprintWKT}</td></tr>#{/if}
+    #{if occurrence.footprintSRS}<tr><th>footprintSRS </th><td> ${occurrence.footprintSRS}</td></tr>#{/if}
+    #{if occurrence.footprintSpatialFit}<tr><th>footprintSpatialFit </th><td> ${occurrence.footprintSpatialFit}</td></tr>#{/if}
+    #{if occurrence.georeferencedBy}<tr><th>georeferencedBy </th><td> ${occurrence.georeferencedBy}</td></tr>#{/if}
+    #{if occurrence.georeferencedDate}<tr><th>georeferencedDate </th><td> ${occurrence.georeferencedDate}</td></tr>#{/if}
+    #{if occurrence.georeferenceProtocol}<tr><th>georeferenceProtocol </th><td> ${occurrence.georeferenceProtocol}</td></tr>#{/if}
+    #{if occurrence.georeferenceSources}<tr><th>georeferenceSources </th><td> ${occurrence.georeferenceSources}</td></tr>#{/if}
+    #{if occurrence.georeferenceVerificationStatus}<tr><th>georeferenceVerificationStatus </th><td> ${occurrence.georeferenceVerificationStatus}</td></tr>#{/if}
+    #{if occurrence.georeferenceRemarks}<tr><th>georeferenceRemarks </th><td> ${occurrence.georeferenceRemarks}</td></tr>#{/if}
+    </tbody>
+    </table>  
+  </div>
+  #{/if}
+  #{if occurrence.geologicalContextID || 
+	   occurrence.earliestEonOrLowestEonothem || 
+	   occurrence.latestEonOrHighestEonothem || 
+	   occurrence.earliestEraOrLowestErathem || 
+	   occurrence.latestEraOrHighestErathem || 
+	   occurrence.earliestPeriodOrLowestSystem || 
+	   occurrence.latestPeriodOrHighestSystem || 
+	   occurrence.earliestEpochOrLowestSeries || 
+	   occurrence.latestEpochOrHighestSeries || 
+	   occurrence.earliestAgeOrLowestStage || 
+	   occurrence.latestAgeOrHighestStage || 
+	   occurrence.lowestBiostratigraphicZone || 
+	   occurrence.highestBiostratigraphicZone || 
+	   occurrence.lithostratigraphicTerms || 
+	   occurrence.groupp || 
+	   occurrence.formation || 
+	   occurrence.member || 
+	   occurrence.bed
+  }
+  <div class="location-info">
+    <h3>Geological Context</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+    #{if occurrence.geologicalContextID}<tr><th>geologicalContextID </th><td> ${occurrence.geologicalContextID}</td></tr>#{/if}
+    #{if occurrence.earliestEonOrLowestEonothem}<tr><th>earliestEonOrLowestEonothem </th><td> ${occurrence.earliestEonOrLowestEonothem}</td></tr>#{/if}
+    #{if occurrence.latestEonOrHighestEonothem}<tr><th>latestEonOrHighestEonothem </th><td> ${occurrence.latestEonOrHighestEonothem}</td></tr>#{/if}
+    #{if occurrence.earliestEraOrLowestErathem}<tr><th>earliestEraOrLowestErathem </th><td> ${occurrence.earliestEraOrLowestErathem}</td></tr>#{/if}
+    #{if occurrence.latestEraOrHighestErathem}<tr><th>latestEraOrHighestErathem </th><td> ${occurrence.latestEraOrHighestErathem}</td></tr>#{/if}
+    #{if occurrence.earliestPeriodOrLowestSystem}<tr><th>earliestPeriodOrLowestSystem </th><td> ${occurrence.earliestPeriodOrLowestSystem}</td></tr>#{/if}
+    #{if occurrence.latestPeriodOrHighestSystem}<tr><th>latestPeriodOrHighestSystem </th><td> ${occurrence.latestPeriodOrHighestSystem}</td></tr>#{/if}
+    #{if occurrence.earliestEpochOrLowestSeries}<tr><th>earliestEpochOrLowestSeries </th><td> ${occurrence.earliestEpochOrLowestSeries}</td></tr>#{/if}
+    #{if occurrence.latestEpochOrHighestSeries}<tr><th>latestEpochOrHighestSeries </th><td> ${occurrence.latestEpochOrHighestSeries}</td></tr>#{/if}
+    #{if occurrence.earliestAgeOrLowestStage}<tr><th>earliestAgeOrLowestStage </th><td> ${occurrence.earliestAgeOrLowestStage}</td></tr>#{/if}
+    #{if occurrence.latestAgeOrHighestStage}<tr><th>latestAgeOrHighestStage </th><td> ${occurrence.latestAgeOrHighestStage}</td></tr>#{/if}
+    #{if occurrence.lowestBiostratigraphicZone}<tr><th>lowestBiostratigraphicZone </th><td> ${occurrence.lowestBiostratigraphicZone}</td></tr>#{/if}
+    #{if occurrence.highestBiostratigraphicZone}<tr><th>highestBiostratigraphicZone </th><td> ${occurrence.highestBiostratigraphicZone}</td></tr>#{/if}
+    #{if occurrence.lithostratigraphicTerms}<tr><th>lithostratigraphicTerms </th><td> ${occurrence.lithostratigraphicTerms}</td></tr>#{/if}
+    #{if occurrence.groupp}<tr><th>group </th><td> ${occurrence.groupp}</td></tr>#{/if}
+    #{if occurrence.formation}<tr><th>formation </th><td> ${occurrence.formation}</td></tr>#{/if}
+    #{if occurrence.member}<tr><th>member </th><td> ${occurrence.member}</td></tr>#{/if}
+    #{if occurrence.bed}<tr><th>bed </th><td> ${occurrence.bed}</td></tr>#{/if} 
+    </tbody>
+    </table>  
+  </div>
+  #{/if}
+</div>

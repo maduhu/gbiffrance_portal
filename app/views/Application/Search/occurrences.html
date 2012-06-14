@@ -1,0 +1,59 @@
+<div id="occurrences" class="alert" style="margin-top:20px;">
+  <h3>Occurrences</h3>
+  #{if nbHits}
+    <h6>${nbHits} occurrences</h6>
+    #{if occurrencesTotalPages > 1}
+      #{if current >= 10 && current+10 < occurrencesTotalPages}        
+        <a onClick="searchOccurrences('${search}','${1*pagesize}');">1 </a>
+        ...
+        #{list items:current-5..current+5, as:'i'}
+          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+        #{/list}
+        ...
+        <a onClick="searchOccurrences('${search}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
+      #{/if} 
+      #{elseif current >= 10 && current+10 >= occurrencesTotalPages}        
+        <a onClick="searchOccurrences('${search}','${1*pagesize}');">1 </a>
+        ...
+        #{list items:current-10..occurrencesTotalPages, as:'i'}
+          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+        #{/list}
+      #{/elseif}
+      #{elseif current == occurrencesTotalPages}
+        <a onClick="searchOccurrences('${search}','0');">${1} </a>
+        ...
+        #{list items:current-10..current, as:'i'}
+          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+        #{/list}
+      #{/elseif}  
+      #{elseif current == 0 || current < 10}
+        #{list items:1..10, as:'i'}
+          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+        #{/list}
+        ...
+        <a onClick="searchOccurrences('${search}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
+      #{/elseif}
+    #{/if}
+    <table class="table table-condensed table-striped">
+      #{list items:occurrences, as:'occurrence'}
+        #{if occurrence.score > 0.9}<tr class="alert alert-info">#{/if}
+        #{else}<tr>#{/else}
+        <td><a href="@{Occurrences.show(occurrence.id)}">#{if occurrence.score > 0.9}<b>#{/if}${occurrence.scientificName}#{if occurrence.score > 0.9}</b>#{/if}</a></td>
+        <td>${occurrence.catalogNumber}</td>
+        <td>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}${occurrence.decimalLatitude},${occurrence.decimalLongitude}#{/if}</td>
+        <td><a href="@{Datasets.show(occurrence.dataset.id)}">#{if occurrence.score > 0.9}<b>#{/if}${occurrence.dataset.name}#{if occurrence.score > 0.9}</b>#{/if}</a></td>
+        <td><a href="@{DataPublishers.show(occurrence.dataset.dataPublisher.id)}">#{if occurrence.score > 0.9}<b>#{/if}${occurrence.dataset.dataPublisher.name}#{if occurrence.score > 0.9}</b>#{/if}</a></td>
+        <td>${occurrence.score}</td>  
+      </tr>
+      #{/list}
+    </table>
+    <!--#{if from && from < nbHits}
+    <div style="float:right;">
+      <b><a onClick="searchOccurrences('${search}','${from}');">Suivant</a></b>
+    </div>
+    #{/if}-->
+  #{/if}
+  #{else}
+    <h6>Pas de résultats</h6>  
+  #{/else}
+</div>

@@ -1,0 +1,157 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+<script type="text/javascript">
+  var children = #{jsAction @showChildren(':taxonId', ':rank', ':page') /}  
+  
+  function showChild(rank, page)
+  {   
+    $('#children').load(children({taxonId: '${taxa.taxonId}', rank: rank, page: page}));
+	$('#children').show()
+  }
+  
+  $(document).ready(function() {
+	$("#children").hide();
+	
+	$('#species').click(
+	  function() {
+	    showChild('species', '1')
+	  }
+	)
+	$('#genus').click(
+      function() {           
+    	  showChild('genus', '1')
+      }
+    )
+    $('#family').click(
+      function() {
+    	  showChild('family', '1')
+      }
+    )
+    $('#class').click(
+      function() {         
+    	  showChild('class', '1')
+        
+      }
+    )
+    $('#order').click(
+      function() {          
+    	  showChild('order', '1')
+      }
+    )
+    $('#phylum').click(
+      function() {          
+        showChild('phylum', '1')
+      }
+    )
+   });
+</script>
+<div class="container">
+  <div class="page-header well alert-success">
+    <h1><i>${taxa.canonicalName}</i></h1>
+    <h4>${taxa.scientificName} | ${taxa.accordingTo}</h4>
+  </div>
+  <div>
+    <h3>Classification</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+        <tr>
+          <th>Kingdom</th>
+          <td><a href="@{Taxas.show(taxa.kingdomID)}">${taxa.kingdom}</a></td>
+        </tr>
+        <tr>
+          <th>Phylum</th>
+          <td>
+          #{if taxa.phylum}
+            <a id="phylum" href="@{Taxas.show(taxa.phylumID)}">${taxa.phylum}</a>
+          #{/if}
+          #{else}
+            <a id="phylum" href="#">${taxa.nbPhylum}</a> usages
+          #{/else}  
+          </td>
+        </tr>
+        <tr>
+          <th>Class</th>
+          <td>
+          #{if taxa.classs}
+            <a id="class" href="@{Taxas.show(taxa.classID)}">${taxa.classs}</a>
+          #{/if}
+          #{else}
+            <a id="class">${taxa.nbClass}</a> usages
+          #{/else}  
+          </td>
+        </tr>
+        <tr>
+          <th>Order</th>
+          <td>
+          #{if taxa.order}
+            <a id="order" href="@{Taxas.show(taxa.orderID)}">${taxa.order}</a>
+          #{/if}
+          #{else}
+            <a id="order">${taxa.nbOrder}</a> usages 
+          #{/else}  
+          </td>
+        </tr>
+        <tr>
+          <th>Family</th>
+          <td>
+          #{if taxa.family}
+            <a id="family" href="@{Taxas.show(taxa.familyID)}">${taxa.family}</a>
+          #{/if}
+          #{else}
+            <a id="family">${taxa.nbFamily}</a> usages
+          #{/else}  
+          </td>
+        </tr>
+        <tr>
+          <th>Genus</th>
+          <td>
+          #{if taxa.genus}
+            <a id="genus" href="@{Taxas.show(taxa.genusID)}">${taxa.genus}</a>
+          #{/if}
+          #{else}
+            <a id="genus">${taxa.nbGenus}</a> usages
+          #{/else}  
+          </td>
+        </tr>
+        <tr>
+          <th>Species</th>
+          <td>
+          #{if taxa.species}
+            <a id="species" href="@{Taxas.show(taxa.speciesID)}">${taxa.species}</a>
+          #{/if}
+          #{else}
+            <a id="species">${taxa.nbSpecies}</a>  usages
+          #{/else}  
+          </td>
+        </tr>    
+      </tbody>
+    </table>
+  </div>
+  <div id="children" class="well"></div>
+  #{if taxa.description || taxa.mediaURLs }
+  <div>  
+    <h3>EOL Information</h3>
+    <h6><a href="http://eol.org/pages/${taxa.eolID}/details">View full entry</a></h6>
+    <table class="table  table-condensed table-striped">
+      <tbody>
+        #{if taxa.description}
+        <tr>
+          <th>Description</th>
+          <td>#{verbatim}${taxa.description}#{/verbatim}</td>
+        </tr>
+        #{/if}
+        #{if taxa.mediaURLs}
+        <tr>
+          <th>Media</th>
+          <td>
+            #{list items:taxa.mediaURLs, as: 'mediaURL'}
+              <a href="${mediaURL[1]}"><img width="100" height="100" src="${mediaURL[0]}"/></a>
+            #{/list}
+          </td>  
+        </tr>
+        #{/if}
+      </tbody>
+    </table>    
+  </div>
+  #{/if}
+</div>

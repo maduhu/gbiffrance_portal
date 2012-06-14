@@ -1,0 +1,32 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+<div class="container">
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="page-header well alert-info">
+      <h1>${dataPublisher.name}</h1>
+    </div>
+    <iframe width="900" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.fr/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;aq=&amp;sll=46.75984,1.738281&amp;sspn=9.967265,23.269043&amp;ie=UTF8&amp;hq=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;hnear=&amp;ll=48.841808,2.357741&amp;spn=0.074784,0.181789&amp;t=m&amp;z=10&amp;iwloc=${dataPublisher.name}&amp;cid=2299256314626690090&amp;output=embed"></iframe><br /></small>
+    <div class="page-header well alert-error">
+      <h3>Datasets</h3>
+      <div class="btn-group">
+      #{list items:datasets, as:'dataset'}
+        <div class="btn btn-large"><a href="@{Datasets.show(dataset.id)}">${dataset.name}</a></div>
+      #{/list}
+      </div>
+    </div>
+    <table class="table table-condensed table-striped">
+      <tbody>
+        <tr>
+          <th>Description</th>
+          <td>${dataPublisher.description}</td>
+        </tr>
+        <tr>  
+          <th>Adresse</th>
+          <td>${dataPublisher.address}</td>
+        </tr>  
+      </tbody>
+    </table>
+  </div>
+  </div>
+</div>
