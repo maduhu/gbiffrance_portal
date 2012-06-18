@@ -2,10 +2,10 @@
 #{set title:'Home' /}
 <div class="container">
   <div class="page-header well">
-  #{if occurrence.specificEpithet_interpreted}
+  #{if taxa}
     <div class="btn-group">
     <h4>
-      <a class="btn btn-large" href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a>
+      #{if taxa.kingdomID} <a class="btn btn-large" href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a>#{/if}
       <a class="btn btn-large" href="@{Taxas.show(taxa.phylumID)}">${taxa.canonicalPhylum}</a>
       <a class="btn btn-large" href="@{Taxas.show(taxa.classID)}">${taxa.canonicalClass}</a>
       <a class="btn btn-large" href="@{Taxas.show(taxa.orderID)}">${taxa.canonicalOrder}</a>
