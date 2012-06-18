@@ -1,12 +1,72 @@
 #{extends 'main.html' /}
 #{set title:'Home' /}
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+var lat=48.856930;
+var lng=2.341200;
+  var latlng=new L.LatLng(lat,lng);
+
+var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  var osmAttrib='Map data © OpenStreetMap contributors';
+  var osm = new L.TileLayer(osmUrl);
+  osm.basemap=true;
+  //, {minZoom: 5, maxZoom: 12, attribution: osmAttrib}
+  
+map = new L.Map('map', {
+            layers: [osm]
+    });
+      map.addLayer(new L.Marker(latlng)); 
+    
+map.setView(latlng, 5); 
+
+  // Stuff to do as soon as the DOM is ready. Use $() w/o colliding with other libs;
+  console.warn('${dataPublisher.id}');
+  
+    $('.btn-small').click(function()
+   {
+      $.each(map._layers, function(index, value) { 
+                  {
+                  if (!value.basemap)
+                  {
+                  map.removeLayer(value)
+                  }
+          
+                  }
+                  })
+
+
+   $('#map').animate({'height':'700px'})
+       setTimeout(function() { 
+                               
+
+                                   url='http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/region_spn_mnhn/metadata.jsonp';
+                              wax.tilejson(url, function(tilejson) {
+                                  region_spn_mnhn = new wax.leaf.connector(tilejson);
+                                map.addLayer(region_spn_mnhn);
+                                   interaction = wax.leaf.interaction(map, tilejson)
+                                   region_spn_mnhn.setOpacity(0.9)
+                                   region_spn_mnhn.name='region_spn_mnhn';
+                        
+                             map.setView(new L.LatLng(47.0701,2.6147),5);
+
+                              map.invalidateSize(); 
+                                 });
+                        },10); 
+ 
+  })
+});
+
+</script>
 <div class="container">
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="page-header well alert-info">
       <h1>${dataPublisher.name}</h1>
     </div>
-    <iframe width="900" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.fr/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;aq=&amp;sll=46.75984,1.738281&amp;sspn=9.967265,23.269043&amp;ie=UTF8&amp;hq=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;hnear=&amp;ll=48.841808,2.357741&amp;spn=0.074784,0.181789&amp;t=m&amp;z=10&amp;iwloc=${dataPublisher.name}&amp;cid=2299256314626690090&amp;output=embed"></iframe><br /></small>
+    <div id="map" style='width:100%;height:300px'></div>
+   <!-- <iframe width="900" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.fr/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;aq=&amp;sll=46.75984,1.738281&amp;sspn=9.967265,23.269043&amp;ie=UTF8&amp;hq=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;hnear=&amp;ll=48.841808,2.357741&amp;spn=0.074784,0.181789&amp;t=m&amp;z=10&amp;iwloc=${dataPublisher.name}&amp;cid=2299256314626690090&amp;output=embed"></iframe><br /></small>-->
+   <div class="btn btn-small">Check biodiversity map</div>
+ 
     <div class="page-header well alert-error">
       <h3>Datasets</h3>
       <div class="btn-group">

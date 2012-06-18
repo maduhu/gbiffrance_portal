@@ -297,6 +297,14 @@ public class Occurrences extends Controller {
       occurrence.taxonStatus = (String) response.getHits().getAt(0).getSource().get("taxonStatus");
       //occurrence.ecatConceptId = (String) response.getHits().getAt(0).getSource().get("ecatConceptId");
       //occurrence.ecatParentId = (String) response.getHits().getAt(0).getSource().get("ecatParentId");
+		
+		DBRef dbRef = (DBRef) JSON.parse((String) response.getHits().getAt(0).getSource().get("dataset"));
+		String dataset_id = (String) dbRef.getId();
+		Dataset dataset = Dataset.findById(dataset_id);
+		occurrence.dataset = dataset;
+		//occurrence.ecatConceptId = (String) response.getHits().getAt(0).getSource().get("ecatConceptId");
+		//occurrence.ecatParentId = (String) response.getHits().getAt(0).getSource().get("ecatParentId");
+		
       client.close();
       
       Taxa taxa = Taxas.getTaxonomy(occurrence);
