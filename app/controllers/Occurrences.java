@@ -87,11 +87,14 @@ public class Occurrences extends Controller {
 	  }
 	  //GeoBoundingBoxFilterBuilder geoBoundingBoxFilter = new GeoBoundingBoxFilterBuilder("boundingBoxFilter").bottomRight(boundingBoxSWLatitude,boundingBoxSWLongitude).topLeft(boundingBoxNELatitude,boundingBoxNELongitude);	    	  	  	  	 	  	    			  	
 	  
-	  QueryBuilder q1 = textQuery("scientificName", enrichedSearch).boost(20);
+	  System.out.println("Enriched search = " + enrichedSearch);
+	  
+	  
+	  QueryBuilder q1 = termQuery("scientificName", enrichedSearch).boost(20);
 	  QueryBuilder q2 = textQuery("country", enrichedSearch);
 	  //QueryBuilder q3 = textQuery("decimalLatitude", enrichedSearch); //latitude
 	  //QueryBuilder q4 = textQuery("decimalLongitude", enrichedSearch); //longitude
-	  QueryBuilder q5 = textQuery("locality", enrichedSearch).boost(5);
+	  QueryBuilder q5 = textQuery("locality", enrichedSearch);
 	  QueryBuilder q6 = textQuery("genus_interpreted", enrichedSearch);
 	  QueryBuilder q7 = textQuery("institutionCode", enrichedSearch);
 	  QueryBuilder q8 = textQuery("collectionCode", enrichedSearch);
@@ -102,16 +105,20 @@ public class Occurrences extends Controller {
 	  QueryBuilder q13 = textQuery("dataPublisher.name", enrichedSearch);
 	  
 	  
+	  
 	  /* Useful to retrieve data from occurrences with coordinates but no locality */
 	  QueryBuilder q14 = rangeQuery("decimalLatitude").from(boundingBoxSWLatitude).to(boundingBoxNELatitude);
 	  QueryBuilder q15 = rangeQuery("decimalLongitude").from(boundingBoxSWLongitude).to(boundingBoxNELongitude);
-	  QueryBuilder q16 = textQuery("countryCode", enrichedSearch);
+	  QueryBuilder q16 = termQuery("countryCode", enrichedSearch);
+	  QueryBuilder q17 = textQuery("county", enrichedSearch);
+	  QueryBuilder q18 = textQuery("specificEpithet_interpreted", enrichedSearch);
 	  
 	  QueryBuilder q;
 	   	  	  
 	  q = boolQuery()
 	    .must(boolQuery()	    
 	      .should(q1)
+	      
 	      .should(q2)
 	      //.should(q3)
 	      //.should(q4)
@@ -123,9 +130,11 @@ public class Occurrences extends Controller {
 	      .should(q10)
 	      .should(q11)
 	      .should(q12)
-	      .should(q13)
-	      .should(boolQuery().must(q14).must(q15))
+	      .should(q13)	     
+	      .should(boolQuery().must(q14).must(q15).should(q1).boost(20))
 	      .should(q16)
+	      .should(q17)
+	      .should(q18)
 	    );
 	  	  
       SearchResponse response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setExplain(true).execute().actionGet();

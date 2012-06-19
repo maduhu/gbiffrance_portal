@@ -18,7 +18,6 @@ genus='${occurrence.genus_interpreted}'
  
 var specificEpithet='${specificEpithet_interpreted}'
 
-//alert('${taxa.canonicalKingdom}')
 if (lat && lng)
 {
 var geojson;
@@ -109,7 +108,7 @@ e.layer.setStyle({fillColor:'#EA38D5'});
 //for the moment only INPN and Genus type applied for testing
 
 //my PHP folder!
-jQuery.ajax({url:'http://localhost:8887/gbif_portal/geojson.php',
+jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.php',
   data: {taxa:genus,type:'genus',collection:'simple_inpn2'},
   type: 'GET',
   dataType: "jsonp", 

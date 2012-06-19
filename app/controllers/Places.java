@@ -66,7 +66,7 @@ import models.*;
 		place.id = id;
 		String placeTypeName = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("placeTypeName").getAsString();
 		place.placeTypeName = placeTypeName;
-		if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region") || placeTypeName.equals("Island"))
+		if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Department") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region") || placeTypeName.equals("Island"))
 		{
 	      HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		  String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
@@ -121,14 +121,15 @@ import models.*;
 	  {  
 		int id = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("woeid").getAsInt();
 		String placeTypeName = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("placeTypeName").getAsString();
-		if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region"))
+		if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Department") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region"))
 		{
           HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		  String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		  search += " " + nameFr;
-		  float centroidLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("latitude").getAsFloat();
-		  float centroidLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("longitude").getAsFloat();
-		  search += " " + centroidLatitude+"#"+centroidLongitude;	
+		  //float centroidLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("latitude").getAsFloat();
+		  //float centroidLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("longitude").getAsFloat();
+		  //search += " " + centroidLatitude+"#"+centroidLongitude;	
+		  
 		  float boundingBoxSWLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("southWest").getAsJsonObject().get("latitude").getAsFloat();
 		  float boundingBoxSWLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("southWest").getAsJsonObject().get("longitude").getAsFloat();
 		  float boundingBoxNELatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("latitude").getAsFloat();
@@ -148,8 +149,11 @@ import models.*;
 		  String nameDe = geoResponseDe.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		  search += " " + nameDe;
 		  
-		  String countryCode = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country attrs").getAsJsonObject().get("code").getAsString();
-		  search += " " + countryCode; 
+		  if (!geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("France"))
+		  {
+		    String countryCode = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country attrs").getAsJsonObject().get("code").getAsString();
+		    search += " " + countryCode;
+		  }
 		  
 		}		
 	  }
@@ -175,7 +179,7 @@ import models.*;
 			place.id = id;
 			String placeTypeName = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("placeTypeName").getAsString();
 			place.placeTypeName = placeTypeName;
-			if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region"))
+			if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Department") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region"))
 			{
 		      HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 			  String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
