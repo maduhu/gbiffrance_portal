@@ -84,14 +84,15 @@
   background:#333;
   color:#fff;
   padding:7px;
- // left:1100px;
+
  right: 10px;
-  top:40px;
+  top:10px;
   border:2px solid #5CACEE;
   border-radius:2px;
-  max-width:300px;
+  max-width:250px;
   opacity:0.8;
   font-type: Georgia;
+  font-size: 0.8em;
   line-height: 1.3em;
   font-size: 1em;
 //  width: auto;

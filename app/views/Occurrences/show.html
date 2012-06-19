@@ -129,7 +129,7 @@ polygon_geojson=new L.GeoJSON(null);
 
 polygon_geojson.my_geojson=true;
 //my PHP folder!
-jQuery.ajax({url:'http://localhost:8887/gbif_portal/geojson.php',
+jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.php',
   data: {taxa:genus,type:'genus',collection:dataset,geom_type:'polygon'},
   type: 'GET',
   dataType: "jsonp", 
