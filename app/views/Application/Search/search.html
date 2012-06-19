@@ -5,6 +5,9 @@
   var occurrences = #{jsAction @Occurrences.search(':search', ':from') /}  
   var places = #{jsAction @Places.search(':search') /}
   var datasets = #{jsAction @Datasets.search(':search') /}
+ 
+ //NE MARCHE PAS
+ //alert('${nbHits}')
   function searchTaxas(search, page)
   {  
 	// temporary solution
@@ -18,7 +21,11 @@
     // temporary solution
 	search = search.replace(/ /g,"%20");
     $('#occurrences').load(occurrences({search: search, from: from}));
+     //NE MARCHE PAS
+   // alert('${nbHits}')
     $('#occurrences').show() 
+//alert('${occurrence}')
+    return false;
   }
   
   function searchPlaces(search)
@@ -40,6 +47,8 @@
     searchTaxas('${search}','1');
     searchPlaces('${search}', 0);
     searchDatasets('${search}');
+//NE MARCHE PAS
+//     alert('${nbHits}')
   });
 </script>
 

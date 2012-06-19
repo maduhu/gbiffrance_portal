@@ -2,11 +2,82 @@
 #{set title:'Home' /}
 
 <script type="text/javascript">
+function remove_json()
+{
+for (var k in map._layers) {
+    if (map._layers.hasOwnProperty(k)) {
+
+       if (map._layers[k].my_geojson==true)
+{
+map.removeLayer(map._layers[k])
+//console.warn(map._layers[k])
+}
+
+    }
+}
+}
+
+var geojson;
+
+    
+//to improve symbology, not proportional
+function apply_parsing(e)
+{
+
+ var count=e.properties.count; 
+
+if (geom_type=='point')
+{
+    if (count){
+if (count>150) 
+	{
+    radius=150
+    e.layer.setRadius(radius/5);
+    }
+ else
+ {
+  if (count<=10)
+      e.layer.setRadius(10);
+  else
+  {
+    e.layer.setRadius(count/5);
+  }
+ }
+}
+}
+
+this_count=count;
+ e.layer.setStyle({fillOpacity:0.6});
+if (this_count>=geojson_min && this_count<interval_1)
+{
+ e.layer.setStyle({fillColor:'#E0E043'});
+}
+if (this_count>=interval_1 && this_count<geojson_medium)
+{
+ e.layer.setStyle({fillColor:'#64E580'});
+}
+if 
+(this_count>=geojson_medium && this_count<interval_2)
+{
+e.layer.setStyle({fillColor:'#6391ED'});
+}
+if (this_count>=interval_2 && this_count<=geojson_max)
+{
+e.layer.setStyle({fillColor:'#EA38D5'});
+}
+   
+
+   // }  
+    var popupContent='Here we found '+ count+' occurrences for taxa '+taxa;
+    e.layer.bindPopup(popupContent);
+
+}
 $(document).ready(function() {
 
+dataset='${occurrence.dataset.id}';
 
- lat=${occurrence.decimalLatitude};
-  lng=${occurrence.decimalLongitude};
+lat=${occurrence.decimalLatitude};
+lng=${occurrence.decimalLongitude};
 taxa='${occurrence.scientificName}';
 
 var kingdom='${occurrence.kingdom_interpreted}'
@@ -26,7 +97,8 @@ var latlng=new L.LatLng(lat,lng);
 
 var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	var osmAttrib='Map data © OpenStreetMap contributors';
-	var osm = new L.TileLayer(osmUrl, {minZoom: 5, maxZoom: 12, attribution: osmAttrib});
+	var osm = new L.TileLayer(osmUrl);
+	//, {minZoom: 5, maxZoom: 12, attribution: osmAttrib}
 			
 map = new L.Map('map', {
 						layers: [osm]
@@ -46,85 +118,92 @@ var geojsonMarkerOptions = {
 
 
 
-$('#geo_genus').click(function()
+
+$('#polygon_genus').click(function()
 {
-geojson = new L.GeoJSON(null, {
-    pointToLayer: function(latlng) { 
-    return new L.CircleMarker(latlng,geojsonMarkerOptions)
-     }
-});
+geom_type='polygon';
+remove_json();
 
+polygon_geojson=new L.GeoJSON(null);
 
-//this symbology function is applied each time we add data to our geojson
-geojson.on('featureparse', function(e) {
-
- var count=e.properties.count;        
-//to improve symbology, not proportional
-    if (count){
-if (count>150) 
-	{
-    radius=150
-    e.layer.setRadius(radius/5);
-    }
-else
-{
-  if (count<=10)
-      e.layer.setRadius(10);
-  else
-  {
-    e.layer.setRadius(count/5);
-  }
-}
-
-if (e.properties && e.properties.style && e.layer.setStyle){
-this_count=count;
-
-if (this_count>=geojson_min && this_count<interval_1)
-{
- e.layer.setStyle({fillColor:'#E0E043'});
-}
-if (this_count>=interval_1 && this_count<geojson_medium)
-{
- e.layer.setStyle({fillColor:'#64E580'});
-}
-if 
-(this_count>=geojson_medium && this_count<interval_2)
-{
-e.layer.setStyle({fillColor:'#6391ED'});
-}
-if (this_count>=interval_2 && this_count<=geojson_max)
-{
-e.layer.setStyle({fillColor:'#EA38D5'});
-
-}
-
-   
-} 
-
-    }  
-    var popupContent='Here we found '+ count+' occurrences for taxa '+taxa;
-    e.layer.bindPopup(popupContent);
-});
-//for the moment only INPN and Genus type applied for testing
-
+polygon_geojson.my_geojson=true;
 //my PHP folder!
 jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.php',
-  data: {taxa:genus,type:'genus',collection:'simple_inpn2'},
+  data: {taxa:genus,type:'genus',collection:dataset,geom_type:'polygon'},
   type: 'GET',
   dataType: "jsonp", 
     crossDomain : true,
   
  success: function(data)
  {
+polygon_geojson.on('featureparse', function(e) {
+  
+  apply_parsing(e)
+  })   
  geojson_max=data.max;
  geojson_min=data.min;
 
  geojson_medium=data.medium;
  interval_1=data.interval_1;
  interval_2=data.interval_2; 	
- geojson.clearLayers()
- geojson.addGeoJSON(data);
+// geojson.clearLayers()
+ polygon_geojson.addGeoJSON(data);
  
+ 
+
+ map.addLayer(polygon_geojson)
+ },
+ error:function (e)
+ {
+
+ alert('error')
+ }
+ })
+
+})
+
+$('#geo_genus').click(function()
+{
+geom_type='point';
+
+remove_json();
+
+geojson = new L.GeoJSON(null, {
+    pointToLayer: function(latlng) { 
+    return new L.CircleMarker(latlng,geojsonMarkerOptions)
+     }
+});
+ 
+geojson.my_geojson=true;
+//this symbology function is applied each time we add data to our geojson
+
+//for the moment only INPN and Genus type applied for testing
+
+//my PHP folder!
+jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.php',
+  data: {taxa:genus,type:'genus',collection:dataset,geom_type:'point'},
+  type: 'GET',
+  dataType: "jsonp", 
+    crossDomain : true,
+  
+ success: function(data)
+ {
+
+geojson.on('featureparse', function(e) {
+ 
+ apply_parsing(e)
+ })  
+ 
+ geojson_max=data.max;
+ geojson_min=data.min;
+
+ geojson_medium=data.medium;
+ interval_1=data.interval_1;
+ interval_2=data.interval_2; 	
+// geojson.clearLayers()
+
+ geojson.addGeoJSON(data);
+
  map.addLayer(geojson)
  },
  error:function (e)
@@ -267,6 +346,7 @@ jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.ph
   <div class="record-info">
   <!-- to extend to all taxa levels, this is just for testing -->
     <button id='geo_genus'>All occurrences for Genus</button>
+    <button id='polygon_genus'>All polygon for Genus</button>
     <h3>Record</h3>
     <table class="table table-condensed table-striped">
       <tbody>
