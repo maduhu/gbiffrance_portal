@@ -52,7 +52,7 @@ public class Taxas extends Controller {
     
     HttpResponse response = WS.url("http://ecat-dev.gbif.org/ws/nav/" + taxonId +"?rank=" +rank.charAt(0)+"&page="+ page + "&pagesize=" + pagesize + "&sort=alpha").get();
     pagesize = response.getJson().getAsJsonObject().get("data").getAsJsonArray().size();
-    System.out.println("http://ecat-dev.gbif.org/ws/nav/" + taxonId +"?rank=" +rank.charAt(0)+"&page="+ page + "&pagesize=" + pagesize + "&sort=alpha");
+    //System.out.println("http://ecat-dev.gbif.org/ws/nav/" + taxonId +"?rank=" +rank.charAt(0)+"&page="+ page + "&pagesize=" + pagesize + "&sort=alpha");
     List<Taxa> children = new ArrayList<Taxa>();
     
     for (int i = 0; i < pagesize; ++i) {
@@ -80,7 +80,7 @@ public class Taxas extends Controller {
   {
 	// ECAT Information  
 	HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/" + taxonId).get();
-    System.out.println("http://ecat-dev.gbif.org/ws/usage/" + taxonId);
+    //System.out.println("http://ecat-dev.gbif.org/ws/usage/" + taxonId);
 	taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("taxonID").getAsLong();
     taxa.rank = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("rank").getAsString();
     taxa.accordingTo = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("accordingTo").getAsString();
@@ -103,7 +103,9 @@ public class Taxas extends Controller {
         taxa.species = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("species").getAsString();
     
     if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").isJsonNull())
+    {
       taxa.kingdomID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").getAsInt();
+    }
     if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylumID").isJsonNull())
         taxa.phylumID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylumID").getAsInt();
     if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("orderID").isJsonNull())
@@ -184,14 +186,14 @@ public class Taxas extends Controller {
 		HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i]).get();	
 		int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
 		/* if there are results, it could be a genus, try to find a specificEpithet */
-		System.out.println ("count :" + count);
+		//System.out.println ("count :" + count);
 		if (count > 0)
 		{
 			if (i+1 < splittedSearch.length)
 			{
 			  ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i] + "%20" + splittedSearch[i+1]).get();
 			  int count2 = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
-			  System.out.println ("count2 :" + count2);
+			  //System.out.println ("count2 :" + count2);
 			  if (count2 > 0) search = splittedSearch[i] + "%20" + splittedSearch[i+1];
 			  else search = splittedSearch[i];
 			}
@@ -204,7 +206,7 @@ public class Taxas extends Controller {
 	HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + search.replaceAll(" ", "%20")).get();
 	int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
 	ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20")).get();
-	System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20"));
+	//System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20"));
 	 
 
 	List<Taxa> taxas = new ArrayList<Taxa>();

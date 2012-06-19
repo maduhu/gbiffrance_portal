@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+import org.apache.lucene.search.NumericRangeQuery;
+import org.apache.lucene.search.Query;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
@@ -25,7 +27,14 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
+import static org.elasticsearch.index.query.FilterBuilders.*;
+
+import org.elasticsearch.index.query.AndFilterBuilder;
+import org.elasticsearch.index.query.GeoBoundingBoxFilterBuilder;
+import org.elasticsearch.index.query.GeoDistanceFilterBuilder;
+import org.elasticsearch.index.query.OrFilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.search.geo.GeoDistanceFilter;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
 import org.gbif.ecat.model.ParsedName;
@@ -52,11 +61,37 @@ public class Occurrences extends Controller {
 	  	  .put("cluster.name", "elasticsearch").put("client.transport.sniff", true).build();
 	  Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
 	  
-	  QueryBuilder q1 = textQuery("scientificName", enrichedSearch);
-	  QueryBuilder q2 = textQuery("country", enrichedSearch).boost(1);
-	  //QueryBuilder q3; //latitude
-	  //QueryBuilder q4; //longitude
-	  QueryBuilder q5 = textQuery("locality", enrichedSearch);
+	  
+	  
+	  
+	  /* Extracts bounding box information from the search */
+	  double boundingBoxSWLatitude = 0;
+	  double boundingBoxSWLongitude = 0;
+	  double boundingBoxNELatitude = 0;
+	  double boundingBoxNELongitude = 0;	  
+	  String[] splittedEnrichedSearch = enrichedSearch.split(" ");
+	  for (int i = 0; i < splittedEnrichedSearch.length; ++i)
+	  {
+		  if (splittedEnrichedSearch[i].startsWith("{{") && splittedEnrichedSearch[i].endsWith("}}"))
+		  {
+			  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("[{,}]", " ").trim();
+			  //System.out.println(splittedEnrichedSearch[i]);
+			  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("  ", " ");
+			  String[] boundingBox = splittedEnrichedSearch[i].split(" ");
+			  System.out.println(boundingBox[0] + " " +  boundingBox[1] + " " +boundingBox[2] + " " + boundingBox[3]);
+			  boundingBoxSWLatitude = Double.valueOf(boundingBox[0]);
+			  boundingBoxSWLongitude =  Double.valueOf(boundingBox[1]);
+			  boundingBoxNELatitude =  Double.valueOf(boundingBox[2]);
+			  boundingBoxNELongitude =  Double.valueOf(boundingBox[3]);
+		  }
+	  }
+	  //GeoBoundingBoxFilterBuilder geoBoundingBoxFilter = new GeoBoundingBoxFilterBuilder("boundingBoxFilter").bottomRight(boundingBoxSWLatitude,boundingBoxSWLongitude).topLeft(boundingBoxNELatitude,boundingBoxNELongitude);	    	  	  	  	 	  	    			  	
+	  
+	  QueryBuilder q1 = textQuery("scientificName", enrichedSearch).boost(20);
+	  QueryBuilder q2 = textQuery("country", enrichedSearch);
+	  //QueryBuilder q3 = textQuery("decimalLatitude", enrichedSearch); //latitude
+	  //QueryBuilder q4 = textQuery("decimalLongitude", enrichedSearch); //longitude
+	  QueryBuilder q5 = textQuery("locality", enrichedSearch).boost(5);
 	  QueryBuilder q6 = textQuery("genus_interpreted", enrichedSearch);
 	  QueryBuilder q7 = textQuery("institutionCode", enrichedSearch);
 	  QueryBuilder q8 = textQuery("collectionCode", enrichedSearch);
@@ -66,12 +101,20 @@ public class Occurrences extends Controller {
 	  QueryBuilder q12 = textQuery("higherGeography", enrichedSearch);
 	  QueryBuilder q13 = textQuery("dataPublisher.name", enrichedSearch);
 	  
-	  QueryBuilder q;
 	  
+	  /* Useful to retrieve data from occurrences with coordinates but no locality */
+	  QueryBuilder q14 = rangeQuery("decimalLatitude").from(boundingBoxSWLatitude).to(boundingBoxNELatitude);
+	  QueryBuilder q15 = rangeQuery("decimalLongitude").from(boundingBoxSWLongitude).to(boundingBoxNELongitude);
+	  QueryBuilder q16 = textQuery("countryCode", enrichedSearch);
+	  
+	  QueryBuilder q;
+	   	  	  
 	  q = boolQuery()
-	    .must(boolQuery()
+	    .must(boolQuery()	    
 	      .should(q1)
 	      .should(q2)
+	      //.should(q3)
+	      //.should(q4)
 	      .should(q5)
 	      .should(q6)
 	      .should(q7)
@@ -81,27 +124,30 @@ public class Occurrences extends Controller {
 	      .should(q11)
 	      .should(q12)
 	      .should(q13)
+	      .should(boolQuery().must(q14).must(q15))
+	      .should(q16)
 	    );
-	  
-      SearchResponse response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setExplain(true).execute().actionGet();	  
+	  	  
+      SearchResponse response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setExplain(true).execute().actionGet();
+	  //SearchResponse response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFilter(andFilterBuilder).setExplain(true).execute().actionGet();
       //System.out.println("Search Occurrences : " + client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).toString());
       List<Occurrence> occurrences = new ArrayList<Occurrence>();
       Long nbHits = response.getHits().getTotalHits();
-      for (SearchHit hit : response.getHits()) {
-    	Occurrence occurrence = new Occurrence();
-        occurrence.id = (Integer) hit.getSource().get("_id");
-        occurrence.scientificName = (String) hit.getSource().get("scientificName");
-        occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
-        occurrence.specificEpithet_interpreted = (String) hit.getSource().get("specificEpithet_interpreted");
-        occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
-        occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");
-        DBRef dbRef = (DBRef) JSON.parse((String) hit.getSource().get("dataset"));
-        String dataset_id = (String) dbRef.getId();
-        Dataset dataset = Dataset.findById(dataset_id);
-        occurrence.dataset = dataset;
-        occurrence.score = hit.getScore();
-        occurrences.add(occurrence);
-        if (occurrences.size() >= 50) break;
+      for (SearchHit hit : response.getHits()) {   
+          Occurrence occurrence = new Occurrence();	
+    	  occurrence.id = (Integer) hit.getSource().get("_id");
+          occurrence.scientificName = (String) hit.getSource().get("scientificName");
+          occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
+          occurrence.specificEpithet_interpreted = (String) hit.getSource().get("specificEpithet_interpreted");
+          occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
+          occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");
+          DBRef dbRef = (DBRef) JSON.parse((String) hit.getSource().get("dataset"));
+          String dataset_id = (String) dbRef.getId();
+          Dataset dataset = Dataset.findById(dataset_id);
+          occurrence.dataset = dataset;
+          occurrence.score = hit.getScore();
+          occurrences.add(occurrence);
+          if (occurrences.size() >= 50) break;        
       }  
       int current = from/pagesize;
       from += 50;
