@@ -84,6 +84,8 @@ public class Occurrences extends Controller {
 			  boundingBoxNELatitude =  Double.valueOf(boundingBox[2]);
 			  boundingBoxNELongitude =  Double.valueOf(boundingBox[3]);
 		  }
+		  
+		  
 	  }
 	  //GeoBoundingBoxFilterBuilder geoBoundingBoxFilter = new GeoBoundingBoxFilterBuilder("boundingBoxFilter").bottomRight(boundingBoxSWLatitude,boundingBoxSWLongitude).topLeft(boundingBoxNELatitude,boundingBoxNELongitude);	    	  	  	  	 	  	    			  	
 	  
@@ -350,16 +352,15 @@ public class Occurrences extends Controller {
       occurrence.nomenclaturalStatus = (String) response.getHits().getAt(0).getSource().get("nomenclaturalStatus");
       occurrence.taxonRemarks = (String) response.getHits().getAt(0).getSource().get("taxonRemarks");
       occurrence.taxonStatus = (String) response.getHits().getAt(0).getSource().get("taxonStatus");
-      //occurrence.ecatConceptId = (String) response.getHits().getAt(0).getSource().get("ecatConceptId");
-      //occurrence.ecatParentId = (String) response.getHits().getAt(0).getSource().get("ecatParentId");
-		
-		DBRef dbRef = (DBRef) JSON.parse((String) response.getHits().getAt(0).getSource().get("dataset"));
+      
+      DBRef dbRef = (DBRef) JSON.parse((String) response.getHits().getAt(0).getSource().get("dataset"));
 		String dataset_id = (String) dbRef.getId();
 		Dataset dataset = Dataset.findById(dataset_id);
 		occurrence.dataset = dataset;
-		//occurrence.ecatConceptId = (String) response.getHits().getAt(0).getSource().get("ecatConceptId");
-		//occurrence.ecatParentId = (String) response.getHits().getAt(0).getSource().get("ecatParentId");
-		
+      
+      
+      //occurrence.ecatConceptId = (String) response.getHits().getAt(0).getSource().get("ecatConceptId");
+      //occurrence.ecatParentId = (String) response.getHits().getAt(0).getSource().get("ecatParentId");
       client.close();
       
       Taxa taxa = Taxas.getTaxonomy(occurrence);
