@@ -1,13 +1,34 @@
 #{extends 'main.html' /}
 #{set title:'Home' /}
 <script type="text/javascript" >
+  
+  var placeFilter = "[place:]";
+  var taxaFilter = "[taxa:]";
+  var coordinatesFilter = "[onlyWithCoordinates]";
+  
+  function addFilter(type)
+  { 
+    if (type == "place")
+    {
+      $(".search-query").val('${search.text}' + placeFilter);
+       
+    }
+    else if (type == "taxa")
+    {
+      $(".search-query").val('${search.text}' + taxaFilter);  
+    }  
+    else if (type == "coordinates")
+    {
+      $(".search-query").val('${search.text}' + coordinatesFilter);  
+    }
+    $(".search-query").focus();  
+  }
+ 
   var taxas = #{jsAction @Taxas.search(':search', ':page') /}  
   var occurrences = #{jsAction @Occurrences.search(':search', ':from') /}  
   var places = #{jsAction @Places.search(':search') /}
   var datasets = #{jsAction @Datasets.search(':search') /}
  
- //NE MARCHE PAS
- //alert('${nbHits}')
   function searchTaxas(search, page)
   {  
 	// temporary solution
@@ -41,29 +62,37 @@
     $('#datasets').load(datasets({search: search}));
     $('#datasets').show() 
   }
-  
+    
   $(document).ready(function() {
-	searchOccurrences('${search}', 0)
-    searchTaxas('${search}','1');
-    searchPlaces('${search}', 0);
-    searchDatasets('${search}');
-//NE MARCHE PAS
-//     alert('${nbHits}')
+	searchOccurrences('${textSearch}', 0)
+    searchTaxas('${search.taxa}','1');
+    searchPlaces('${search.textPlace}', 0);
+    $("#search-filter-place").click(function() {addFilter('place')})
+    $("#search-filter-taxa").click(function() {addFilter('taxa')})
+    $("#search-filter-coordinates").click(function() {addFilter('coordinates')})
+    $(".search-query").focus();
+    
+    //searchDatasets('${search}');
   });
 </script>
 
 <div class="container">
   <div class="form-search well alert alert-info">
     #{form @Application.search(), id:'searchForm', class:'form-search well alert alert-info'}
-      <h2>Découvrez la biodiversité française</h2><br/>
+      <h2>Découvrir l'information sur la biodiversité française</h2><br/>
       <div>
-        <input class="input-large search-query" type="text" id="search-box" name="search"/>
+        <input class="input-large search-query" type="text" id="search-box" name="textSearch" value="${search.text}"/>
         <input class="btn btn-large" id="test" type="submit" value="Rechercher"/>
+        <div id="search-filters">
+          <div class="btn btn-warning btn-large search-filter" id="search-filter-place">Place</div>
+          <div class="btn btn-info btn-large search-filter" id="search-filter-taxa">Taxa</div>
+          <div class="btn btn-success btn-large search-filter" id="search-filter-coordinates">Only with coordinates</div>
+        </div>
       </div>
     #{/form}
   </div>
-  #{if search}
-    <h1>Recherche: <span id="taxonName" >${search}</span></h1>
+  #{if textSearch}
+    <h1>Recherche: <span id="taxonName" >${textSearch}</span></h1>
   #{/if}
   <div id="datasets"></div>
   <div id="places"></div>

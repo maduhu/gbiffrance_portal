@@ -33,10 +33,12 @@ import models.Util;
 
 public class Application extends Controller {
  
-	public static void search(String search)
+	public static void search(String textSearch)
 	{
-	  search = Util.normalize(search);
-	  render("Application/Search/search.html", search);
+	  System.out.println(textSearch);
+	  textSearch = Util.normalize(textSearch);
+	  Search search = Search.parser(textSearch);
+	  render("Application/Search/search.html", search, textSearch);
 	}
 	
     public static void index() {
