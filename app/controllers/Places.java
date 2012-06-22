@@ -12,10 +12,12 @@ import models.*;
 
   public class Places extends Controller {
     
-  public static void search(String search)
+  public static void search(String textPlace)
   {
 	boolean results = false;
-    String[] splittedSearch = search.split(" ");
+    String[] splittedSearch = null;
+    if (textPlace != null &&  !textPlace.isEmpty()) 
+    	splittedSearch = textPlace.split(" ");
 	List<Place> places = new ArrayList<Place>();
 	for (int i = 0; i < splittedSearch.length; ++i)
 	{

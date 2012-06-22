@@ -1,0 +1,22 @@
+#{extends 'main.html' /}
+<script src="@{'/public/javascripts/search/search.js'}"></script>
+<div class="container">
+  <div class="form-search well alert alert-info">
+    #{form @Application.search(), id:'searchForm', class:'form-search well alert alert-info'}
+      <h2>Découvrir l'information sur la biodiversité française</h2><br/>
+      <div id="search-main-box">
+        <div id="search-inputs">
+        <div id="search-taxa" class="btn btn-info btn"><h5>Taxa</h5><input class="input-small search-query" type="text" id="input-search-taxa" name="searchTaxa" value=#{if search && search.taxa}"${search.taxa}"#{/if}#{else}""#{/else}/></div>
+        <div id="search-place" class="btn btn-warning btn"><h5>Place</h5><input class="input-small search-query" type="text" id="input-search-place" name="searchPlace" value=#{if search && search.textPlace}"${search.textPlace}"#{/if}#{else}""#{/else}/></div>        
+        <div id="search-coordinates" class="btn btn-success btn input-small"><h4>Only with coordinates</h4><input class="input-small search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}#{else}"false"#{/else}/></div>
+        <input class="btn btn-large" id="search-submit" type="submit" value="Rechercher"/>
+        </div>
+        <div id="search-filters">          
+          <div class="btn btn-info btn-tiny search-filter" id="search-filter-taxa">Taxa</div>
+          <div class="btn btn-warning btn-tiny search-filter" id="search-filter-place">Place</div>
+          <div class="btn btn-success btn-tiny search-filter" id="search-filter-coordinates">Only with coordinates</div>
+        </div>
+      </div>
+    #{/form}
+  </div>
+</div>  

@@ -52,11 +52,13 @@ import models.*;
 
 public class Occurrences extends Controller {
     
-	public static void search(String textSearch, Integer from) {   
+	public static void search(String taxaSearch, String placeSearch, boolean onlyWithCoordinates, Integer from) {   
 		  			  		
-      //System.out.println("textSearch: " + textSearch);
-	  Search search = Search.parser(textSearch);
-	  Float[] boundingBox = Search.extractBoundingBox(search);
+	  Search search = Search.parser(taxaSearch, placeSearch, onlyWithCoordinates);
+      Float[] boundingBox = null;
+	  if (search.place != null)
+    	boundingBox = Search.extractBoundingBox(search.place);
+      
 		
 	  int pagesize = 50;
 	  if (from == null) from = 0;
@@ -150,10 +152,10 @@ public class Occurrences extends Controller {
 	      //.should(q11)
 	      .should(q12)
 	      //.should(q13)	     
-	      .should(boolQuery().must(q14).must(q15).boost(20))
+	      //.should(boolQuery().must(q14).must(q15).boost(20))
 	      .should(q16)
 	      .should(q17)
-	      .should(q18)	      
+	      .should(q18)    
 	    );
 	  
 	  SearchResponse response;
@@ -199,7 +201,7 @@ public class Occurrences extends Controller {
       
       
       //render("Application/Search/occurrences.html", dataPublishers, datasets, occurrences, search, nbHits, from);
-      render("Application/Search/occurrences.html", occurrences, textSearch, nbHits, from, occurrencesTotalPages, pagesize, current);
+      render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current);
     }
 	    
     public static void show(Integer id) {
