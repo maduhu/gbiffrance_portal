@@ -1,0 +1,125 @@
+#{extends 'main.html' /}
+<div class="container">
+  <div class="container-fluid">
+  <div class="row-fluid">
+    <div class="page-header well alert-info">
+      <h3 class="well">Harvester Information</h3>
+      <table class="table table-striped">
+        <tr><td>Name: </td><td>${dataset.name}</td></tr>
+        <tr><td>URL: </td><td>${dataset.url}</td></tr>
+        <tr><td>Type: </td><td>${dataset.type}</td></tr>
+        <tr><td>Status: </td><td>${dataset.status}</td></tr>
+        <tr><td>From outside: </td><td>${dataset.fromOutside}</td></tr>        
+      </table>  
+    </div>
+    <div class="page-header well">
+      <h1 class="well">Edit Dataset Information</h1>
+      <div class="modal-body" id="new_data_publisher">
+        #{form @Datasets.save()}
+        <input type="hidden" id="id" name="id" value="${dataset.id}"/>  
+        <div class="well">
+          <h3>Basic information</h3>
+          <label>Title:</label></td>
+          <input type="text" id="title" name="title" value="${dataset.title}"/>
+          #{ifError 'title'}<span class="alert alert-error">#{error 'title' /}</span>#{/ifError}
+          <label>Description:</label>
+          <textarea class="input-xlarge" type="text" id="description" name="description">${dataset.description}</textarea>
+          <label>Resource Language:</label>
+          <input type="text" id="resourceLanguage" name="resourceLanguage" value="${dataset.resourceLanguage}"/>
+          <label>Basis of record:</label>
+          <input type="text" id="basisOfRecord" name="basisOfRecord" value="${dataset.basisOfRecord}"/>
+        </div>     
+        <div class="well">
+          <h3>Resource contact</h3>
+          <label>Name</label>
+          <input type="text" id="resourceContactName" name="resourceContactName" value="${dataset.resourceContactName}"/>
+          <label>Role</label>
+          <input type="text" id="resourceContactRole" name="resourceContactRole" value="${dataset.resourceContactRole}"/>
+          <label>Address</label>
+          <input type="text" id="resourceContactAddress" name="resourceContactAddress" value="${dataset.resourceContactAddress}"/>
+          <label>Email</label>
+          <input type="text" id="resourceContactEmail" name="resourceContactEmail" value="${dataset.resourceContactEmail}"/>
+          <label>Telephone</label>
+          <input type="text" id="resourceContactTelephone" name="resourceContactTelephone" value="${dataset.resourceContactTelephone}"/>
+        </div>
+        <div class="well">
+          <h3>Resource creator</h3>
+          <label>Name</label>
+          <input type="text" id="resourceCreatorName" name="resourceCreatorName" value="${dataset.resourceCreatorName}"/>
+          <label>Role</label>
+          <input type="text" id="resourceCreatorRole" name="resourceCreatorRole" value="${dataset.resourceCreatorRole}"/>
+          <label>Address</label>
+          <input type="text" id="resourceCreatorAddress" name="resourceCreatorAddress" value="${dataset.resourceCreatorAddress}"/>
+          <label>Email</label>
+          <input type="text" id="resourceCreatorEmail" name="resourceCreatorEmail" value="${dataset.resourceCreatorEmail}"/>
+          <label>Telephone</label>
+          <input type="text" id="resourceCreatorTelephone" name="resourceCreatorTelephone" value="${dataset.resourceCreatorTelephone}"/>
+        </div>  
+        <div class="well">
+          <h3>Metadata Provider</h3>
+          <label>Name</label>
+          <input type="text" id="metadataProviderName" name="metadataProviderName" value="${dataset.metadataProviderName}"/>
+          <label>Role</label>
+          <input type="text" id="metadataProviderRole" name="metadataProviderRole" value="${dataset.metadataProviderRole}"/>
+          <label>Address</label>
+          <input type="text" id="metadataProviderAddress" name="metadataProviderAddress" value="${dataset.metadataProviderAddress}"/>
+          <label>Email</label>
+          <input type="text" id="metadataProviderEmail" name="metadataProviderEmail" value="${dataset.metadataProviderEmail}"/>
+          <label>Telephone</label>
+          <input type="text" id="metadataProviderTelephone" name="metadataProviderTelephone" value="${dataset.metadataProviderTelephone}"/>
+        </div>   
+        <div class="well">
+          <h3>Geographic Coverage</h3>
+          <label>Description</label>
+          <input type="text" id="geographicCoverageDescription" name="geographicCoverageDescription" value="${dataset.geographicCoverageDescription}"/>
+          <label>Bounding Coordinates</label>
+          <input type="text" id="geographicCoverageBoundingCoordinates" name="geographicCoverageBoundingCoordinates" value="${dataset.geographicCoverageBoundingCoordinates}"/>          
+        </div> 
+        <div class="well">
+          <h3>Taxonomic Coverage</h3>
+          <label>Description</label>
+          <input type="text" id="taxonomicCoverageDescription" name="taxonomicCoverageDescription" value="${dataset.taxonomicCoverageDescription}"/>
+          <label>Taxon List</label>
+          <input type="text" id="taxonomicCoverageTaxonList" name="taxonomicCoverageTaxonList" value="${dataset.taxonomicCoverageTaxonList}"/>          
+        </div> 
+        <div class="well">
+          <h3>Temporal Coverage</h3>
+          <label>Date</label>
+          <input type="text" id="temporalCoverageDate" name="temporalCoverageDate" value="${dataset.temporalCoverageDate}"/>
+        </div> 
+        <div class="well">
+          <h3>Keywords</h3>
+          <label>Keywords</label>
+          <input type="text" id="keywords" name="keywords" value="${dataset.keywords}"/>
+        </div> 
+        <div class="well">
+          <h3>Sampling Methods</h3>
+          <label>Description</label>
+          <input type="text" id="samplingDescription" name="samplingDescription" value="${dataset.samplingDescription}"/>
+          <label>Quality Control</label>
+          <input type="text" id="qualityControl" name="qualityControl" value="${dataset.qualityControl}"/>        
+        </div> 
+        <div class="well">
+          <h3>Citations</h3>
+          <label>Resource citation</label>
+          <input type="text" id="resourceCitation" name="resourceCitation" value="${dataset.resourceCitation}"/>
+        </div> 
+       <div class="well">
+          <h3>Externals Links</h3>
+          <label>Home Page</label>
+          <input type="text" id="homePageLink" name="homePageLink" value="${dataset.homePageLink}"/>
+          <label>DwC-A Link</label>
+          <input type="text" id="dwcArchiveLink" name="dwcArchiveLink" value="${dataset.dwcArchiveLink}"/>        
+        </div>          
+                                            
+    <label>From outside?</label>
+    <input type="checkbox" name="fromOutside" value="true">
+  </div>
+  <div class="modal-footer">
+    <button class="btn" type="submit">Submit</button>
+    #{/form}
+  </div>  
+</div>
+  </div>  
+    
+</div>

@@ -35,6 +35,8 @@ import org.elasticsearch.index.query.GeoBoundingBoxFilterBuilder;
 import org.elasticsearch.index.query.GeoDistanceFilterBuilder;
 import org.elasticsearch.index.query.OrFilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.TextQueryBuilder;
+import org.elasticsearch.index.query.TextQueryBuilder.Operator;
 import org.elasticsearch.index.search.geo.GeoDistanceFilter;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
@@ -56,107 +58,126 @@ public class Occurrences extends Controller {
 		  			  		
 	  Search search = Search.parser(taxaSearch, placeSearch, onlyWithCoordinates);
       Float[] boundingBox = null;
-	  if (search.place != null)
-    	boundingBox = Search.extractBoundingBox(search.place);
-      
-		
+	  
+      if (!search.place.isEmpty())
+      {
+        boundingBox = Search.extractBoundingBox(search.place);
+      }    	      	
 	  int pagesize = 50;
 	  if (from == null) from = 0;
 	  Settings settings = ImmutableSettings.settingsBuilder()
 	  	  .put("cluster.name", "elasticsearch").put("client.transport.sniff", true).build();
 	  Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
-	  	  	  	  	 
-	  QueryBuilder q7 = textQuery("institutionCode", search.text);
-	  QueryBuilder q8 = textQuery("collectionCode", search.text);
-	  QueryBuilder q9 = textQuery("catalogNumber", search.text);
-	  //QueryBuilder q10 = textQuery("sex", search);
-	  //QueryBuilder q11 = textQuery("taxonStatus", search);
-
-	  //QueryBuilder q13 = textQuery("dataPublisher.name", search.text);
+	  	  	  	  	 	 	  	  	  	  
+	  QueryBuilder scientificNameQ = null;
+	  QueryBuilder genusQ = null;
+	  QueryBuilder genusInterpretedQ = null;
+	  QueryBuilder localityQ = null;
+	  QueryBuilder countyQ = null;
+	  QueryBuilder countryQ = null;
+	  QueryBuilder countryCodeQ = null;
 	  
-	  QueryBuilder q1 = null;
- 	  QueryBuilder q6 = null;
- 	  QueryBuilder q18 = null; 	 
- 	  if (search.taxa != null)
+	  QueryBuilder boundingBoxLatitudeQ = null, boundingBoxLongitudeQ = null;
+	  
+	  if (boundingBox != null)
 	  {
-	    q1 = textQuery("scientificName", search.taxa).boost(20); 	    
-		q6 = textQuery("genus_interpreted", search.taxa);
-		q18 = textQuery("specificEpithet_interpreted", search.taxa);			
-	  }
-	  else
-	  {
-	    q1 = textQuery("scientificName", search.text).boost(20); 	    
-		q6 = textQuery("genus_interpreted", search.text);
-		q18 = textQuery("specificEpithet_interpreted", search.text);		 
+		
+		boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(boundingBox[0]).to(boundingBox[2]);
+		//System.out.println("bboxLat " + boundingBoxLatitudeQ.toString());
+		
+		boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(boundingBox[1]).to(boundingBox[3]);
+		//System.out.println("bboxLong " + boundingBoxLongitudeQ.toString());
 	  }
 	  
- 	  
-	  
-	  QueryBuilder q2 = null;
- 	  QueryBuilder q5 = null;
- 	  QueryBuilder q12 = null;
- 	  /* Useful to retrieve data from occurrences with coordinates but no locality */
-	  QueryBuilder q14 = null;
- 	  QueryBuilder q15 = null;
- 	  QueryBuilder q16 = null;
-	  QueryBuilder q17 = null;
-	  if (search.place != null)
-	  {
-	    q2 = textQuery("country", search.place);	  	    
-	    q5 = textQuery("locality", search.place).analyzer("french").analyzer("english");
-	    q12 = textQuery("higherGeography", search.place);	
-		q16 = textQuery("countryCode", search.place);
-		q17 = textQuery("county", search.place);
-		if (boundingBox != null)
-		{
-		  q14 = rangeQuery("decimalLatitude").from(boundingBox[0]).to(boundingBox[2]);
-		  q15 = rangeQuery("decimalLongitude").from(boundingBox[1]).to(boundingBox[3]);
-		}
+	  if (!search.taxa.isEmpty())
+	  { 
+	    scientificNameQ = textQuery("scientificName", search.taxa);
+	    genusInterpretedQ = textQuery("genus_interpreted", search.taxa);
+	    genusQ = textQuery("genus", search.taxa);
 	  }
-	  else
-	  {
-	    q2 = textQuery("country", search.text);	  	    
-	    q5 = textQuery("locality", search.text);
-	    q12 = textQuery("higherGeography", search.text);	
-		q16 = textQuery("countryCode", search.text);
-		q17 = textQuery("county", search.text);
-		if (boundingBox != null)
-		{
-		  q14 = rangeQuery("decimalLatitude").from(boundingBox[0]).to(boundingBox[2]);
-		  q15 = rangeQuery("decimalLongitude").from(boundingBox[1]).to(boundingBox[3]);
-		}
+	  if (!search.place.isEmpty())
+	  { 
+		localityQ = textQuery("locality", search.place);
+	    countyQ = textQuery("county", search.place);
+	    countryQ = termQuery("country", search.place);
+	    countryCodeQ = textQuery("countryCode", search.place);
 	  }
+ 	 
 	  
 	  FilterBuilder f = null;
-	  if (search.onlyWithCoordinates == true)
-	  {
-		f = boolFilter().must(existsFilter("decimalLatitude")).must(existsFilter("decimalLongitude"));  
+	  if (search.onlyWithCoordinates)
+	  {	
+		f = boolFilter().must(existsFilter("decimalLatitude_interpreted")).must(existsFilter("decimalLongitude_interpreted"));  
 	  }
 	  	  
 	  //QueryBuilder q18 = textQuery("specificEpithet_interpreted", search.taxonomy);
 	  
-	  QueryBuilder q;
-	   	  	  
-	  q = boolQuery()
-	    .must(boolQuery()	    
-	      .should(q1)	      
-	      .should(q2)
-	      //.should(q3)
-	      //.should(q4)
-	      .should(q5)
-	      .should(q6)
-	      .should(q7)
-	      .should(q8)
-	      .should(q9)
-	      //.should(q10)
-	      //.should(q11)
-	      .should(q12)
-	      //.should(q13)	     
-	      //.should(boolQuery().must(q14).must(q15).boost(20))
-	      .should(q16)
-	      .should(q17)
-	      .should(q18)    
-	    );
+	  QueryBuilder q = null;
+	  
+	  System.out.println("taxa: " + search.taxa + "&& place: " + search.place);
+	  
+	  
+	  if (!search.taxa.isEmpty() && !search.place.isEmpty())
+	  {
+	    if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null)
+	    {
+	      q = boolQuery()
+	    	.must(boolQuery()	    
+	    	  .must(boolQuery()
+	    			  .should(scientificNameQ)
+	    			  .should(genusInterpretedQ)
+	    			  .should(genusQ))
+	    	  .must(boolQuery()
+	    			  .should(localityQ)
+	    			  .should(countyQ)
+	    			  .should(countryQ)
+	    			  .should(countryCodeQ)
+	    			  .should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ)).boost(2))			 
+	    	);  	
+	    }
+	    else
+		{
+		  q = boolQuery()	    
+			.must(boolQuery()
+					.should(localityQ)
+					.should(countyQ)
+					.should(countryQ)
+					.should(countryCodeQ)); 	
+		} 
+	  }
+	  else if (!search.taxa.isEmpty() && search.place.isEmpty())
+	  {
+		q = boolQuery() 
+			.must(boolQuery()
+	    			  .should(scientificNameQ)
+	    			  .should(genusInterpretedQ)
+	    			  .should(genusQ));  
+	  }
+	  else if (search.taxa.isEmpty() && !search.place.isEmpty())
+	  {
+		if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null)
+		{
+		  q = boolQuery()
+		  	.must(boolQuery()	    
+		   			  .should(localityQ)
+		   			  .should(countyQ)
+		   			  .should(countryQ)
+		   			  .should(countryCodeQ)
+		   			  .should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ)).boost(2));  	
+		}
+		else
+		{
+		  q = boolQuery()	    
+			.must(boolQuery()
+					.should(localityQ)
+					.should(countyQ)
+					.should(countryQ)
+					.should(countryCodeQ)); 	
+		}
+		 
+	  }
+	  
+	  
 	  
 	  SearchResponse response;
 	  if (search.onlyWithCoordinates == true)
@@ -167,8 +188,6 @@ public class Occurrences extends Controller {
 	  {
 	    response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setExplain(true).execute().actionGet();
 	  }
-	    //SearchResponse response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setFilter(andFilterBuilder).setExplain(true).execute().actionGet();
-      //System.out.println("Search Occurrences : " + client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).toString());
       List<Occurrence> occurrences = new ArrayList<Occurrence>();
       Long nbHits = response.getHits().getTotalHits();
       for (SearchHit hit : response.getHits()) {   
@@ -199,8 +218,6 @@ public class Occurrences extends Controller {
       }
       else occurrencesTotalPages = (int) (nbHits/pagesize);	
       
-      
-      //render("Application/Search/occurrences.html", dataPublishers, datasets, occurrences, search, nbHits, from);
       render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current);
     }
 	    
@@ -384,10 +401,7 @@ public class Occurrences extends Controller {
 		String dataset_id = (String) dbRef.getId();
 		Dataset dataset = Dataset.findById(dataset_id);
 		occurrence.dataset = dataset;
-      
-      
-      //occurrence.ecatConceptId = (String) response.getHits().getAt(0).getSource().get("ecatConceptId");
-      //occurrence.ecatParentId = (String) response.getHits().getAt(0).getSource().get("ecatParentId");
+
       client.close();
       
       Taxa taxa = Taxas.getTaxonomy(occurrence);

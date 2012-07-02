@@ -220,22 +220,21 @@ geojson.on('featureparse', function(e) {
 });
 </script>
 <div class="container">
-  <div class="page-header well">
+  <div class="well">
   #{if taxa}
-    <div class="btn-group">
+    <ul class="breadcrumb">
     <h4>
-      #{if taxa.kingdomID} <a class="btn btn-large" href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a>#{/if}
-      <a class="btn btn-large" href="@{Taxas.show(taxa.phylumID)}">${taxa.canonicalPhylum}</a>
-      <a class="btn btn-large" href="@{Taxas.show(taxa.classID)}">${taxa.canonicalClass}</a>
-      <a class="btn btn-large" href="@{Taxas.show(taxa.orderID)}">${taxa.canonicalOrder}</a>
-      <a class="btn btn-large" href="@{Taxas.show(taxa.familyID)}">${taxa.canonicalFamily}</a>
-      <a class="btn btn-large" href="@{Taxas.show(taxa.genusID)}">${taxa.canonicalGenus}</a>
+      #{if taxa.kingdomID}<li><a href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a><span class="divider">/</span></li>#{/if}
+      <li><a href="@{Taxas.show(taxa.phylumID)}">${taxa.canonicalPhylum}</a><span class="divider">/</span></li>
+      <li><a href="@{Taxas.show(taxa.classID)}">${taxa.canonicalClass}</a><span class="divider">/</span></li>
+      <li><a href="@{Taxas.show(taxa.orderID)}">${taxa.canonicalOrder}</a><span class="divider">/</span></li>
+      <li><a href="@{Taxas.show(taxa.familyID)}">${taxa.canonicalFamily}</a><span class="divider">/</span></li>
+      <li><a href="@{Taxas.show(taxa.genusID)}">${taxa.canonicalGenus}</a><span class="divider">/</span></li>
       #{if taxa.species}
-        <a class="btn btn-large" href="@{Taxas.show(taxa.speciesID)}">${taxa.canonicalSpecies}</a>
+        <li><a href="@{Taxas.show(taxa.speciesID)}">${taxa.canonicalSpecies}</a></li>
       #{/if}
     </h4>
-    </div>
-    <br/>
+    </ul>
     <div>  
       <div  class="page-header">
         <h1>${occurrence.scientificName}</h1>

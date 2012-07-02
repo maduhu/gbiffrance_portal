@@ -4,10 +4,10 @@ import controllers.Places;
 
 public class Search
 {
-  public String text;
-  public String taxa;
-  public String place;
-  public String textPlace; //original place text
+  public String text = "";
+  public String taxa = "";
+  public String place = "";
+  public String textPlace = "";
   public boolean onlyWithCoordinates = false;
      
   public static Search parser(String searchTaxa, String searchPlace, boolean searchCoordinates)
@@ -19,8 +19,8 @@ public class Search
 	if (!search.textPlace.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.textPlace);
 	if (searchCoordinates) search.onlyWithCoordinates = true;
 	search.text = search.taxa + ' ' + search.place;
-    System.out.println("locality: " + search.place);
-    System.out.println("taxa: " + search.taxa);
+    //System.out.println("locality: " + search.place);
+    //System.out.println("taxa: " + search.taxa);
            
 	return search;  
   }
@@ -43,7 +43,7 @@ public class Search
 		  //System.out.println(splittedEnrichedSearch[i]);
 		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("  ", " ");
 		  String[] boundingBox = splittedEnrichedSearch[i].split(" ");
-		  System.out.println(boundingBox[0] + " " +  boundingBox[1] + " " +boundingBox[2] + " " + boundingBox[3]);
+		  //System.out.println(boundingBox[0] + " " +  boundingBox[1] + " " +boundingBox[2] + " " + boundingBox[3]);
 		  boundingBoxSWLatitude = Float.valueOf(boundingBox[0]);
 		  boundingBoxSWLongitude =  Float.valueOf(boundingBox[1]);
 		  boundingBoxNELatitude =  Float.valueOf(boundingBox[2]);

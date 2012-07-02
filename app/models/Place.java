@@ -35,14 +35,13 @@ public class Place
   
   
   /* Adds places translations to the search ex: search = Pica pica France -> search = Pica pica France France Francia Frankreich*/
-  public static String enrichSearchWithPlaces(String search)
+  public static String enrichSearchWithPlaces(String textPlace)
   {	  
 	int count = 0;
-	String[] splittedSearch = search.split(" ");
-	for (int i = 0; i < splittedSearch.length; ++i)
-	{
+	textPlace = textPlace.replaceAll(" ", "%20");
+	
 	  //System.out.println("http://where.yahooapis.com/v1/places.q('"+splittedSearch[i]+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
-	  HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+splittedSearch[i]+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+	  HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 	  JsonObject jsonObject = geoResponse.getJson().getAsJsonObject().get("places").getAsJsonObject();
 	  count = jsonObject.get("count").getAsInt();
 	  if (count == 1) 
@@ -53,7 +52,7 @@ public class Place
 		//{
           HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		  String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		  search += " " + nameFr;
+		  textPlace += " " + nameFr;
 		  //float centroidLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("latitude").getAsFloat();
 		  //float centroidLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("longitude").getAsFloat();
 		  //search += " " + centroidLatitude+"#"+centroidLongitude;	
@@ -63,56 +62,30 @@ public class Place
 		  float boundingBoxNELatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("latitude").getAsFloat();
 		  float boundingBoxNELongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("longitude").getAsFloat();
 		  
-		  search += " {{"+boundingBoxSWLatitude+","+boundingBoxSWLongitude+"}{"+boundingBoxNELatitude+","+boundingBoxNELongitude+"}}";		 
+		  textPlace += " {{"+boundingBoxSWLatitude+","+boundingBoxSWLongitude+"}{"+boundingBoxNELatitude+","+boundingBoxNELongitude+"}}";		 
 		  
 		  HttpResponse geoResponseEn = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=en&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		  String nameEn = geoResponseEn.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		  search += " " + nameEn;
+		  textPlace += " " + nameEn;
 			  
 		  HttpResponse geoResponseEs = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=es&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		  String nameEs = geoResponseEs.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		  search += " " + nameEs;
+		  textPlace += " " + nameEs;
 				  				
 		  HttpResponse geoResponseDe = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=de&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		  String nameDe = geoResponseDe.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		  search += " " + nameDe;
+		  textPlace += " " + nameDe;
 		  
-		  if (!(geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("")) && !geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("France"))
+		  if (!(geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("")) 
+				  && !geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("France")
+				  && placeTypeName.equals("country"))
 		  {
 		    String countryCode = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country attrs").getAsJsonObject().get("code").getAsString();
-		    search += " " + countryCode;
-		  }
-		  /*else
-		  {		  
-		    if (geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("admin1").getAsString() != null)
-		    {
-		      String admin1 = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("admin1").getAsString();
-		      search += " " + admin1;
-		    }
-		  
-		    if (geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("admin2").getAsString() != null)
-		    {
-		      String admin2 = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("admin2").getAsString();
-		      search += " " + admin2;
-		    }
-		  
-		    if (geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("admin3").getAsString() != null)
-		    {
-		      String admin3 = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("admin3").getAsString();
-		      search += " " + admin3;
-		    }
-		  }*/
-		  
-		//}		
-	  }
-	}
+		    textPlace += " " + countryCode;
+		  }			
+	  }	
 	//System.out.println("search: " + search);
-	return search;
-  } 
-  
-  
-  
-  
-  
+	return textPlace;
+  }  
   
 }

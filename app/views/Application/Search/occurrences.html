@@ -4,39 +4,42 @@
     <h6>${nbHits} occurrences</h6>
     #{if occurrencesTotalPages > 1}
       #{if current >= 10 && current+10 < occurrencesTotalPages}        
-        <a onClick="searchOccurrences('${search}','${1*pagesize}');">1 </a>
+        <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
         ...
         #{list items:current-5..current+5, as:'i'}
-          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
         #{/list}
         ...
-        <a onClick="searchOccurrences('${search}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
+        <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
       #{/if} 
       #{elseif current >= 10 && current+10 >= occurrencesTotalPages}        
-        <a onClick="searchOccurrences('${search}','${1*pagesize}');">1 </a>
+        <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
         ...
         #{list items:current-10..occurrencesTotalPages, as:'i'}
-          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
         #{/list}
       #{/elseif}
       #{elseif current == occurrencesTotalPages}
-        <a onClick="searchOccurrences('${search}','0');">${1} </a>
+        <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','0');">${1} </a>
         ...
         #{list items:current-10..current, as:'i'}
-          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
         #{/list}
       #{/elseif}  
       #{elseif current == 0 || current < 10}
         #{list items:1..10, as:'i'}
-          <a onClick="searchOccurrences('${search}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
         #{/list}
         ...
-        <a onClick="searchOccurrences('${search}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
+        <a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
       #{/elseif}
     #{/if}
     <table class="table table-condensed table-striped">
       #{list items:occurrences, as:'occurrence'}
-        #{if occurrence.score > 0.9}<tr class="alert alert-info">#{/if}
+        #{if max && max < occurrence.score}
+          ${max = occurrence.score}
+        #{/if}  
+        #{if occurrence.score > max}<tr class="alert alert-info">#{/if}
         #{else}<tr>#{/else}
         <td><a href="@{Occurrences.show(occurrence.id)}">#{if occurrence.score > 0.9}<b>#{/if}${occurrence.scientificName}#{if occurrence.score > 0.9}</b>#{/if}</a></td>
         <td>${occurrence.catalogNumber}</td>
@@ -52,7 +55,7 @@
     </script>
     <!--#{if from && from < nbHits}
     <div style="float:right;">
-      <b><a onClick="searchOccurrences('${search}','${from}');">Suivant</a></b>
+      <b><a onClick="searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}','${from}');">Suivant</a></b>
     </div>
     #{/if}-->
   #{/if}
