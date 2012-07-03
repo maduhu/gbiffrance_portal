@@ -4,21 +4,19 @@
 <script src="@{'/public/javascripts/search/search.js'}"></script>
 <script type="text/javascript" >
   var taxas = #{jsAction @Taxas.search(':search', ':page') /}  
-  var occurrences = #{jsAction @Occurrences.search(':searchTaxa', ':searchPlace', ':onlyWithCoordinates', ':from') /}  
+  var occurrences = #{jsAction @Occurrences.search(':searchTaxa', ':searchPlace', ':searchDataset', ':onlyWithCoordinates', ':from') /}  
   var places = #{jsAction @Places.search(':search') /}
   var datasets = #{jsAction @Datasets.search(':search') /}
  
   $(document).ready(function() {
-    searchOccurrences('${search.taxa}', '${search.textPlace}', '${search.onlyWithCoordinates}', 0)
+    searchOccurrences('${search.taxa}', '${search.placeText}', '${search.dataset}', '${search.onlyWithCoordinates}', 0)
     searchTaxas('${search.taxa}','1');
-    searchPlaces('${search.textPlace}', 0);
+    searchPlaces('${search.placeText}', 0);
+    searchDatasets('${search.dataset}');
   });
 </script>
 
 <div class="container">
-  #{if textSearch}
-    <h1>Recherche: <span id="taxonName" >${textSearch}</span></h1>
-  #{/if}
   <div id="datasets"></div>
   <div id="places"></div>
   <div id="taxas"></div>

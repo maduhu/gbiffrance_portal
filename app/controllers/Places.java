@@ -19,11 +19,13 @@ import models.*;
 	List<Place> places = new ArrayList<Place>();
 	
 	HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
-	JsonObject jsonObject = geoResponse.getJson().getAsJsonObject().get("places").getAsJsonObject();
-	//System.out.println("Search Places : " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
-	int jsonCount = jsonObject.get("count").getAsInt(); 
-	if (jsonCount == 1)	  
-	{	  
+	if (geoResponse.success())
+	{
+	  JsonObject jsonObject = geoResponse.getJson().getAsJsonObject().get("places").getAsJsonObject();
+	  //System.out.println("Search Places : " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
+	  int jsonCount = jsonObject.get("count").getAsInt(); 
+	  if (jsonCount == 1)	  
+	  {	  
 		Place place = new Place();  
 		int id = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("woeid").getAsInt();
 		place.id = id;
@@ -62,8 +64,10 @@ import models.*;
 		  places.add(place);
 		  results = true;
 	  
-	}
-	render("Application/Search/places.html", results, places);
+	    }
+	    render("Application/Search/places.html", results, places);
+	} 
+	
   } 
 		  
 }

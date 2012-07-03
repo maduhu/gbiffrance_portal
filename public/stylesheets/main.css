@@ -2,6 +2,10 @@ th {
   width: 200px;
 }
 
+hr {
+  margin: 5px 0;
+}
+
 /*** Search ***/
 
 #search-navbar {
@@ -15,20 +19,21 @@ th {
 
 #search-main-box
 {
-  height: 50px;	
+  height: 100px;	
+  width: 920px;
 }
 
 #search-filters {
   float:right;  
 }
 #search-inputs {
-  width: 550px;
+  margin-top: 20px;
   display: block;
   float: left;
 }
 
-#search-filter {
-  display:inline"
+.search-filter {
+  margin-bottom: 10px;
 }
 
 /*** Dataset ***/
@@ -43,13 +48,15 @@ th {
   background: white;
   float: left;
   color: black;
-  width: 500px;   
+  width: 500px;
+  height: 200px;   
 }
 
 #dataset-basic-info-others, #dataset-external-links
 {
   float: right; 
-  width: 300px;   
+  width: 300px;
+  margin-bottom: 50px;   
 }
 
 #dataset-geographic-info, #dataset-taxonomic-info, 

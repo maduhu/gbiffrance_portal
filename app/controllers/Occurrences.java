@@ -54,21 +54,19 @@ import models.*;
 
 public class Occurrences extends Controller {
     
-	public static void search(String taxaSearch, String placeSearch, boolean onlyWithCoordinates, Integer from) {   
+	public static void search(String taxaSearch, String placeSearch, String datasetSearch, boolean onlyWithCoordinates, Integer from) {   
 		  			  		
-	  Search search = Search.parser(taxaSearch, placeSearch, onlyWithCoordinates);
-      Float[] boundingBox = null;
-	  
-      if (!search.place.isEmpty())
-      {
-        boundingBox = Search.extractBoundingBox(search.place);
-      }    	      	
-	  int pagesize = 50;
+	  Search search = Search.parser(taxaSearch, placeSearch, datasetSearch, onlyWithCoordinates);
+        	  	  	 
+      /*** ElasticSearch configuration ***/
+      int pagesize = 50;
 	  if (from == null) from = 0;
 	  Settings settings = ImmutableSettings.settingsBuilder()
 	  	  .put("cluster.name", "elasticsearch").put("client.transport.sniff", true).build();
 	  Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
-	  	  	  	  	 	 	  	  	  	  
+	  
+	  
+	  /*** Query configuration ***/
 	  QueryBuilder scientificNameQ = null;
 	  QueryBuilder genusQ = null;
 	  QueryBuilder genusInterpretedQ = null;
@@ -76,18 +74,19 @@ public class Occurrences extends Controller {
 	  QueryBuilder countyQ = null;
 	  QueryBuilder countryQ = null;
 	  QueryBuilder countryCodeQ = null;
-	  
 	  QueryBuilder boundingBoxLatitudeQ = null, boundingBoxLongitudeQ = null;
 	  
-	  if (boundingBox != null)
+	  if (search.boundingBox != null)
 	  {
 		
-		boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(boundingBox[0]).to(boundingBox[2]);
+		boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBox[0]).to(search.boundingBox[2]);
 		//System.out.println("bboxLat " + boundingBoxLatitudeQ.toString());
 		
-		boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(boundingBox[1]).to(boundingBox[3]);
+		boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(search.boundingBox[1]).to(search.boundingBox[3]);
 		//System.out.println("bboxLong " + boundingBoxLongitudeQ.toString());
 	  }
+	  
+	 
 	  
 	  if (!search.taxa.isEmpty())
 	  { 
@@ -102,20 +101,10 @@ public class Occurrences extends Controller {
 	    countryQ = termQuery("country", search.place);
 	    countryCodeQ = textQuery("countryCode", search.place);
 	  }
- 	 
-	  
-	  FilterBuilder f = null;
-	  if (search.onlyWithCoordinates)
-	  {	
-		f = boolFilter().must(existsFilter("decimalLatitude_interpreted")).must(existsFilter("decimalLongitude_interpreted"));  
-	  }
-	  	  
+ 	  
 	  //QueryBuilder q18 = textQuery("specificEpithet_interpreted", search.taxonomy);
 	  
 	  QueryBuilder q = null;
-	  
-	  System.out.println("taxa: " + search.taxa + "&& place: " + search.place);
-	  
 	  
 	  if (!search.taxa.isEmpty() && !search.place.isEmpty())
 	  {
@@ -178,16 +167,48 @@ public class Occurrences extends Controller {
 	  }
 	  
 	  
+	  /*** Filters ***/
+	  
+	  OrFilterBuilder datasetF = new OrFilterBuilder();
+	  FilterBuilder coordinatesF = null;
+	  
+	  /*Limited to one dataset for the moment, see how to build AndFilter*/
+	  if ((search.datasetsIds.size() > 0))
+	  {
+		System.out.println("DATASET_ID : " + search.datasetsIds.get(0)); 
+		for (int i = 0; i < search.datasetsIds.size(); ++i)
+		{
+		  datasetF.add(boolFilter().must(termFilter("dataset", search.datasetsIds.get(i))));	
+		}
+		
+	  }
+	  if (search.onlyWithCoordinates)
+	  {	
+		coordinatesF = boolFilter().must(existsFilter("decimalLatitude_interpreted")).must(existsFilter("decimalLongitude_interpreted"));  
+	  }
+	  	 
+	  FilterBuilder f = null;
+	  
+	  if (search.onlyWithCoordinates == true && search.datasetsIds.size() > 0)
+	  {
+	    f = boolFilter().must(coordinatesF).must(datasetF);	  
+	  }
+	  else if (search.onlyWithCoordinates == true && search.datasetsIds.size() == 0)
+	  {
+	    f = boolFilter().must(coordinatesF);	  
+	  }
+	  else if (search.onlyWithCoordinates == false && search.datasetsIds.size() > 0)
+	  {
+	    f = boolFilter().must(datasetF);	  
+	  }
+	  
 	  
 	  SearchResponse response;
-	  if (search.onlyWithCoordinates == true)
-	  {
-		response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).setExplain(true).execute().actionGet();
-	  }
-	  else
-	  {
+	  
+	  if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
 	    response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setExplain(true).execute().actionGet();
-	  }
+	  else 
+		response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).setExplain(true).execute().actionGet();  
       List<Occurrence> occurrences = new ArrayList<Occurrence>();
       Long nbHits = response.getHits().getTotalHits();
       for (SearchHit hit : response.getHits()) {   

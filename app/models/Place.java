@@ -40,8 +40,10 @@ public class Place
 	int count = 0;
 	textPlace = textPlace.replaceAll(" ", "%20");
 	
-	  //System.out.println("http://where.yahooapis.com/v1/places.q('"+splittedSearch[i]+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
-	  HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+	//System.out.println("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
+	HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+	if (geoResponse.success())
+	{
 	  JsonObject jsonObject = geoResponse.getJson().getAsJsonObject().get("places").getAsJsonObject();
 	  count = jsonObject.get("count").getAsInt();
 	  if (count == 1) 
@@ -84,6 +86,7 @@ public class Place
 		    textPlace += " " + countryCode;
 		  }			
 	  }	
+	}
 	//System.out.println("search: " + search);
 	return textPlace;
   }  

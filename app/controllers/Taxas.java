@@ -80,58 +80,60 @@ public class Taxas extends Controller {
   {
 	// ECAT Information  
 	HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/" + taxonId).get();
-    //System.out.println("http://ecat-dev.gbif.org/ws/usage/" + taxonId);
-	taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("taxonID").getAsLong();
-    taxa.rank = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("rank").getAsString();
-    taxa.accordingTo = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("accordingTo").getAsString();
-    taxa.scientificName = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("scientificName").getAsString();
-    taxa.canonicalName = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("canonicalName").getAsString();
+    if (ecatResponse.success())
+    {
+	  //System.out.println("http://ecat-dev.gbif.org/ws/usage/" + taxonId);
+	  taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("taxonID").getAsLong();
+      taxa.rank = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("rank").getAsString();
+      taxa.accordingTo = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("accordingTo").getAsString();
+      taxa.scientificName = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("scientificName").getAsString();
+      taxa.canonicalName = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("canonicalName").getAsString();
     
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdom").isJsonNull())
-      taxa.kingdom = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdom").getAsString();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylum").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdom").isJsonNull())
+        taxa.kingdom = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdom").getAsString();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylum").isJsonNull())
         taxa.phylum = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylum").getAsString();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("class").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("class").isJsonNull())
         taxa.classs = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("class").getAsString();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("order").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("order").isJsonNull())
         taxa.order = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("order").getAsString();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("family").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("family").isJsonNull())
         taxa.family = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("family").getAsString();    
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genus").isJsonNull())
-      taxa.genus = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genus").getAsString();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("species").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genus").isJsonNull())
+        taxa.genus = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genus").getAsString();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("species").isJsonNull())
         taxa.species = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("species").getAsString();
     
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").isJsonNull())
-    {
-      taxa.kingdomID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").getAsInt();
-    }
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylumID").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").isJsonNull())
+      {
+        taxa.kingdomID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").getAsInt();
+      }
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylumID").isJsonNull())
         taxa.phylumID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylumID").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("orderID").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("orderID").isJsonNull())
         taxa.orderID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("orderID").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("classID").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("classID").isJsonNull())
         taxa.classID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("classID").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("familyID").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("familyID").isJsonNull())
         taxa.familyID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("familyID").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genusID").isJsonNull())
-      taxa.genusID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genusID").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("speciesID").isJsonNull())
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genusID").isJsonNull())
+        taxa.genusID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("genusID").getAsInt();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("speciesID").isJsonNull())
         taxa.speciesID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("speciesID").getAsInt();
     
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").isJsonNull())
-      taxa.nbPhylum = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numC").isJsonNull())
-      taxa.nbClass = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numC").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numO").isJsonNull())
-      taxa.nbOrder = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numO").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numF").isJsonNull())
-      taxa.nbFamily = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numF").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numG").isJsonNull())
-      taxa.nbGenus = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numG").getAsInt();
-    if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").isJsonNull())
-      taxa.nbSpecies = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numS").getAsInt(); 
-    
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").isJsonNull())
+        taxa.nbPhylum = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").getAsInt();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numC").isJsonNull())
+        taxa.nbClass = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numC").getAsInt();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numO").isJsonNull())
+        taxa.nbOrder = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numO").getAsInt();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numF").isJsonNull())
+        taxa.nbFamily = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numF").getAsInt();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numG").isJsonNull())
+        taxa.nbGenus = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numG").getAsInt();
+      if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").isJsonNull())
+        taxa.nbSpecies = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numS").getAsInt(); 
+    }
     return taxa;
   }
   
@@ -184,11 +186,13 @@ public class Taxas extends Controller {
 	for (int i = 0; i < splittedSearch.length; ++i)
 	{
 		HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i]).get();	
-		int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
-		/* if there are results, it could be a genus, try to find a specificEpithet */
-		//System.out.println ("count :" + count);
-		if (count > 0)
+		if(ecatResponse.success())
 		{
+		  int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
+		  /* if there are results, it could be a genus, try to find a specificEpithet */
+		  //System.out.println ("count :" + count);
+		  if (count > 0)
+		  {
 			if (i+1 < splittedSearch.length)
 			{
 			  ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i] + "%20" + splittedSearch[i+1]).get();
@@ -199,36 +203,40 @@ public class Taxas extends Controller {
 			}
 			else search = splittedSearch[i];
 			break;
+		  }
 		}
 	}
 	
 	int pagesize = 10;
 	HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + search.replaceAll(" ", "%20")).get();
-	int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
-	ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20")).get();
-	//System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20"));
+	if (ecatResponse.success())
+	{
+	  int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
+	  ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20")).get();
+	  //System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + search.replaceAll(" ", "%20"));
 	 
 
-	List<Taxa> taxas = new ArrayList<Taxa>();
-	int numTaxas = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().size();
-	for (int i = 0; i < numTaxas; ++i)
-	{
-	  String rank = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("rank").getAsString();
-	  Taxa taxa = new Taxa();
-	  taxa.rank = rank;
-	  taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("taxonID").getAsLong();
-	  taxa.scientificName = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("scientificName").getAsString();
-	  taxas.add(taxa);
+	  List<Taxa> taxas = new ArrayList<Taxa>();
+	  int numTaxas = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().size();
+	  for (int i = 0; i < numTaxas; ++i)
+	  {
+	    String rank = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("rank").getAsString();
+	    Taxa taxa = new Taxa();
+	    taxa.rank = rank;
+	    taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("taxonID").getAsLong();
+	    taxa.scientificName = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("scientificName").getAsString();
+	    taxas.add(taxa);
+	  }
+	  int taxasTotalPages;
+	  if (count < pagesize) 
+      {
+        pagesize = count;
+        taxasTotalPages = 1;
+      }
+      else taxasTotalPages = count/pagesize + 1;
+	  int current = page;
+	  render ("Application/Search/taxas.html", taxas, taxasTotalPages, search, count, current, pagesize);
 	}
-	int taxasTotalPages;
-	if (count < pagesize) 
-    {
-      pagesize = count;
-      taxasTotalPages = 1;
-    }
-    else taxasTotalPages = count/pagesize + 1;
-	int current = page;
-	render ("Application/Search/taxas.html", taxas, taxasTotalPages, search, count, current, pagesize);
   }
   
   public static Taxa getTaxonomy(Occurrence occurrence)

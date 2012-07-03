@@ -8,8 +8,9 @@
   </div>
   <div id="dataset-basic-info">
     <div id="dataset-basic-info-description" class="alert">
-      <h3>Description</h3>
-      ${dataset.description}
+      <h3>Description</h3><hr>
+      #{if !dataset.description}<h4>Information non fournie.</h4>#{/if}
+      #{else}<h5>${dataset.description}</h5>#{/else}
     </div>
     <div id="dataset-basic-info-others" class="alert">
       <table class="table-condensed">

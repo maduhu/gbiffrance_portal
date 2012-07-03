@@ -1,5 +1,8 @@
 package models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import controllers.Places;
 
 public class Search
@@ -7,18 +10,36 @@ public class Search
   public String text = "";
   public String taxa = "";
   public String place = "";
-  public String textPlace = "";
+  public String placeText = "";
   public boolean onlyWithCoordinates = false;
+  public String dataset = "";
+  public List<Long> datasetsIds = new ArrayList<Long>();
+  public Float[] boundingBox;
+  
      
-  public static Search parser(String searchTaxa, String searchPlace, boolean searchCoordinates)
+  public static Search parser(String searchTaxa, String searchPlace, String searchDataset, boolean searchCoordinates)
   {
 	Search search = new Search();
+	/*** Taxa ***/
 	searchTaxa = searchTaxa.trim();
 	search.taxa = searchTaxa;	
-	search.textPlace = searchPlace;  
-	if (!search.textPlace.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.textPlace);
+	/*** Place ***/
+	search.placeText = searchPlace;  
+	if (search.placeText != null || !search.placeText.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.placeText);
+	if (!search.place.isEmpty())
+    {
+      search.boundingBox = Search.extractBoundingBox(search.place);
+    }   
+	/*** Coordinates ***/
 	if (searchCoordinates) search.onlyWithCoordinates = true;
-	search.text = search.taxa + ' ' + search.place;
+	/*** Dataset ***/
+	if (!searchDataset.isEmpty()) 
+	{
+	  search.dataset = searchDataset;	
+	  search.datasetsIds = Dataset.getDatasetsIds(searchDataset);
+	}
+	
+	
     //System.out.println("locality: " + search.place);
     //System.out.println("taxa: " + search.taxa);
            

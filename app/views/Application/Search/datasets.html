@@ -3,7 +3,7 @@
     <h3>Datasets</h3>
     <table class="table table-condensed table-striped">
     #{list items:datasets, as:'dataset'}
-      <tr><td><a href="@{Datasets.show(dataset.id)}">${dataset.name}</a></td></tr>
+      <tr><td><a href="@{Datasets.show(dataset.id)}">${dataset.title}</a></td><td><a href="@{DataPublishers.show(dataset.dataPublisher.id)}">${dataset.dataPublisher.name}</a></td></tr>
     #{/list}
     </table>
 </div>

@@ -1,5 +1,9 @@
 package models;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Reference;
@@ -73,9 +77,29 @@ public class Dataset extends Model
   public String homePageLink;
   public String dwcArchiveLink;
               
+  public String tagsText;
+  public String[] tags;
   
   @Reference
   public DataPublisher dataPublisher;
+  
+  
+  public static List<Long> getDatasetsIds(String dataset)
+  {
+	String[] splittedSearch = dataset.split(" ");
+	List<Dataset> datasets = new ArrayList<Dataset>();
+	List<Long> datasetsIds = new ArrayList<Long>();
+	for (int i = 0; i < splittedSearch.length; ++i)
+	  datasets.addAll((Collection) Dataset.find("tags", splittedSearch[i]).asList());		
+	//Removes duplicates
+	for (int i = 0; i < datasets.size(); ++i)
+	  for (int j = i + 1; j < datasets.size(); ++j)
+	    if (datasets.get(i).id == datasets.get(j).id)
+		  datasets.remove(j);
+	for (int i = 0; i < datasets.size(); ++i) datasetsIds.add(datasets.get(i).id);	  	
+	return datasetsIds;
+  }
+  
   
 }
 

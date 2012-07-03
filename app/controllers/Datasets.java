@@ -28,20 +28,24 @@ import static org.elasticsearch.node.NodeBuilder.*;
 
 
 import models.*;
+import models.Util;
 
 public class Datasets extends Controller {
      
   public static void search(String search) {
-    String[] splittedSearch = search.split(" ");
+	System.out.println("SEARCH " + search);
+	String[] splittedSearch = search.split(" ");
     List<Dataset> datasets = new ArrayList<Dataset>();
 	for (int i = 0; i < splittedSearch.length; ++i)
-	{
-		datasets.addAll((Collection) Dataset.find("name", splittedSearch[i]).asList());
-	}	
+	  datasets.addAll((Collection) Dataset.find("tags", splittedSearch[i]).asList());		
+	//Removes duplicates
+	for (int i = 0; i < datasets.size(); ++i)
+	  for (int j = i + 1; j < datasets.size(); ++j)
+		  if (datasets.get(i).id == datasets.get(j).id)
+			  datasets.remove(j);
 	render("Application/Search/datasets.html", datasets);
   }
-	
-	
+	  
   public static void show(Long id) {
     Dataset dataset = Dataset.findById(id);
     render(dataset);
@@ -82,7 +86,8 @@ public class Datasets extends Controller {
 		  				  String qualityControl,
 		  				  String resourceCitation,
 		  				  String homePageLink,
-		  				  String dwcArchiveLink)
+		  				  String dwcArchiveLink,
+		  				  String tags)
   {
 	  if(validation.hasErrors()){
 		  params.flash(); // add http parameters to the flash scope
@@ -121,6 +126,10 @@ public class Datasets extends Controller {
 		dataset.qualityControl = qualityControl;
 		dataset.homePageLink = homePageLink;
 		dataset.dwcArchiveLink = dwcArchiveLink;
+		
+		tags = Util.normalize(tags);
+		dataset.tagsText = tags;
+		dataset.tags = tags.split(";");
 						
 		dataset.save();
 		Datasets.show(id);
