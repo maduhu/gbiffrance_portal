@@ -62,8 +62,8 @@ public class Occurrences extends Controller {
       int pagesize = 50;
 	  if (from == null) from = 0;
 	  Settings settings = ImmutableSettings.settingsBuilder()
-	  	  .put("cluster.name", "elasticsearch").put("client.transport.sniff", true).build();
-	  Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	  	  .put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
+	  Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9302)).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
 	  
 	  
 	  /*** Query configuration ***/
@@ -206,7 +206,7 @@ public class Occurrences extends Controller {
 	  SearchResponse response;
 	  
 	  if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
-	    response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setExplain(true).execute().actionGet();
+	    response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setScroll("10m").setQuery(q).setExplain(true).execute().actionGet();
 	  else 
 		response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).setExplain(true).execute().actionGet();  
       List<Occurrence> occurrences = new ArrayList<Occurrence>();

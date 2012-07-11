@@ -84,13 +84,13 @@ public class Dataset extends Model
   public DataPublisher dataPublisher;
   
   
-  public static List<Long> getDatasetsIds(String dataset)
+  public static List<Long> getDatasetsIds(String search)
   {
-	String[] splittedSearch = dataset.split(" ");
+	search = Util.normalize(search);
+	search = search.toLowerCase();
 	List<Dataset> datasets = new ArrayList<Dataset>();
 	List<Long> datasetsIds = new ArrayList<Long>();
-	for (int i = 0; i < splittedSearch.length; ++i)
-	  datasets.addAll((Collection) Dataset.find("tags", splittedSearch[i]).asList());		
+	datasets.addAll((Collection) Dataset.find("tags", search).asList());		
 	//Removes duplicates
 	for (int i = 0; i < datasets.size(); ++i)
 	  for (int j = i + 1; j < datasets.size(); ++j)

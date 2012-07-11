@@ -8,6 +8,7 @@ import play.mvc.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -33,17 +34,34 @@ import models.Util;
 public class Datasets extends Controller {
      
   public static void search(String search) {
-	System.out.println("SEARCH " + search);
-	String[] splittedSearch = search.split(" ");
-    List<Dataset> datasets = new ArrayList<Dataset>();
-	for (int i = 0; i < splittedSearch.length; ++i)
-	  datasets.addAll((Collection) Dataset.find("tags", splittedSearch[i]).asList());		
-	//Removes duplicates
-	for (int i = 0; i < datasets.size(); ++i)
-	  for (int j = i + 1; j < datasets.size(); ++j)
+	List<Dataset> datasets = new ArrayList<Dataset>();
+	System.out.println("search1 " + search);
+	if (!search.isEmpty())
+	{
+	  search = Util.normalize(search);
+	  search = search.toLowerCase();
+	  System.out.println("search2 " + search);
+	  Pattern regex = Pattern.compile("^" + search);
+	  datasets.addAll((Collection) Dataset.find("tags", regex).asList());
+	  System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
+	  //Removes duplicates
+	  for (int i = 0; i < datasets.size(); ++i)
+	    for (int j = i + 1; j < datasets.size(); ++j)
 		  if (datasets.get(i).id == datasets.get(j).id)
 			  datasets.remove(j);
+	}
 	render("Application/Search/datasets.html", datasets);
+  }
+  
+  public static void autocomplete(String search)
+  {
+	search = Util.normalize(search);
+	search = search.toLowerCase();  
+	List<Dataset> datasets = new ArrayList<Dataset>();	
+	Pattern regex = Pattern.compile("^" + search);
+	datasets.addAll((Collection) Dataset.find("tags", regex).asList());
+	System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
+	renderJSON(datasets);
   }
 	  
   public static void show(Long id) {
@@ -128,8 +146,9 @@ public class Datasets extends Controller {
 		dataset.dwcArchiveLink = dwcArchiveLink;
 		
 		tags = Util.normalize(tags);
-		dataset.tagsText = tags;
-		dataset.tags = tags.split(";");
+		dataset.tagsText = tags + ';' + Util.normalize(dataset.title.toLowerCase()) + ';' 
+						+ Util.normalize(dataset.basisOfRecord.toLowerCase()) + ';' + Util.normalize(dataset.name.toLowerCase());
+		dataset.tags = dataset.tagsText.split(";");
 						
 		dataset.save();
 		Datasets.show(id);

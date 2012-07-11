@@ -46,9 +46,12 @@
    });
 </script>
 <div class="container">
-  <div class="page-header well alert-success">
+  <div id="taxa-header" class="page-header well alert-success">
     <h1><i>${taxa.canonicalName}</i></h1>
     <h4>${taxa.scientificName} | ${taxa.accordingTo}</h4>
+    #{if taxa.mediaURLs}
+      <img width="200" height="200" style="float:right;" src="${taxa.mediaURLs[0][1]}"/>
+    #{/if}    
   </div>
   <div>
     <h3>Classification</h3>

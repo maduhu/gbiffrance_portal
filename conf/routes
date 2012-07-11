@@ -8,6 +8,7 @@ GET		/search									Application.search
 GET		/show									Occurrences.show
 GET     /searchOccurrence                       Occurrences.search
 GET     /datasets/edit/{id}                     Datasets.edit
+GET     /datasets/autocomplete                  Datasets.autocomplete
 
 
 

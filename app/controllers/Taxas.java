@@ -28,6 +28,7 @@ import org.elasticsearch.search.SearchHit;
 import org.gbif.ecat.model.ParsedName;
 import org.gbif.ecat.parser.NameParser;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -72,10 +73,39 @@ public class Taxas extends Controller {
 	Taxa taxa = new Taxa();  
     taxa = ecatInformation(taxonId, taxa);
     taxa = eolInformation(taxa);
+    /* To improve, not working so nicely... */
+    //taxa = flickrInformation(taxa);
 	
 	render(taxa);
   }
   
+  
+  /*public static Taxa flickrInformation(Taxa taxa) 
+  {
+	HttpResponse flickrResponse = WS.url("http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=0bb296023bb6ecd0f2e3bfafb5f05091&sort=relevance&text="+taxa.canonicalName+"&format=json&nojsoncallback=1").get();  
+	System.out.println("http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=0bb296023bb6ecd0f2e3bfafb5f05091&sort=relevance&text=taxa+"+taxa.canonicalName.replace(' ', '+')+"&format=json&nojsoncallback=1");
+	if (flickrResponse.success())
+	{
+	  String id = flickrResponse.getJson().getAsJsonObject().get("photos").getAsJsonObject().get("photo").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString();	  
+	  flickrResponse = WS.url("http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=ea74d674cad874526fb09a6b6ccc7af6&photo_id="+id+"&format=json&nojsoncallback=1").get();
+	  System.out.println("http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=ea74d674cad874526fb09a6b6ccc7af6&photo_id="+id+"&format=json&nojsoncallback=1");
+	  if (flickrResponse.success()) 
+	  {
+	    JsonArray jsonArray = flickrResponse.getJson().getAsJsonObject().get("sizes").getAsJsonObject().get("size").getAsJsonArray();
+	    for (int i = 0; i < jsonArray.size(); ++i)
+	    {
+	      if (jsonArray.get(i).getAsJsonObject().get("label").getAsString().equals("Small"))
+	      {
+	        taxa.flickrMediaURL =  jsonArray.get(i).getAsJsonObject().get("source").getAsString();
+	        break;
+	      }	
+	    }
+	    System.out.println(taxa.flickrMediaURL);
+	  }
+	}
+	return taxa;
+  }*/
+
   public static Taxa ecatInformation(Long taxonId, Taxa taxa)
   {
 	// ECAT Information  
@@ -288,7 +318,9 @@ public class Taxas extends Controller {
     	  {
     	    taxa.kingdomID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("kingdomID").getAsLong();
     	    ecatResponse2 = WS.url("http://ecat-dev.gbif.org/ws/usage/"+taxa.kingdomID).get();
-    	    taxa.canonicalKingdom = ecatResponse2.getJson().getAsJsonObject().get("data").getAsJsonObject().get("canonicalName").getAsString();
+    	    //System.out.println(ecatResponse2.getJson().getAsJsonObject().get("data").getAsJsonObject().get("canonicalName"));
+    	    if (!ecatResponse2.getJson().getAsJsonObject().get("data").getAsJsonObject().get("canonicalName").isJsonNull())
+    	      taxa.canonicalKingdom = ecatResponse2.getJson().getAsJsonObject().get("data").getAsJsonObject().get("canonicalName").getAsString();
     	  }  
     	  if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("phylumID").isJsonNull())
     	  {

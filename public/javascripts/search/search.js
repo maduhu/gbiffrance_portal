@@ -16,8 +16,16 @@
     if (type == "place" || type == "taxa" || type == "coordinates" || type == "dataset")
     {
       $("#search-" + type).hide();        
-    }
-    
+    }  
+    hideSubmit();
+  }
+  
+  function hideSubmit()
+  {
+    if ($(".search-input").filter(":visible").length == 0) 
+	{
+	  $("#search-submit").hide(); 
+	}	  
   }
   
   function searchTaxas(search, page)
@@ -33,7 +41,6 @@
 	searchTaxa = searchTaxa.replace(/ /g,"%20");
 	searchPlace = searchPlace.replace(/ /g,"%20");
 	searchDataset = searchDataset.replace(/ /g,"%20");
-	
 	$('#occurrences').load(occurrences({searchTaxa: searchTaxa, searchPlace: searchPlace, searchDataset: searchDataset, onlyWithCoordinates: onlyWithCoordinates, from: from}));
 	$('#occurrences').show(); 
   }
@@ -47,17 +54,18 @@
   
   function searchDatasets(search)
   {
-    search = search.replace(/ /g,"%20");  
+    search = search.replace(/ /g,"%20");
+    search = search.replace(/\'/g,"%27");
     $('#datasets').load(datasets({search: search}));
     $('#datasets').show() 
   }
      
-  $(document).ready(function() {
+  $(document).ready(function() {	   
 	if ($("#input-search-taxa").val() == '') $("#search-taxa").hide();
 	if ($("#input-search-place").val() == '') $("#search-place").hide();
 	if ($("#input-search-coordinates").val() == "false") $("#search-coordinates").hide();
 	if ($("#input-search-dataset").val() == '') $("#search-dataset").hide();
-    
+	hideSubmit();
     /* Show filters */
     $("#search-filter-place").click(function() {addFilter('place')})
     $("#search-filter-taxa").click(function() {addFilter('taxa')})

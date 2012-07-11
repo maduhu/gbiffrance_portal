@@ -6,6 +6,16 @@ hr {
   margin: 5px 0;
 }
 
+label {
+  width:50px;
+}
+
+/*** Header ***/
+
+#header {
+  margin-bottom: 10px;	
+}
+
 /*** Search ***/
 
 #search-navbar {
@@ -19,21 +29,59 @@ hr {
 
 #search-main-box
 {
-  height: 100px;	
+  //height: 100px;	
   width: 920px;
+  overflow: hidden;
 }
 
 #search-filters {
-  float:right;  
+  float: right;
 }
+
+.search-input {
+  margin: 5px;
+}
+
+
+
+.input-large
+{
+  width: 300px;
+}
+
+.search-query {
+ margin-left: 5px;
+}
+
 #search-inputs {
   margin-top: 20px;
-  display: block;
+  width: 500px;
   float: left;
+  
 }
 
 .search-filter {
   margin-bottom: 10px;
+}
+
+
+/*autocomplete jquery*/
+.ui-menu {
+  background-color: #eeeeee;
+  width: 400px;
+  text-decoration: none;
+  
+}
+
+.ui-menu li{
+  list-style: none;  
+}
+
+
+/*** Taxa ***/
+#taxa-header
+{
+  overflow: hidden;
 }
 
 /*** Dataset ***/
@@ -71,6 +119,8 @@ hr {
 {
   clear: both;
 }
+
+
 
 
  
