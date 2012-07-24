@@ -31,11 +31,11 @@ import static org.elasticsearch.node.NodeBuilder.*;
 import models.*;
 
 public class DataPublishers extends Controller {
-     
-    public static void show(Long id) {
-      DataPublisher dataPublisher = DataPublisher.findById(id);
-      List<Dataset> datasets = Dataset.find("dataPublisher", dataPublisher).asList();
-           
-      render(dataPublisher, datasets);
-    } 
+
+  public static void show(Long id) {
+	DataPublisher dataPublisher = DataPublisher.findById(id);
+	List<Dataset> datasets = Dataset.find("dataPublisher", dataPublisher).asList();
+
+	render(dataPublisher, datasets);
+  } 
 }

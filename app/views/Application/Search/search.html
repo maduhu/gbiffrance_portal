@@ -9,8 +9,8 @@
   var datasets = #{jsAction @Datasets.search(':search') /}
  
   $(document).ready(function() {
-    searchOccurrences("${search.taxa}", "${search.placeText}", "${search.dataset}", "${search.onlyWithCoordinates}", 0)
-    searchTaxas("${search.taxa}",'1');
+    searchOccurrences("${search.taxaText}", "${search.placeText}", "${search.dataset}", "${search.onlyWithCoordinates}", 0)
+    searchTaxas("${search.taxaText}",'1');
     searchPlaces("${search.placeText}", 0);
     searchDatasets("${search.dataset}");
   });

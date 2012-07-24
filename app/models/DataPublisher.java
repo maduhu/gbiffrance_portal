@@ -15,16 +15,16 @@ import play.modules.morphia.Model;
 @Entity
 public class DataPublisher extends Model
 {	
-	@Id
-	public Long id;
-	public String name;
-	public String description;
-	public String address;
-	public String administrativeContact;
-	public String technicalContact;
-	public String latitude;
-	public String longitude;
-	public ArrayList<String> tags;
-	public String mediaURL;
-	public String imageURL;
+  @Id
+  public Long id;
+  public String name;
+  public String description;
+  public String address;
+  public String administrativeContact;
+  public String technicalContact;
+  public String latitude;
+  public String longitude;
+  public ArrayList<String> tags;
+  public String mediaURL;
+  public String imageURL;
 }

@@ -5,7 +5,7 @@
     <table class="table table-condensed table-striped">
       #{list items:places, as:'place'}
       <tr>
-        <td><a href="">${place.nameFr}</a></td><td>${place.placeTypeName}</td>
+        <td><a href="">${place.nameFr}</a></td><td>${place.placeTypeNameFr}#{if place.placeTypeNameFr != "Pays"}:${place.country}#{/if}</td>
         <td>${place.centroidLatitude},${place.centroidLongitude}</td>
       </tr>  
       #{/list}
@@ -15,8 +15,3 @@
     <h6>Pas de résultats</h6>
   #{/else}
 </div>
-
-
-
-
-    

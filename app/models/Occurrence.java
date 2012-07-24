@@ -22,21 +22,21 @@ public class Occurrence
   public String referencess;
   public String institutionID;
   public String collectionID;
-  
+
   public String datasetID;
-  
+
   public String institutionCode;
-  
+
   public String collectionCode;
-  
+
   public String datasetName;
   public String ownerInstitutionCode;
-  
+
   public String basisOfRecord;
   public String informationWithheld;
   public String dataGeneralizations;
   public String dynamicProperties;
-  
+
   //Occurrence
   public String occurrenceID;
   public String catalogNumber;
@@ -60,7 +60,7 @@ public class Occurrence
   public String associatedOccurrences;
   public String associatedSequences;
   public String associatedTaxa;
-  
+
   //Event
   public String eventID;
   public String samplingProtocol;
@@ -69,7 +69,7 @@ public class Occurrence
   public String eventTime;
   public String startDayOfYear;
   public String endDayofYear;
-  
+
   public String year;
   public String month;
   public String day;
@@ -78,23 +78,23 @@ public class Occurrence
   public String fieldNumber;
   public String fieldNotes;
   public String eventRemarks;
-  
+
   //Location
   public String locationID;
   public String higherGeographyID;
   public String higherGeography;
-  
+
   public String continent;
   public String waterBody;
   public String islandGroup;
   public String island;
-  
+
   public String country;
   public String countryCode;
   public String stateProvince;
   public String county;
   public String municipality;
-  
+
   public String locality;
   public String verbatimLocality;
   public String verbatimElevation;
@@ -112,9 +112,9 @@ public class Occurrence
   public String verbatimLongitude;
   public String verbatimCoordinateSystem;
   public String verbatimSRS;
-  
+
   public String decimalLatitude;
-  
+
   public String decimalLongitude;
   public String geodeticDatum;
   public String coordinateUncertaintyInMeters;
@@ -129,7 +129,7 @@ public class Occurrence
   public String georeferenceSources;
   public String georeferenceVerificationStatus;
   public String georeferenceRemarks;
-  
+
   //GeologicalContext
   public String geologicalContextID;
   public String earliestEonOrLowestEonothem;
@@ -149,7 +149,7 @@ public class Occurrence
   public String formation;
   public String member;
   public String bed;
-  
+
   //Identification
   public String identificationID;
   public String identifiedBy;
@@ -158,7 +158,7 @@ public class Occurrence
   public String identificationRemarks;
   public String identificationQualifier;
   public String typeStatus;
-  
+
   //Taxon
   public String taxonID;
   public String scientificNameID;
@@ -168,7 +168,7 @@ public class Occurrence
   public String nameAccordingToID;
   public String namePublishedInID;
   public String taxonConceptID;
-  
+
   public String scientificName;
   public String acceptedNameUsage;
   public String parentNameUsage;
@@ -203,19 +203,19 @@ public class Occurrence
   public String taxonomicStatus;
   public String nomenclaturalStatus;
   public String taxonRemarks;
-  
+
   //Taxonomization
   public String taxonStatus;
-  
+
   //Ecat
   public String ecatConceptId;
   public String ecatParentId;
-  
+
   //Search
   public float score;
 
   public Dataset dataset;
-  
+
   public Occurrence(){}
-  
+
 }

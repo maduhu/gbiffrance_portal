@@ -8,8 +8,8 @@ public class Util
   /* Normalize the search by removing special characters */
   public static String normalize(String string)
   {
-    String temp = Normalizer.normalize(string, Normalizer.Form.NFD);
-    Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+	String temp = Normalizer.normalize(string, Normalizer.Form.NFD);
+	Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
 	return pattern.matcher(temp).replaceAll("");	
   }
 }

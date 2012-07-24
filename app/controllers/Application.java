@@ -32,22 +32,22 @@ import models.*;
 import models.Util;
 
 public class Application extends Controller {
- 
-	public static void search(String searchTaxa, String searchPlace, String searchCoordinates, String searchDataset)
-	{
-	  
-	  searchTaxa = Util.normalize(searchTaxa);
-	  searchPlace = Util.normalize(searchPlace);
-	  searchDataset = Util.normalize(searchDataset);
-	  Search search = new Search();
-	  search.placeText = searchPlace;
-	  search.taxa = searchTaxa;
-	  search.dataset = searchDataset;
-	  search.onlyWithCoordinates = Boolean.parseBoolean(searchCoordinates);
-	  render("Application/Search/search.html", search);
-	}
-	
-    public static void index() {
-    	render();
-    } 
+
+  public static void search(String searchTaxa, String searchPlace, String searchCoordinates, String searchDataset)
+  {
+
+	searchTaxa = Util.normalize(searchTaxa);
+	searchPlace = Util.normalize(searchPlace);
+	searchDataset = Util.normalize(searchDataset);
+	Search search = new Search();
+	search.placeText = searchPlace;
+	search.taxaText = searchTaxa;
+	search.dataset = searchDataset;
+	search.onlyWithCoordinates = Boolean.parseBoolean(searchCoordinates);
+	render("Application/Search/search.html", search);
+  }
+
+  public static void index() {
+	render();
+  } 
 }
