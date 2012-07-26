@@ -34,10 +34,16 @@
         <a onClick="searchTaxas('${search}','${taxasTotalPages}');">${taxasTotalPages} </a>
       #{/elseif}
     #{/if}
-    <table class="table table-condensed table-striped">
+    <table class="table table-condensed table-bordered table-striped">
+      <thead>
+        <tr>        
+          <th>Taxon</th>
+          <th>Rang</th>     
+        </tr>
+      </thead>
       #{list items:taxas, as:'taxa'}
       <tr>
-        <td><a href="@{Taxas.show(taxa.taxonId)}">${taxa.scientificName}</a></td><td>${taxa.rank}</td>
+        <td><a href="@{Taxas.show(taxa.taxonId)}"><i>${taxa.scientificName}</a></i></td><td>${taxa.rank}</td>
       </tr>  
       #{/list}
     </table>

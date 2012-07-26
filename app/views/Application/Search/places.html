@@ -2,11 +2,20 @@
   <h3>Places</h3>
   #{if results}
     <h6>${count} places</h6>
-    <table class="table table-condensed table-striped">
+    <table class="table table-bordered table-condensed table-striped">
+      <thead>
+        <tr>        
+          <th>Nom</th>
+          <th>Type</th>
+          <th>Pays</th>
+        </tr>
+      </thead>        
       #{list items:places, as:'place'}
       <tr>
-        <td><a href="">${place.nameFr}</a></td><td>${place.placeTypeNameFr}#{if place.placeTypeNameFr != "Pays"}:${place.country}#{/if}</td>
-        <td>${place.centroidLatitude},${place.centroidLongitude}</td>
+        <td><a href="">${place.nameFr}</a></td>
+        <td>${place.placeTypeNameFr}</td>
+        <td>${place.country}</td>
+        <!-- <td>${place.centroidLatitude},${place.centroidLongitude}</td> -->
       </tr>  
       #{/list}
     </table>

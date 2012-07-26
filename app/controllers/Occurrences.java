@@ -43,6 +43,10 @@ import org.elasticsearch.index.query.TextQueryBuilder.Operator;
 import org.elasticsearch.index.search.geo.GeoDistanceFilter;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.facet.FacetBuilders;
+import org.elasticsearch.search.facet.terms.TermsFacet;
+import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
+import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
 import org.gbif.ecat.model.ParsedName;
 import org.gbif.ecat.parser.NameParser;
 
@@ -91,16 +95,18 @@ public class Occurrences extends Controller {
 	 */
 	for (int i = 0; i < search.taxas.size(); ++i)
 	{ 
-	  genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)));
-	  scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	  
+	  
+	  //genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
+	  scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
 	  classificationInterpretedQ = classificationInterpretedQ
-		  .should(textQuery("kingdom_interpreted", search.taxas.get(i)))
-		  .should(textQuery("phylum_interpreted", search.taxas.get(i)))
-		  .should(textQuery("classs_interpreted", search.taxas.get(i)))
-		  .should(textQuery("orderr_interpreted", search.taxas.get(i)))		  
-		  .should(textQuery("family_interpreted", search.taxas.get(i)))
-		  .should(textQuery("genus_interpreted", search.taxas.get(i)))
-		  .should(textQuery("specificEpithet_interpreted", search.taxas.get(i)));
+			  .should(textQuery("specificEpithet_interpreted", search.taxas.get(i)).operator(Operator.AND))
+			  .should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
+			  .should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))
+			  .should(textQuery("classs_interpreted", search.taxas.get(i)).operator(Operator.AND))
+			  .should(textQuery("orderr_interpreted", search.taxas.get(i)).operator(Operator.AND))		  
+			  .should(textQuery("family_interpreted", search.taxas.get(i)).operator(Operator.AND))
+			  .should(textQuery("genus_interpreted", search.taxas.get(i)).operator(Operator.AND))
+		  	  .should(textQuery("ecatConceptId", search.taxas.get(i)).operator(Operator.AND));
 	}
 		
 	if (!search.place.isEmpty())
@@ -188,13 +194,26 @@ public class Occurrences extends Controller {
 	  f = boolFilter().must(datasetF);	  
 	}
 
+	
+	
+	/***
+	 * This facet is working as a SQL "group by ecatConceptId"
+	 */
+	TermsFacetBuilder facetBuilder = new TermsFacetBuilder("ecatConceptId");
+	facetBuilder.field("ecatConceptId");
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  facetBuilder.facetFilter(f);
+	}
 
 	SearchResponse response;
-
 	if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).execute().actionGet();
+	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).execute().actionGet();
 	else 
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).execute().actionGet();  
+	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(facetBuilder).execute().actionGet();  
+	
+	System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).toString());
+	
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();
 	for (SearchHit hit : response.getHits()) {   
@@ -212,12 +231,30 @@ public class Occurrences extends Controller {
 	  occurrence.score = hit.getScore();
 	  occurrences.add(occurrence);
 	  if (occurrences.size() >= 50) break;        
-	}  
+	}
+	TermsFacet facet = response.getFacets().facet("ecatConceptId");
+	ArrayList<Taxa> taxas = new ArrayList<Taxa>();
+	/***
+	 * Renders (max 10) taxas and their occurrences count that are matching with the request
+	 */
+	
+	for (Entry entry : facet.entries())
+	{
+	  Taxa taxa = new Taxa();
+	  Taxas.ecatInformation(Long.parseLong(entry.getTerm()), taxa);
+	  if (taxa.scientificName != null) 
+	  {
+		taxa.occurrencesCount = entry.count();
+		taxas.add(taxa);
+	  }
+	}
+	
+	int occurrencesTotalPages;
 	int current = from/pagesize + 1;
 	from += 50;
 	client.close();
 
-	int occurrencesTotalPages;
+	  
 	if (nbHits < pagesize) 
 	{
 	  pagesize = nbHits.intValue();
@@ -225,9 +262,10 @@ public class Occurrences extends Controller {
 	}
 	else if (nbHits/pagesize < 100)
 	  occurrencesTotalPages = (int) (nbHits/pagesize);
-	else occurrencesTotalPages = 100; 
+	else occurrencesTotalPages = 100;
+	
 	//System.out.println(response.toString());
-	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current);
+	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas);
   }
 
   public static void show(Integer id) {
@@ -417,4 +455,10 @@ public class Occurrences extends Controller {
 
 	render(occurrence, taxa);
   } 
+
+
+
+
+
+
 }

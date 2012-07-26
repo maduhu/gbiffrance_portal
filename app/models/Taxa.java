@@ -54,8 +54,8 @@ public class Taxa
   public String description;
   public List<ArrayList<String>> mediaURLs;
 
-  /*//Flickr Information
-	public String flickrMediaURL;*/
+  //Occurrences count
+  public int occurrencesCount;
 
 
 
