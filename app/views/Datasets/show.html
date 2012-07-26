@@ -6,79 +6,85 @@
     <h1>${dataset.title}</h1>
     <h3>${dataset.dataPublisher.name}</h3>    
   </div>
-  <div id="dataset-basic-info">
-    <div id="dataset-basic-info-description" class="alert">
+  <div id="dataset-basic-info" class="row">
+    <div id="dataset-basic-info-description" class="span6">
       <h3>Description</h3><hr>
-      #{if !dataset.description}<h4>Information non fournie.</h4>#{/if}
-      #{else}<h5>${dataset.description}</h5>#{/else}
+      #{if !dataset.description}
+        <i>Information non fournie.</i>
+      #{/if}
+      #{else}
+        ${dataset.description}
+      #{/else}
     </div>
-    <div id="dataset-basic-info-others" class="alert">
-      <table class="table-condensed">
+    <div class="span6">
+    <div id="dataset-basic-info-others">
+      <table class="table table-condensed">
         <tr>
-          <td><h4>Resource Language: </h4></td>
+          <th>Resource Language</th>
           <td>${dataset.resourceLanguage}</td>
         </tr>          
         <tr>
-          <td><h4>Basis of Record:</h4></td>
+          <th>Basis of Record</th>
           <td>${dataset.basisOfRecord}</td>
         </tr>
       </table>  
     </div>
-    <div id="dataset-external-links" class="alert alert-error">
-      <table class="table-condensed">
+    <div id="dataset-external-links" class="">
+      <table class="table table-condensed">
         <tr>
-          <td><h4>Home Page:</h4></td>
+          <th>Home Page</th>
           <td>${dataset.homePageLink}</td>
         </tr>          
         <tr>
-          <td><h4>Dwc-A Link:</h4></td>
+          <th>Dwc-A Link</th>
           <td>${dataset.dwcArchiveLink}</td>
         </tr>
       </table>  
     </div>
-  </div>
-  <div id="dataset-geographic-info" class="alert alert-success">
-    <table class="table-condensed">
+    <div id="dataset-geographic-info">
+    <table class="table table-condensed">
       <tr>
-        <td><h4>Geographic Coverage</h4></td>
+        <th>Geographic Coverage</th>
         <td>${dataset.geographicCoverageDescription}</td>
       </tr>          
       <tr>
-        <td><h4>Bounding box:</h4></td>
+        <th>Bounding box</th>
         <td>${dataset.geographicCoverageBoundingCoordinates}</td>
       </tr>
     </table>  
   </div>
-  <div id="dataset-taxonomic-info" class="alert alert-info">
-    <table class="table-condensed">
+  <div id="dataset-taxonomic-info">
+    <table class="table table-condensed">
       <tr>
-        <td><h4>Taxonomic Coverage</h4></td>
+        <th>Taxonomic Coverage</th>
         <td>${dataset.taxonomicCoverageDescription}</td>
       </tr>          
       <tr>
-        <td><h4>Taxon List:</h4></td>
+        <th>Taxon List</th>
         <td>${taxonomicCoverageTaxonList}</td>
       </tr>
     </table>  
   </div>
-  <div id="dataset-temporal-info" class="alert alert-success">
-    <table class="table-condensed">
+  <div id="dataset-temporal-info">
+    <table class="table table-condensed">
       <tr>
-        <td><h4>Temporal Coverage</h4></td>
+        <th>Temporal Coverage</th>
         <td>${dataset.temporalCoverageDate}</td>
       </tr>           
     </table>  
   </div>
-  <div id="dataset-sampling-info" class="alert alert-success">
-    <table class="table-condensed">
+  <div id="dataset-sampling-info">
+    <table class="table table-condensed">
       <tr>
-        <td><h4>Sampling Description</h4></td>
+        <th>Sampling Description</th>
         <td>${dataset.samplingDescription}</td>
       </tr>           
     </table>  
   </div>
-  <div id="dataset-contact-info" class="alert">
-    <table class="table table-striped table-condensed alert-error">
+  </div>
+  </div>
+  <div id="dataset-contact-info" class="">
+    <table class="table table-striped table-condensed">
       <h3>Contacts</h3>
       <tr>
         <th/>
@@ -89,7 +95,7 @@
         <th>Telephone</th>
       </tr>
       <tr>
-        <td><h4>Resource Contact</h4></td>  
+        <td>Resource Contact</td>  
         <td>${dataset.resourceContactName}</td>
         <td>${dataset.resourceContactRole}</td>
         <td>${dataset.resourceContactAddress}</td>
@@ -97,7 +103,7 @@
         <td>${dataset.resourceContactTelephone}</td>
       </tr>
       <tr>
-        <td><h4>Resource Creator</h4></td>  
+        <td>Resource Creator</td>  
         <td>${dataset.resourceCreatorName}</td>
         <td>${dataset.resourceCreatorRole}</td>
         <td>${dataset.resourceCreatorAddress}</td>
@@ -105,7 +111,7 @@
         <td>${dataset.resourceCreatorTelephone}</td>
       </tr>
       <tr>
-        <td><h4>Metadata Provider</h4></td>  
+        <td>Metadata Provider</td>  
         <td>${dataset.metadataProviderName}</td>
         <td>${dataset.metadataProviderRole}</td>
         <td>${dataset.metadataProviderAddress}</td>
@@ -114,5 +120,7 @@
       </tr>
     </table>
   </div>
+  
+  
   
 </div>

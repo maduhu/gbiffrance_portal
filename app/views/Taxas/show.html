@@ -50,10 +50,9 @@
 			<i>${taxa.canonicalName}</i>
 		</h1>
 		<h4>${taxa.scientificName} | ${taxa.accordingTo}</h4>
-		#{if taxa.mediaURLs} <img width="200" height="200"
-			style="float: right;" src="${taxa.mediaURLs[0][1]}" alt="" /> #{/if}
 	</div>
-	<div>
+	<div class="row">
+	  <div class="span8">
 		<h3>Classification</h3>
 		<table class="table table-condensed table-striped">
 			<tbody>
@@ -159,6 +158,11 @@
 				</tr>
 			</tbody>
 		</table>
+      </div>
+	  <div class="span4">
+	    #{if taxa.mediaURLs} <img width="200" height="200"
+            style="float:right;" src="${taxa.mediaURLs[0][1]}" alt="" /> #{/if}
+	  </div>
 	</div>
 	<div id="children" class="well"></div>
 	#{if taxa.description || taxa.mediaURLs }

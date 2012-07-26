@@ -1,10 +1,8 @@
 #{if datasets}
-<div class="alert alert-info" style="margin-top:20px;">
-    <h3>Datasets</h3>
-    <table class="table table-condensed table-striped">
-    #{list items:datasets, as:'dataset'}
-      <tr><td><a href="@{Datasets.show(dataset.id)}">${dataset.title}</a></td><td><a href="@{DataPublishers.show(dataset.dataPublisher.id)}">${dataset.dataPublisher.name}</a></td></tr>
-    #{/list}
-    </table>
-</div>
+  <h3>Datasets</h3>
+  <table class="table table-condensed">
+  #{list items:datasets, as:'dataset'}
+    <tr><td><a href="@{Datasets.show(dataset.id)}">${dataset.title}</a></td><td><a href="@{DataPublishers.show(dataset.dataPublisher.id)}">${dataset.dataPublisher.name}</a></td></tr>
+  #{/list}
+  </table>
 #{/if}

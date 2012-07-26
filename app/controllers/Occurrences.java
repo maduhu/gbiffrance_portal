@@ -207,12 +207,13 @@ public class Occurrences extends Controller {
 	}
 
 	SearchResponse response;
+	System.out.println(search.onlyWithCoordinates == false && search.datasetsIds.size() == 0);
 	if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
 	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).execute().actionGet();
 	else 
 	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(facetBuilder).execute().actionGet();  
 	
-	System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).toString());
+	//System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).toString());
 	
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();

@@ -223,17 +223,16 @@ geojson.on('featureparse', function(e) {
   <div class="well">
   #{if taxa}
     <ul class="breadcrumb">
-    <h4>
-      #{if taxa.kingdomID}<li><a href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a><span class="divider">/</span></li>#{/if}
-      <li><a href="@{Taxas.show(taxa.phylumID)}">${taxa.canonicalPhylum}</a><span class="divider">/</span></li>
-      <li><a href="@{Taxas.show(taxa.classID)}">${taxa.canonicalClass}</a><span class="divider">/</span></li>
-      <li><a href="@{Taxas.show(taxa.orderID)}">${taxa.canonicalOrder}</a><span class="divider">/</span></li>
-      <li><a href="@{Taxas.show(taxa.familyID)}">${taxa.canonicalFamily}</a><span class="divider">/</span></li>
-      <li><a href="@{Taxas.show(taxa.genusID)}">${taxa.canonicalGenus}</a><span class="divider">/</span></li>
+      #{if taxa.kingdomID}
+      <li><i><a href="@{Taxas.show(taxa.kingdomID)}">${taxa.canonicalKingdom}</a></i><span class="divider">/</span></li>#{/if}
+      <li><i><a href="@{Taxas.show(taxa.phylumID)}">${taxa.canonicalPhylum}</a></i><span class="divider">/</span></li>
+      <li><i><a href="@{Taxas.show(taxa.classID)}">${taxa.canonicalClass}</a></i><span class="divider">/</span></li>
+      <li><i><a href="@{Taxas.show(taxa.orderID)}">${taxa.canonicalOrder}</a></i><span class="divider">/</span></li>
+      <li><i><a href="@{Taxas.show(taxa.familyID)}">${taxa.canonicalFamily}</a></i><span class="divider">/</span></li>
+      <li><i><a href="@{Taxas.show(taxa.genusID)}">${taxa.canonicalGenus}</a></i><span class="divider">/</span></li>
       #{if taxa.species}
-        <li><a href="@{Taxas.show(taxa.speciesID)}">${taxa.canonicalSpecies}</a></li>
+        <li><i><a href="@{Taxas.show(taxa.speciesID)}">${taxa.canonicalSpecies}</a></i></li>
       #{/if}
-    </h4>
     </ul>
     <div>  
       <div  class="page-header">
@@ -245,7 +244,7 @@ geojson.on('featureparse', function(e) {
           <h3><i>${taxa.canonicalGenus}</i> ${taxa.genusIdentifiedBy}</h3>
         #{/elseif}
       </div>
-      <h4>${occurrence.institutionCode}</h4>
+      <h4>${occurrence.dataset.title} - ${occurrence.dataset.dataPublisher.name}</h4>
     </div>
   #{/if}
   #{else}
@@ -253,17 +252,16 @@ geojson.on('featureparse', function(e) {
       No references
     </h6>
     <h1>${occurrence.scientificName}</h1>
-    <h4>${occurrence.institutionCode}</h4>
+    <h4>${occurrence.dataset.title}</h4>
   #{/else}
   </div> 
   #{if occurrence.decimalLatitude && occurrence.decimalLongitude}
-
-
-  <!--<div>
-    <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=${occurrence.decimalLatitude}+${occurrence.decimalLongitude}&z=12&amp;output=embed"></iframe>
-  </div>
-  -->
- 
+    <div id='map' style='display:none;width:70%px;height:300px'></div> 
+      <!-- to extend to all taxa levels, this is just for testing -->
+    <div style="margin:10px;">
+      <button id='geo_genus'>All occurrences for Genus</button>
+      <button id='polygon_genus'>All polygon for Genus</button>
+    </div>  
   #{/if}
   #{if occurrence.occurrenceID || 
 	   occurrence.catalogNumber || 
@@ -316,10 +314,6 @@ geojson.on('featureparse', function(e) {
 	  #{if occurrence.associatedTaxa}<tr><th>associatedTaxa</th><td>${occurrence.associatedTaxa}</td></tr>#{/if}	  
 	  </tbody>
 	</table>
-	
-	<div id='map' style='display:none;width:70%px;height:300px'>
-	
-	</div>
   </div>
   #{/if}
   #{if occurrence.typee || 
@@ -343,9 +337,6 @@ geojson.on('featureparse', function(e) {
 	   occurrence.dynamicProperties
   }
   <div class="record-info">
-  <!-- to extend to all taxa levels, this is just for testing -->
-    <button id='geo_genus'>All occurrences for Genus</button>
-    <button id='polygon_genus'>All polygon for Genus</button>
     <h3>Record</h3>
     <table class="table table-condensed table-striped">
       <tbody>

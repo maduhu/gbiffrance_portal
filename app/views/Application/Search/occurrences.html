@@ -1,21 +1,6 @@
-<div id="occurrences" class="alert" style="margin-top:20px;">
-  <h3>Occurrences</h3>
-  
-  
   #{if nbHits}
-    <div class="well">
-      <h4> Taxons les plus fréquents dans la liste d'occurrences ci-dessous :</h4>
-      <table class="table">
-        #{list items:taxas, as:'taxa'}
-          <tr>
-            <td><a href="@{Taxas.show(taxa.taxonId)}"><i>${taxa.scientificName}</i></a></td>
-            <!-- Result filter based on ecat -->
-            <td><a onClick="searchOccurrences('${taxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.onlyWithCoordinates}','0');">${taxa.occurrencesCount} occurrences</a></td>        
-          </tr>
-       #{/list}
-      </table>
-    </div>
-   
+    <div class="span6">
+    <h3>Occurrences</h3>    
     <!-- Pagination -->
     #{if occurrencesTotalPages == 100}<i>5000 first results for a total of ${nbHits} occurrences</i><br/>#{/if}
     #{else}Page ${current} for ${nbHits} results<br/>#{/else}
@@ -59,37 +44,40 @@
       <thead>
         <tr>
           <th>Scientific Name</th>
-          <th>Catalog Number</th>
           <th>Dataset</th>
           <th>Data Publisher</th>
-          <th>Coordinates</th>
         </tr>
       </thead>
-      #{list items:occurrences, as:'occurrence'}
-        #{if max && max < occurrence.score}
-          ${max = occurrence.score}
-        #{/if}  
-        #{if occurrence.score > max}<tr class="alert alert-info">#{/if}
-        #{else}<tr>#{/else}
-        <td><a href="@{Occurrences.show(occurrence.id)}"><i>${occurrence.scientificName}</i></a></td>
-        <td>${occurrence.catalogNumber}</td>        
+      #{list items:occurrences, as:'occurrence'}  
+      <tr>
+        <td>
+          <a href="@{Occurrences.show(occurrence.id)}"><i>${occurrence.scientificName}</i></a><br/>
+          <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}${occurrence.catalogNumber}</h6>         
+        </td>    
         <td><a href="@{Datasets.show(occurrence.dataset.id)}">${occurrence.dataset.title}</a></td>
         <td><a href="@{DataPublishers.show(occurrence.dataset.dataPublisher.id)}">${occurrence.dataset.dataPublisher.name}</a></td>
-        <td>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}yes<!-- ${occurrence.decimalLatitude}<br/>${occurrence.decimalLongitude} -->#{/if}</td>
         <!-- <td>${occurrence.score}</td> -->  
       </tr>
       #{/list}
-    </table>
-    <script type="javascript">
-// x='hola';
-    </script>
-    <!--#{if from && from < nbHits}
-    <div style="float:right;">
-      <b><a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.onlyWithCoordinates}','${from}');">Suivant</a></b>
+      </table>
     </div>
-    #{/if}-->
+    <div class="span3">
+      <h4>Taxons les plus fréquents</h4>
+      <table class="table table-condensed">
+        #{list items:taxas, as:'taxa'}
+          <tr>
+            <td><a href="@{Taxas.show(taxa.taxonId)}"><i>${taxa.scientificName}</i></a></td>
+            <!-- Result filter based on ecat -->
+            <td><a onClick="searchOccurrences('${taxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.onlyWithCoordinates}','0');">${taxa.occurrencesCount} occurrences</a></td>        
+          </tr>
+       #{/list}
+      </table>
+    </div>
   #{/if}
   #{else}
-    <h6>Pas de résultats</h6>  
+  <div class="span8">
+    <h3>Occurrences</h3>    
+    <h6>Pas de résultats</h6>
+  </div>    
   #{/else}
-</div>
+  

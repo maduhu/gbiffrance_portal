@@ -1,0 +1,16 @@
+<!-- <h3>${rank} : ${numRank} usages</h3> -->
+#{if totalPages > 1}
+  #{list items:1..totalPages, as:'i'}
+    <a onClick="showChild('${rank}','${i}');">${i} </a>
+  #{/list}
+#{/if}
+<table class="table table-condensed table-striped">
+    #{list items:children, as: 'child'}
+      <tr>
+        <td>
+          <i><a href="@{Taxas.show(child.taxonId)}">${child.scientificName}</a></i>
+        </td>
+      </tr>
+    #{/list}
+</table>  
+</div>
