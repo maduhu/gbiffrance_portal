@@ -6,6 +6,29 @@ label {
   width:50px;
 }
 
+th {
+  width:200px;
+}
+
+/*** Feedback button ***/
+
+#feedback-button
+{
+  background:transparent url('../images/feedback-button.gif') no-repeat scroll 0px 0px;
+  height:170px;
+  left:0;
+  position:fixed;
+  top:150px;
+  width:40px;
+}
+#feedback-button a
+{
+  display:block;
+  height:170px;
+  width:40px;
+}
+
+
 
 /*** Header ***/
 
@@ -14,6 +37,12 @@ label {
 }
 
 /*** Search ***/
+
+#sidebar
+{
+  float:right;
+}
+
 
 #search-navbar {
   margin-top: 20px;	
@@ -89,37 +118,9 @@ label {
 
 #dataset-basic-info
 {
-  height: 200px;
+  margin-bottom: 20px;
 }
 
-#dataset-basic-info-description
-{
-  background: white;
-  float: left;
-  color: black;
-  width: 500px;
-  height: 200px;   
-}
-
-#dataset-basic-info-others, #dataset-external-links
-{
-  float: right; 
-  width: 300px;
-  margin-bottom: 50px;   
-}
-
-#dataset-geographic-info, #dataset-taxonomic-info, 
-#dataset-temporal-info, #dataset-sampling-info 
-{
-  float: left;
-  margin-right: 30px;
-  width: 300px;
-}
-
-#dataset-contact-info
-{
-  clear: both;
-}
 
 
 
