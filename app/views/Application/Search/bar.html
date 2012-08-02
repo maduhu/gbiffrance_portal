@@ -52,10 +52,27 @@ $(document).ready(function() {
       <h2>Découvrir l'information sur la biodiversité française</h2><br/>
       <div id="search-main-box">
         <div id="search-inputs">
-          <div id="search-taxa" class="search-input btn btn-info"><label><h5>Taxa: </h5></label><input class="input-large search-query" type="text" id="input-search-taxa" name="searchTaxa" value=#{if search && search.taxaText}"${search.taxaText}"#{/if}#{else}""#{/else}/></div>
-          <div id="search-place" class="search-input btn btn-warning"><label><h5>Place: </h5></label><input class="input-large search-query" type="text" id="input-search-place" name="searchPlace" value=#{if search && search.placeText}"${search.placeText}"#{/if}#{else}""#{/else}/></div>
-          <div id="search-dataset" class="search-input btn"><label><h5>Dataset: </h5></label><input class="input-large search-query" type="text" id="input-search-dataset" name="searchDataset" value=#{if search && search.dataset}"${search.dataset}"#{/if}#{else}""#{/else}/></div>       
-          <div id="search-coordinates" class="search-input btn btn-success input-small"><h4>Only with coordinates</h4><input class="input-small search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}#{else}"false"#{/else}/></div>
+          <div id="search-taxa" class="search-input btn btn-info">
+            <label><h5>Taxa: </h5></label>
+            <input class="input-large search-query" type="text" id="input-search-taxa" name="searchTaxa" value=#{if search && search.taxaText}"${search.taxaText}"#{/if}#{else}""#{/else}/>
+          </div>
+          <div id="search-place" class="search-input btn btn-warning">
+            <label><h5>Place: </h5></label>
+            <input class="input-large search-query" type="text" id="input-search-place" name="searchPlace" value=#{if search && search.placeText}"${search.placeText}"#{/if}#{else}""#{/else}/>
+          </div>
+          <div id="search-dataset" class="search-input btn">
+            <label><h5>Dataset: </h5></label>
+            <input class="input-large search-query" type="text" id="input-search-dataset" name="searchDataset" value=#{if search && search.dataset}"${search.dataset}"#{/if}#{else}""#{/else}/>
+          </div>
+          <div id="search-date" class="search-input btn btn-primary">
+            <label><h5>Date: </h5></label>
+            <input id="input-search-date" class="input-small search-query" name="searchDate" value=#{if search && search.dateText}"${search.dateText}"#{/if}#{else}""#{/else}/>            
+          </div>
+          <br/>        
+          <div id="search-coordinates" class="search-input btn btn-success input-small">
+            <h4>Only with coordinates</h4>
+            <input class="input-small search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}#{else}"false"#{/else}/>
+          </div>            
           <input class="btn btn-large" id="search-submit" type="submit" value="Rechercher"/>
         </div>
         <div id="search-filters">          
@@ -64,8 +81,8 @@ $(document).ready(function() {
           <div class="btn btn-tiny search-filter" id="search-filter-dataset">Dataset</div>
           <br/>
           <div class="btn btn-success btn-tiny search-filter" id="search-filter-coordinates">Only with coordinates</div>
-          
-        </div>
+          <div class="btn btn-primary btn-tiny search-filter" id="search-filter-date">Date</div>   
+        </div>        
       </div>
     #{/form}
   </div>

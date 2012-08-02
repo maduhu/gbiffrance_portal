@@ -1,6 +1,7 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.gbif.ecat.model.ParsedName;
@@ -18,9 +19,13 @@ public class Search
   public String dataset = "";
   public List<Long> datasetsIds = new ArrayList<Long>();
   public Float[] boundingBox;
+  public String dateText = "";
+  public String date = "";
+  public String fromDate;
+  public String toDate;
 
 
-  public static Search parser(String searchTaxa, String searchPlace, String searchDataset, boolean searchCoordinates)
+  public static Search parser(String searchTaxa, String searchPlace, String searchDataset, String searchDate, boolean searchCoordinates)
   {
 	Search search = new Search();
 	/*** Taxa parser ***/
@@ -36,7 +41,7 @@ public class Search
 	      search.taxas.add(splittedSearchTaxa[i]);
 	    }
 	  }	
-	  System.out.println("nbTaxa" + splittedSearchTaxa.length);
+	  //System.out.println("nbTaxa" + splittedSearchTaxa.length);
 	}
 	/*** Place parser ***/
 	if (!searchPlace.isEmpty())
@@ -56,6 +61,18 @@ public class Search
 	{
 	  search.dataset = searchDataset.replaceAll("\'", "");	
 	  search.datasetsIds = Dataset.getDatasetsIds(searchDataset);
+	}
+	/*** Date ***/
+	if (!searchDate.isEmpty()) 
+	{
+	  searchDate = searchDate.trim();	  
+	  search.dateText = searchDate.replaceAll("\'", "");
+	  if (search.dateText.split("-").length == 2)
+	  {
+		search.fromDate = search.dateText.split("-")[0];
+		search.toDate = search.dateText.split("-")[1];		
+	  }
+	  else search.date = search.dateText;
 	}
 	return search;  
   }

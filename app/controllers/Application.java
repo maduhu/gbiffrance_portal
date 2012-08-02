@@ -33,16 +33,18 @@ import models.Util;
 
 public class Application extends Controller {
 
-  public static void search(String searchTaxa, String searchPlace, String searchCoordinates, String searchDataset)
+  public static void search(String searchTaxa, String searchPlace, String searchCoordinates, String searchDataset, String searchDate)
   {
 
 	searchTaxa = Util.normalize(searchTaxa);
 	searchPlace = Util.normalize(searchPlace);
 	searchDataset = Util.normalize(searchDataset);
+	searchDate = Util.normalize(searchDate);
 	Search search = new Search();
 	search.placeText = searchPlace;
 	search.taxaText = searchTaxa;
 	search.dataset = searchDataset;
+	search.dateText = searchDate;
 	search.onlyWithCoordinates = Boolean.parseBoolean(searchCoordinates);
 	render("Application/Search/search.html", search);
   }

@@ -35,15 +35,13 @@ public class Datasets extends Controller {
 
   public static void search(String search) {
 	List<Dataset> datasets = new ArrayList<Dataset>();
-	System.out.println("search1 " + search);
 	if (!search.isEmpty())
 	{
 	  search = Util.normalize(search);
 	  search = search.toLowerCase();
-	  System.out.println("search2 " + search);
 	  Pattern regex = Pattern.compile("^" + search);
 	  datasets.addAll((Collection) Dataset.find("tags", regex).asList());
-	  System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
+	  //System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
 	  //Removes duplicates
 	  for (int i = 0; i < datasets.size(); ++i)
 		for (int j = i + 1; j < datasets.size(); ++j)

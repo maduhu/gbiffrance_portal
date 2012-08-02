@@ -61,16 +61,19 @@ import models.*;
 
 public class Occurrences extends Controller {
 
-  public static void search(String taxaSearch, String placeSearch, String datasetSearch, boolean onlyWithCoordinates, Integer from) {   
+  public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) {   
 
-	Search search = Search.parser(taxaSearch, placeSearch, datasetSearch, onlyWithCoordinates);
+	System.out.println(taxaSearch + " " + placeSearch + " " + datasetSearch + " " + dateSearch);
+	Search search = Search.parser(taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates);
 
 	/*** ElasticSearch configuration ***/
 	int pagesize = 50;
 	if (from == null) from = 0;
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9302)).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	Client client = new TransportClient(settings)
+		//.addTransportAddress(new InetSocketTransportAddress("134.157.190.203", 9300));
+		.addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
 
 
 	/*** Query configuration ***/
@@ -78,11 +81,11 @@ public class Occurrences extends Controller {
 	BoolQueryBuilder genusQ = boolQuery();
 	BoolQueryBuilder classificationInterpretedQ = boolQuery();
 	BoolQueryBuilder placeQ = boolQuery();
+	BoolQueryBuilder dateQ = boolQuery();
 	QueryBuilder boundingBoxLatitudeQ = null, boundingBoxLongitudeQ = null;
 
 	if (search.boundingBox != null)
 	{
-
 	  boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBox[0]).to(search.boundingBox[2]);
 	  //System.out.println("bboxLat " + boundingBoxLatitudeQ.toString());
 
@@ -91,7 +94,7 @@ public class Occurrences extends Controller {
 	}
 	
 	/***
-	 * Multitaxas Query
+	 * Taxas Query
 	 */
 	for (int i = 0; i < search.taxas.size(); ++i)
 	{ 
@@ -117,7 +120,9 @@ public class Occurrences extends Controller {
 	  }
 	  
 	}
-		
+	/**
+	 * Place query	
+	 */
 	if (!search.place.isEmpty())
 	{ 
 	  placeQ = placeQ
@@ -138,43 +143,50 @@ public class Occurrences extends Controller {
 		placeQ = placeQ.must(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
 	  }
 	}
-	QueryBuilder q = null;
-
-	if (search.taxas.size() > 0 && !search.place.isEmpty())
+	/**
+	 * Date query
+	 */
+	if (!search.date.isEmpty())
 	{
-	  System.out.println("search.taxas.size() > 0 && !search.place.isEmpty()");
-	  q = boolQuery()
-			.must(boolQuery()
+	  dateQ = dateQ
+		  	.should(rangeQuery("dateIdentified_interpreted").from(search.date).to(search.date))
+	  		.should(rangeQuery("eventDate_interpreted").from(search.date).to(search.date))
+	  		.should(textQuery("eventDate", search.date))
+	  		.should(textQuery("year", search.date));
+	}
+	/*else if (!search.fromDate.isEmpty() && !search.toDate.isEmpty())
+	{	  
+	  dateQ = dateQ.must(rangeQuery("dateIdentified").from(search.fromDate).to(search.toDate));
+	}*/
+	
+	
+	BoolQueryBuilder q = null;
+	if (search.taxas.size() > 0 || !search.place.isEmpty() || !search.date.isEmpty() /*|| (!search.fromDate.isEmpty() && !search.toDate.isEmpty())*/)
+	{
+	  q = boolQuery();
+	  if (search.taxas.size() > 0)
+	  {
+	    q = q.must(boolQuery()
 				.should(scientificNameQ)
 				.should(classificationInterpretedQ)
-				.should(genusQ))
-			.must(boolQuery()
-				.should(placeQ)); 	 
+				.should(genusQ));
+	  }
+	  if (!search.place.isEmpty())
+	  {
+		q = q.must(boolQuery()	    
+				.should(placeQ));		  
+	  }
+	  if (!search.date.isEmpty() /*|| (!search.fromDate.isEmpty() && !search.toDate.isEmpty())*/)
+	  {
+		q = q.must(boolQuery()
+				.should(dateQ)); 	 
+	  }
 	}
-	else if (search.taxas.size() > 0 && search.place.isEmpty())
-	{
-	  System.out.println("search.taxas.size() > 0 && search.place.isEmpty()");
-	  q = boolQuery() 
-		  .must(boolQuery()
-			  .should(scientificNameQ)
-			  .should(classificationInterpretedQ)
-			  .should(genusQ));  
-	}
-	else if (search.taxas.size() == 0 && !search.place.isEmpty())
-	{
-	  System.out.println("search.taxas.size() == 0 && !search.place.isEmpty()");
-	  q = boolQuery()
-			.must(boolQuery()	    
-				.should(placeQ));
-	  
-	}
-
-
+	
 	/*** Filters ***/
 	OrFilterBuilder datasetF = new OrFilterBuilder();
 	FilterBuilder coordinatesF = null;
 
-	/*Limited to one dataset for the moment, see how to build AndFilter*/
 	if ((search.datasetsIds.size() > 0))
 	{ 
 	  for (int i = 0; i < search.datasetsIds.size(); ++i)
@@ -185,7 +197,11 @@ public class Occurrences extends Controller {
 	}
 	if (search.onlyWithCoordinates || search.boundingBox != null)
 	{	
-	  coordinatesF = boolFilter().must(existsFilter("decimalLatitude_interpreted")).must(existsFilter("decimalLongitude_interpreted"));  
+	  coordinatesF = boolFilter()
+		  			.must(existsFilter("decimalLatitude_interpreted")).must(existsFilter("decimalLongitude_interpreted"))
+		  			.must(notFilter(boolFilter()
+		  					.must(queryFilter(termQuery("decimalLongitude_interpreted", 0)))
+		  					.must(queryFilter(termQuery("decimalLatitude_interpreted", 0)))));  
 	}
 
 	FilterBuilder f = null;
@@ -225,24 +241,14 @@ public class Occurrences extends Controller {
 	  datasetFacetBuilder.facetFilter(f);
 	}
 	
-	/***
-	 * This facet is working as a SQL "group by dateIdentified"
-	 */
-	TermsFacetBuilder dateFacetBuilder = new TermsFacetBuilder("date");
-	dateFacetBuilder.field("dateIdentified");
-	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
-	{
-	  dateFacetBuilder.facetFilter(f);
-	}
-	
 	SearchResponse response;
-	System.out.println(search.onlyWithCoordinates == false && search.datasetsIds.size() == 0);
+	//System.out.println(search.onlyWithCoordinates == true && search.datasetsIds.size() == 0);
 	if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
 	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();
 	else 
 	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();  
 	
-	//System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).toString());
+	System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
 	
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();
@@ -313,29 +319,7 @@ public class Occurrences extends Controller {
 	    frequentDatasets.add(frequentDataset);
 	  }
 	}
-	
-	/***
-	 * date facet
-	 
-	facet = response.getFacets().facet("date");
-	ArrayList<ArrayList<String>> dates = new ArrayList<ArrayList<String>>();
-	/***
-	 * Renders datasets and their occurrences count that are matching with the request
-	 
-	for (Entry entry : facet.entries())
-	{
-	  if (entry.count() > 0)
-	  {
-		String dateText = entry.getTerm();
-		String count = String.valueOf(entry.count());		 	   
-		ArrayList<String> date = new ArrayList<String>();
-		date.add(dateText);
-		date.add(count);
-		dates.add(date);
-		System.out.println(date.get(0) + ' ' + date.get(1));
-	  }
-	}*/
-	
+		
 	int occurrencesTotalPages;
 	int current = from/pagesize + 1;
 	from += 50;

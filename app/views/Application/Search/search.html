@@ -4,12 +4,12 @@
 <script src="@{'/public/javascripts/search/search.js'}"></script>
 <script type="text/javascript" >
   var taxas = #{jsAction @Taxas.search(':search', ':page') /}  
-  var occurrences = #{jsAction @Occurrences.search(':searchTaxa', ':searchPlace', ':searchDataset', ':onlyWithCoordinates', ':from') /}  
+  var occurrences = #{jsAction @Occurrences.search(':searchTaxa', ':searchPlace', ':searchDataset', ':searchDate', ':onlyWithCoordinates', ':from') /}  
   var places = #{jsAction @Places.search(':search') /}
   var datasets = #{jsAction @Datasets.search(':search') /}
  
   $(document).ready(function() {
-    searchOccurrences("${search.taxaText}", "${search.placeText}", "${search.dataset}", "${search.onlyWithCoordinates}", 0)
+	searchOccurrences("${search.taxaText}","${search.placeText}","${search.dataset}","${search.dateText}","${search.onlyWithCoordinates}", 0)
     searchTaxas("${search.taxaText}",'1');
     searchPlaces("${search.placeText}", 0);
     searchDatasets("${search.dataset}");
@@ -25,7 +25,7 @@
       <div id="taxas"></div>
     </div>  
   </div>
-  #{if dataPublishers}
+  <!-- #{if dataPublishers}
   <div style="margin-top:20px;">
     <h3>Institutions</h3>
     <table class="table table-condensed table-striped">
@@ -33,7 +33,7 @@
       <td><a href="@{DataPublishers.show(dataPublisher.id)}">${dataPublisher.name}</a></td>
     #{/list}
     </table>
-  </div>
+  </div>-->
   #{/if}
   
   
