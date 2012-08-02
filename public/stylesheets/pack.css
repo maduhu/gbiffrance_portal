@@ -1,0 +1,51 @@
+/*.datasets 
+{
+ opacity: 0
+}*/
+circle {
+
+  fill-opacity: .25;
+  
+}
+
+.leaf circle {
+
+  fill-opacity: 0.4;
+}
+
+.node circle {
+
+  fill-opacity: 0.4;
+
+
+}
+.institution_root circle 
+{
+ stroke: #ABD817;
+  stroke-opacity:1;
+  stroke-width: 2.5px; 
+}
+ 
+.parent_text {
+  
+  z-index:70
+}
+.children_text
+{
+	 
+  z-index:1200
+}
+#chart
+{
+z-index: 50;
+}
+g.chart,g.node
+{
+z-index: 50;
+}
+.pack
+{
+	z-index: 50;
+}
+
+

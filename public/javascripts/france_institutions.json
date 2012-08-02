@@ -1,0 +1,291 @@
+{
+    "data": "root",
+    "total_datasets":18,
+    "children": [
+        {
+            "city": "Paris",
+            "names": "Institutions de Paris",
+             "num_datasets" : "12",
+             "geometry": [
+                        2.3412,
+                        48.85693
+                    ],
+            "children": [
+       {
+                    "name": "CRBIP",
+                    "full_name":"Centre de Ressources Biologiques de l'institut Pasteur (CRBIP)",
+                    "institution_code": "11",
+
+                  
+                    "children": [
+                        {
+                            "name": "crbip",
+                            "full_name":"Centre de Ressources Biologiques de l'institut Pasteur (CRBIP)",
+                            "count":30
+                        }
+                    ],
+                    "num_children": "1"
+                },
+                {
+                    "name": "UPMC",
+                   "full_name":"Université Pierre et Marie Curie (UPMC)",
+                    "institution_code": "15",                
+                    "children": [
+                        {
+                            "name": "palbot",
+                            "full_name":"Collection Paleobotanique de l'Universite Paris 6",
+                            "count":130
+                        }
+                    ],
+                    "num_children": "1"
+                },
+                {
+                    "name": "CBNBP",
+                    "full_name":"Conservatoire Botanique National du Bassin Parisien (CBNBP)",
+                    "institution_code": "1",
+                 
+                    "children": [
+                        {
+                            "name": "cbnbp",
+                            "full_name":"Conservatoire Botanique National du Bassin Parisien (CBNBP)",
+                            "count": 190
+                        }
+                    ],
+                    "num_children": "1"
+                },
+                {
+                    "name": "MNHN",
+                    "full_name": "Muséum National d'Histoire Naturelle (MNHN)",
+                    "institution_code": "3",
+                    "metadata_url": "http://www.gbif.fr/?page_id=780&i=1",
+                    "institution_url": "http://www.mnhn.fr/",
+                    
+                    "children": [
+                        {
+                            "name": "Hemipteres",
+                            "full_name": "Hemipteres",
+                            "count": 50
+                        },
+                        {
+                            "name" : "sonnerat",
+                            "full_name": "Sonnerat",
+                            "count" : 150
+                        },
+                        {
+                            "name": "Ensiferes",
+                            "full_name": "Ensiferes",
+                            "count":60
+                        },
+                        {
+                            "name": "reptamph",
+                            "full_name": "Reptilia et Amphibia",
+                            "count":10
+                        },
+                        {
+                            "name": "invmar",
+                            "full_name": "INVMAR",
+                            "count":90
+                        },
+                        {
+                            "name": "coleopteres",
+                            "full_name": "Coleopteres",
+                            "id": 5,
+                            "count":150
+                        },
+                        {
+                            "name": "arachnee",
+                            "full_name": "arachnee",
+                            "count":13
+                        },
+                        {
+                            "name": "mycobase",
+                            "full_name": "mycobase",
+                            "count":70
+                        }
+                    ],
+                    "num_children": "8"
+                }
+                            ]
+        },
+        {
+
+        "names": "Institutions de Montpellier",
+        "city": "Montpellier",
+         "num_datasets" : "2",
+        "geometry": [
+                3.87609,
+                43.610855
+            ],
+         
+         "children": [
+        {
+            "name": "Tela Botanica",
+            "full_name": "Tela Botanica",
+            "city": "Montpellier",
+            "institution_code": "4",
+            "children": [
+                {
+                    "name": "chorodep",
+                    "full_name": "chorodep",
+                    "count": 100
+                },
+                {
+                    "name": "cel",
+                    "full_name": "cel",
+                    "count": 300
+                }
+            ]
+            
+        }
+        ]
+        },
+
+        {
+          "names": "Institutions de Banyuls",
+          "city": "Banyuls",
+           "num_datasets" : "1",
+           "geometry": [
+                3.1293,
+                42.481319
+            ],
+          "children":
+          [
+          {
+            "name": "Microbial Observatory of the Laboratoire Arago",
+            "city": "Banyuls",
+            "institution_code": "13",           
+            "children": [
+                {
+                    "name": "mola",
+                    "full_name": "Microbial Observatory of the Laboratoire Arago",
+                    "count": 200
+                }
+            ],
+            "num_children": "1"
+            }
+            ]
+        },
+        {
+            "names": "Institutions a Bourges",
+            "city": "Borges",
+            "num_datasets": 1,
+            "geometry": [
+                2.3929,
+                47.085855
+            ],
+
+            "children": [
+                {
+            "name": "Muséum d'Histoire Naturelle de Bourges",
+            "city": "Bourges",
+            "institution_code": "6",            
+            "children": [
+                {
+                    "name": "bourges_mammiferes_sauf_chiropteres",
+                    "full_name": "Mammiferes Bourges",
+                    "count": 200
+                }
+            ],
+            "num_children": "1"
+        }
+            ]
+
+        },
+        {
+            "names": "Institutions de Besançon",
+            "city": "Besançon",
+            "num_datasets": 1,
+            "institution_code": "9",
+              "geometry": [
+                6,
+                47
+            ],
+            "children":
+            [
+            {
+            "name": "Conservatoire Botanique de Franche-Comté",
+            "city": "Besançon",
+            
+            "children": [
+                {
+                    "name": "cbnfc",
+                    "full_name": "Conservatoire Botanique de Franche-Comté",
+                    "count": 500
+                }
+            ]
+            }
+            ]
+         },
+
+          {
+            "names":"Institutions Clermont-Ferrand ",
+            "city": "Clermont-Ferrand",
+            "num_datasets": 1,
+              "geometry": [
+                3.0772,
+                45.776665
+            ],
+            "children":
+            [
+            {
+
+            "name": "Museum Henri-Lecoq de Clermont-Ferrand",
+            "city": "Clermont-Ferrand",
+            "institution_code": "10",          
+            "children": [
+                {
+                    "name": "barthelemy",
+                    "full_name": "barthelemy",
+                    "count" : 10
+                }
+            ]
+           
+            }
+            ]
+
+            
+        },
+
+
+        {
+            "names":"Institutions Strasbourg ",
+            "city": "Strasbourg",
+             "institution_code": "8",
+            "num_datasets": "3",
+             "geometry": [
+                7.7364,
+                48.58508
+            ],
+            "children":
+            [
+            {
+
+            "name": "Université de Strasbourg",
+            "city": "Strasbourg",
+            "institution_code": "8",
+          
+            "children": [
+
+                {
+                    "name": "wal_fut",
+                    "full_name" : "Herbier de Wallis et Futuna",
+                    "count": 3000
+                },
+                {
+                    "name": "cal",
+                    "full_name" : "Nouvelle Caledonie",
+                    "count": 500
+                },
+                {
+                    "name": "herbstrasbourg",
+                    "full_name": "Herbier de Strasbourg",
+                    "count": 3500
+                }
+            ]
+            
+            }
+          ]
+      }
+
+    ]
+}

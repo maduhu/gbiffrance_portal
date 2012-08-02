@@ -1,6 +1,7 @@
 <?
 
-$connexion = pg_connect ("host= dbname= user= password="); 
+include 'config.php';
+connect();
 //name of selected taxa
 $taxa=$_GET['taxa'];
 $collection=$_GET['collection'];
