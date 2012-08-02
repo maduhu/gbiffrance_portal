@@ -70,7 +70,7 @@ public class Occurrences extends Controller {
 	if (from == null) from = 0;
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9302)).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
 
 
 	/*** Query configuration ***/
