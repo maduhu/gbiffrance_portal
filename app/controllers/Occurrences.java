@@ -95,18 +95,27 @@ public class Occurrences extends Controller {
 	 */
 	for (int i = 0; i < search.taxas.size(); ++i)
 	{ 
+	  if (search.taxas.get(i).split(" ").length > 1)
+	  {
+		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	
+		classificationInterpretedQ = classificationInterpretedQ
+				.should(textQuery("specificEpithet_interpreted", search.taxas.get(i)).operator(Operator.AND))
+				.should(textQuery("ecatConceptId", search.taxas.get(i)).operator(Operator.AND));
+	  }
+	  else
+	  {
+		genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
+		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
+		classificationInterpretedQ = classificationInterpretedQ
+				.should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
+				.should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))
+				.should(textQuery("classs_interpreted", search.taxas.get(i)).operator(Operator.AND))
+				.should(textQuery("orderr_interpreted", search.taxas.get(i)).operator(Operator.AND))		  
+				.should(textQuery("family_interpreted", search.taxas.get(i)).operator(Operator.AND))
+				.should(textQuery("genus_interpreted", search.taxas.get(i)).operator(Operator.AND))
+			  	.should(textQuery("ecatConceptId", search.taxas.get(i)).operator(Operator.AND));
+	  }
 	  
-	  //genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
-	  scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
-	  classificationInterpretedQ = classificationInterpretedQ
-			  .should(textQuery("specificEpithet_interpreted", search.taxas.get(i)).operator(Operator.AND))
-			  .should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
-			  .should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))
-			  .should(textQuery("classs_interpreted", search.taxas.get(i)).operator(Operator.AND))
-			  .should(textQuery("orderr_interpreted", search.taxas.get(i)).operator(Operator.AND))		  
-			  .should(textQuery("family_interpreted", search.taxas.get(i)).operator(Operator.AND))
-			  .should(textQuery("genus_interpreted", search.taxas.get(i)).operator(Operator.AND))
-		  	  .should(textQuery("ecatConceptId", search.taxas.get(i)).operator(Operator.AND));
 	}
 		
 	if (!search.place.isEmpty())
@@ -199,19 +208,39 @@ public class Occurrences extends Controller {
 	/***
 	 * This facet is working as a SQL "group by ecatConceptId"
 	 */
-	TermsFacetBuilder facetBuilder = new TermsFacetBuilder("ecatConceptId");
-	facetBuilder.field("ecatConceptId");
+	TermsFacetBuilder ecatFacetBuilder = new TermsFacetBuilder("ecatConceptId").size(20);
+	ecatFacetBuilder.field("ecatConceptId");
 	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
 	{
-	  facetBuilder.facetFilter(f);
+	  ecatFacetBuilder.facetFilter(f);
 	}
 
+	/***
+	 * This facet is working as a SQL "group by dataset"
+	 */
+	TermsFacetBuilder datasetFacetBuilder = new TermsFacetBuilder("dataset");
+	datasetFacetBuilder.field("dataset");
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  datasetFacetBuilder.facetFilter(f);
+	}
+	
+	/***
+	 * This facet is working as a SQL "group by dateIdentified"
+	 */
+	TermsFacetBuilder dateFacetBuilder = new TermsFacetBuilder("date");
+	dateFacetBuilder.field("dateIdentified");
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  dateFacetBuilder.facetFilter(f);
+	}
+	
 	SearchResponse response;
 	System.out.println(search.onlyWithCoordinates == false && search.datasetsIds.size() == 0);
 	if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).execute().actionGet();
+	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();
 	else 
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(facetBuilder).execute().actionGet();  
+	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();  
 	
 	//System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(facetBuilder).toString());
 	
@@ -233,6 +262,10 @@ public class Occurrences extends Controller {
 	  occurrences.add(occurrence);
 	  if (occurrences.size() >= 50) break;        
 	}
+	
+	/***
+	 * ecat facet
+	 */
 	TermsFacet facet = response.getFacets().facet("ecatConceptId");
 	ArrayList<Taxa> taxas = new ArrayList<Taxa>();
 	/***
@@ -250,6 +283,59 @@ public class Occurrences extends Controller {
 	  }
 	}
 	
+	/***
+	 * dataset facet
+	 */
+	facet = response.getFacets().facet("dataset");
+	ArrayList<Map<String, Object>> frequentDatasets = new ArrayList<Map<String, Object>>();
+	/***
+	 * Renders datasets and their occurrences count that are matching with the request
+	 */
+	Long id;
+	for (Entry entry : facet.entries())
+	{
+	  if (entry.count() > 0)
+	  {
+	    try 
+	    {
+		  id = Long.parseLong(entry.getTerm());
+	    }
+	    catch (NumberFormatException e)
+	    {
+		  continue;
+	    }
+	    Dataset dataset = Dataset.findById(id); 
+	    Map<String, Object> frequentDataset = new HashMap<String, Object>();
+	    frequentDataset.put("id", dataset.id);
+	    frequentDataset.put("name", dataset.name);
+	    frequentDataset.put("title",dataset.title);
+	    frequentDataset.put("count", entry.count());
+	    frequentDatasets.add(frequentDataset);
+	  }
+	}
+	
+	/***
+	 * date facet
+	 
+	facet = response.getFacets().facet("date");
+	ArrayList<ArrayList<String>> dates = new ArrayList<ArrayList<String>>();
+	/***
+	 * Renders datasets and their occurrences count that are matching with the request
+	 
+	for (Entry entry : facet.entries())
+	{
+	  if (entry.count() > 0)
+	  {
+		String dateText = entry.getTerm();
+		String count = String.valueOf(entry.count());		 	   
+		ArrayList<String> date = new ArrayList<String>();
+		date.add(dateText);
+		date.add(count);
+		dates.add(date);
+		System.out.println(date.get(0) + ' ' + date.get(1));
+	  }
+	}*/
+	
 	int occurrencesTotalPages;
 	int current = from/pagesize + 1;
 	from += 50;
@@ -266,7 +352,7 @@ public class Occurrences extends Controller {
 	else occurrencesTotalPages = 100;
 	
 	//System.out.println(response.toString());
-	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas);
+	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets);
   }
 
   public static void show(Integer id) {

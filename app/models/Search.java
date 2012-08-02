@@ -54,7 +54,7 @@ public class Search
 	/*** Dataset ***/
 	if (!searchDataset.isEmpty()) 
 	{
-	  search.dataset = searchDataset;	
+	  search.dataset = searchDataset.replaceAll("\'", "");	
 	  search.datasetsIds = Dataset.getDatasetsIds(searchDataset);
 	}
 	return search;  

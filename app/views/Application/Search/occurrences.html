@@ -52,6 +52,9 @@
       <tr>
         <td>
           <a href="@{Occurrences.show(occurrence.id)}"><i>${occurrence.scientificName}</i></a><br/>
+          <!-- #{if occurrence.scientificName != occurrence.specificEpithet_interpreted} 
+            (<i>${occurrence.specificEpithet_interpreted}</i>)
+          #{/if} -->
           <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}${occurrence.catalogNumber}</h6>         
         </td>    
         <td><a href="@{Datasets.show(occurrence.dataset.id)}">${occurrence.dataset.title}</a></td>
@@ -62,13 +65,24 @@
       </table>
     </div>
     <div class="span3">
+      <div id="chart_div"></div>      
       <h4>Taxons les plus fréquents</h4>
       <table class="table table-condensed">
         #{list items:taxas, as:'taxa'}
           <tr>
             <td><a href="@{Taxas.show(taxa.taxonId)}"><i>${taxa.scientificName}</i></a></td>
             <!-- Result filter based on ecat -->
-            <td><a onClick="searchOccurrences('${taxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.onlyWithCoordinates}','0');">${taxa.occurrencesCount} occurrences</a></td>        
+            <td><a onClick="searchOccurrences('${taxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.onlyWithCoordinates}','0');">${taxa.occurrencesCount}</a></td>        
+          </tr>
+       #{/list}
+      </table>
+      <h4>Datasets les plus fréquents</h4>
+      <table class="table table-condensed">
+        #{list items:frequentDatasets, as:'frequentDataset'}
+          <tr>
+            <td><a href="@{Datasets.show(frequentDataset.get('id'))}"><i>${frequentDataset.get('title')}</i></a></td>
+            <!-- Result filter based on dataset -->
+            <td><a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${frequentDataset.get('name')}', '${search.onlyWithCoordinates}','0');">${frequentDataset.get('c')}</a></td>       
           </tr>
        #{/list}
       </table>

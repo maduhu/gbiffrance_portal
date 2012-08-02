@@ -513,10 +513,10 @@ $('#geo_genus').click(function()
       <div  class="page-header">
         <h1>${occurrence.scientificName}</h1>
         #{if taxa.canonicalSpecies}
-          <h3><i>${taxa.canonicalSpecies}</i> ${taxa.speciesIdentifiedBy}</h3>
+          <h3>interpreted as <i>${taxa.species}</i></h3>
         #{/if}
         #{elseif taxa.canonicalGenus}
-          <h3><i>${taxa.canonicalGenus}</i> ${taxa.genusIdentifiedBy}</h3>
+          <h3>interpreted as <i>${taxa.genus}</i></h3>
         #{/elseif}
       </div>
       <h4>${occurrence.dataset.title} - ${occurrence.dataset.dataPublisher.name}</h4>

@@ -54,7 +54,7 @@ public class Taxa
   public String description;
   public List<ArrayList<String>> mediaURLs;
 
-  //Occurrences count
+  
   public int occurrencesCount;
 
 

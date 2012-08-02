@@ -256,8 +256,8 @@ public class Taxas extends Controller {
 		if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("species").isJsonNull())
 		  taxa.species = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("species").getAsString();
 	  }
-	  if (taxa.species != null) taxa.speciesIdentifiedBy = taxa.species.replaceAll(taxa.canonicalSpecies,"");
-	  if (taxa.genus != null) taxa.genusIdentifiedBy = taxa.genus.replaceAll(taxa.canonicalGenus,"");
+	  //if (taxa.species != null) taxa.speciesIdentifiedBy = taxa.species.replaceAll(taxa.canonicalSpecies,"");
+	  //if (taxa.genus != null) taxa.genusIdentifiedBy = taxa.genus.replaceAll(taxa.canonicalGenus,"");
 	  return taxa;
 	}
 
