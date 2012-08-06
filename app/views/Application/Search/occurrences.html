@@ -86,6 +86,16 @@
           </tr>
        #{/list}
       </table>
+      <h4>Dates les plus fréquentes</h4>
+      <table class="table table-condensed">
+        #{list items:frequentYears, as:'frequentYear'}
+          <tr>
+            <td><i>${frequentYear.get('year')}</i></td>
+            <!-- Result filter based on dataset -->
+            <td><a target="_blank" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${frequentYear.get('year')}', '${search.onlyWithCoordinates}','0');">${frequentYear.get('count')}</a></td>       
+          </tr>
+       #{/list}
+      </table>
     </div>
   #{/if}
   #{else}

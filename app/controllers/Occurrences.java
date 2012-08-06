@@ -72,7 +72,7 @@ public class Occurrences extends Controller {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
 
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 
 
 
@@ -146,22 +146,15 @@ public class Occurrences extends Controller {
 	/**
 	 * Date query
 	 */
-	if (!search.date.isEmpty())
-	{
-	  dateQ = dateQ
-		  	.should(rangeQuery("dateIdentified_interpreted").from(search.date).to(search.date))
-	  		.should(rangeQuery("eventDate_interpreted").from(search.date).to(search.date))
-	  		.should(textQuery("eventDate", search.date))
-	  		.should(textQuery("year", search.date));
-	}
-	/*else if (!search.fromDate.isEmpty() && !search.toDate.isEmpty())
+	if (search.fromDate != null && search.toDate != null)
 	{	  
-	  dateQ = dateQ.must(rangeQuery("dateIdentified").from(search.fromDate).to(search.toDate));
-	}*/
+	  System.out.println(search.fromDate + '-' + search.toDate);
+	  dateQ = dateQ.must(rangeQuery("year_interpreted").from(search.fromDate).to(search.toDate));
+	}
 	
 	
 	BoolQueryBuilder q = null;
-	if (search.taxas.size() > 0 || !search.place.isEmpty() || !search.date.isEmpty() /*|| (!search.fromDate.isEmpty() && !search.toDate.isEmpty())*/)
+	if (search.taxas.size() > 0 || !search.place.isEmpty() || (search.fromDate != null && search.toDate != null))
 	{
 	  q = boolQuery();
 	  if (search.taxas.size() > 0)
@@ -176,7 +169,7 @@ public class Occurrences extends Controller {
 		q = q.must(boolQuery()	    
 				.should(placeQ));		  
 	  }
-	  if (!search.date.isEmpty() /*|| (!search.fromDate.isEmpty() && !search.toDate.isEmpty())*/)
+	  if (search.fromDate != null && search.toDate != null)
 	  {
 		q = q.must(boolQuery()
 				.should(dateQ)); 	 
@@ -241,14 +234,24 @@ public class Occurrences extends Controller {
 	  datasetFacetBuilder.facetFilter(f);
 	}
 	
+	/***
+	 * This facet is working as a SQL "group by year"
+	 */
+	TermsFacetBuilder yearFacetBuilder = new TermsFacetBuilder("year");
+	yearFacetBuilder.field("year_interpreted");
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  yearFacetBuilder.facetFilter(f);
+	}
+	
 	SearchResponse response;
 	//System.out.println(search.onlyWithCoordinates == true && search.datasetsIds.size() == 0);
 	if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();
+	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();
 	else 
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();  
+	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();  
 	
-	System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
+	//System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
 	
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();
@@ -319,6 +322,20 @@ public class Occurrences extends Controller {
 	    frequentDatasets.add(frequentDataset);
 	  }
 	}
+	
+	/***
+	 * year facet
+	 */
+	facet = response.getFacets().facet("year");
+	ArrayList<Map<String, Object>> frequentYears = new ArrayList<Map<String, Object>>();
+	
+	for (Entry entry : facet.entries())
+	{
+	  Map<String, Object> frequentYear = new HashMap<String, Object>();
+	  frequentYear.put("year", entry.getTerm());
+	  frequentYear.put("count", entry.count());
+	  frequentYears.add(frequentYear);
+	}
 		
 	int occurrencesTotalPages;
 	int current = from/pagesize + 1;
@@ -335,14 +352,14 @@ public class Occurrences extends Controller {
 	  occurrencesTotalPages = (int) (nbHits/pagesize);
 	else occurrencesTotalPages = 100;
 	
-	//System.out.println(response.toString());
-	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets);
+	System.out.println(response.toString());
+	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets, frequentYears);
   }
 
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
 	QueryBuilder q = termQuery("_id", id);
 	SearchResponse response = client.prepareSearch("idx_occurrence").setSearchType(SearchType.DEFAULT).setQuery(q).setExplain(true).execute().actionGet();
 	Occurrence occurrence = new Occurrence();

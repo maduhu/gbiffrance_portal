@@ -20,9 +20,8 @@ public class Search
   public List<Long> datasetsIds = new ArrayList<Long>();
   public Float[] boundingBox;
   public String dateText = "";
-  public String date = "";
-  public String fromDate;
-  public String toDate;
+  public Integer fromDate;
+  public Integer toDate;
 
 
   public static Search parser(String searchTaxa, String searchPlace, String searchDataset, String searchDate, boolean searchCoordinates)
@@ -65,14 +64,17 @@ public class Search
 	/*** Date ***/
 	if (!searchDate.isEmpty()) 
 	{
-	  searchDate = searchDate.trim();	  
-	  search.dateText = searchDate.replaceAll("\'", "");
+	  search.dateText = searchDate.trim();	  
 	  if (search.dateText.split("-").length == 2)
 	  {
-		search.fromDate = search.dateText.split("-")[0];
-		search.toDate = search.dateText.split("-")[1];		
+		search.fromDate = Integer.valueOf(search.dateText.split("-")[0]);
+		search.toDate = Integer.valueOf(search.dateText.split("-")[1]);		
 	  }
-	  else search.date = search.dateText;
+	  else if (search.dateText.split("-").length == 1)
+	  {
+		search.fromDate = Integer.valueOf(search.dateText.split("-")[0]);
+		search.toDate = Integer.valueOf(search.dateText.split("-")[0]);
+	  }
 	}
 	return search;  
   }
