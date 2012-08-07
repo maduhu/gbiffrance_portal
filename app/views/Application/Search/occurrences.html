@@ -51,10 +51,10 @@
       #{list items:occurrences, as:'occurrence'}  
       <tr>
         <td>
-          <a target="_blank" href ="@{Occurrences.show(occurrence.id)}"><i>${occurrence.scientificName}</i></a><br/>
-          <!-- #{if occurrence.scientificName != occurrence.specificEpithet_interpreted} 
-            (<i>${occurrence.specificEpithet_interpreted}</i>)
-          #{/if} -->
+          <a target="_blank" href ="@{Occurrences.show(occurrence.id)}"><i>#{if occurrence.scientificName.size () < 40}${occurrence.scientificName}#{/if}#{else}${occurrence.scientificName[0..39]}[...]#{/else}</i></a><br/>
+          #{if occurrence.specificEpithet_interpreted} 
+            (as : <i>${occurrence.specificEpithet_interpreted}</i>)
+          #{/if} 
           <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}${occurrence.catalogNumber}</h6>         
         </td>    
         <td><a target="_blank" href ="@{Datasets.show(occurrence.dataset.id)}">${occurrence.dataset.title}</a></td>

@@ -23,7 +23,7 @@ public class Places extends Controller {
 	if (geoResponse.success())
 	{
 	  JsonObject jsonObject = geoResponse.getJson().getAsJsonObject().get("places").getAsJsonObject();
-	  System.out.println("Search Places : " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
+	  //System.out.println("Search Places : " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
 	  int jsonCount = jsonObject.get("count").getAsInt(); 
 	  if (jsonCount >= 1)	  
 	  {	  

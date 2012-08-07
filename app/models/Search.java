@@ -51,7 +51,6 @@ public class Search
 	  {
 	    search.boundingBox = Search.extractBoundingBox(search.place);
 	  } 
-	  System.out.println("place " + search.place);
 	}	
 	/*** Coordinates ***/
 	if (searchCoordinates) search.onlyWithCoordinates = true;

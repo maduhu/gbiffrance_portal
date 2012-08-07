@@ -20,6 +20,9 @@ public class Taxa
   public long genusID;
   public long speciesID;
 
+  public String higherTaxon;
+  public long higherTaxonID;
+  
   public Integer nbPhylum;
   public Integer nbClass;
   public Integer nbOrder;

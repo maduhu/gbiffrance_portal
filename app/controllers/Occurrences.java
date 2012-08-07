@@ -50,7 +50,10 @@ import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
 import org.gbif.ecat.model.ParsedName;
 import org.gbif.ecat.parser.NameParser;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mongodb.DBRef;
 import com.mongodb.util.JSON;
 
@@ -72,7 +75,7 @@ public class Occurrences extends Controller {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
 
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
 
 
 
@@ -148,7 +151,6 @@ public class Occurrences extends Controller {
 	 */
 	if (search.fromDate != null && search.toDate != null)
 	{	  
-	  System.out.println(search.fromDate + '-' + search.toDate);
 	  dateQ = dateQ.must(rangeQuery("year_interpreted").from(search.fromDate).to(search.toDate));
 	}
 	
@@ -171,8 +173,7 @@ public class Occurrences extends Controller {
 	  }
 	  if (search.fromDate != null && search.toDate != null)
 	  {
-		q = q.must(boolQuery()
-				.should(dateQ)); 	 
+		q = q.must(boolQuery().must(dateQ)); 	 
 	  }
 	}
 	
@@ -251,18 +252,30 @@ public class Occurrences extends Controller {
 	else 
 	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();  
 	
-	//System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
+	System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
 	
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();
+	NameParser nameParser = new NameParser();
 	for (SearchHit hit : response.getHits()) {   
 	  Occurrence occurrence = new Occurrence();	
 	  occurrence.id = (Integer) hit.getSource().get("_id");
 	  occurrence.scientificName = (String) hit.getSource().get("scientificName");
 	  occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
-	  occurrence.specificEpithet_interpreted = (String) hit.getSource().get("specificEpithet_interpreted");
+	  
 	  occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
-	  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");
+	  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");	
+	  
+	  ParsedName<String> parsedNameOriginal = nameParser.parse(occurrence.scientificName);
+	  ParsedName<String> parsedNameInterpreted = nameParser.parse((String) hit.getSource().get("specificEpithet_interpreted"));
+	  try
+	  {
+		if (!(parsedNameOriginal.genusOrAbove.equals(parsedNameInterpreted.genusOrAbove)) || !(parsedNameOriginal.specificEpithet.equals(parsedNameInterpreted.specificEpithet)))
+		{
+		  occurrence.specificEpithet_interpreted = (String) hit.getSource().get("specificEpithet_interpreted");
+		}
+	  }
+	  catch (Exception e) {}
 	  DBRef dbRef = (DBRef) JSON.parse((String) hit.getSource().get("dataset"));
 	  String dataset_id = (String) dbRef.getId();
 	  Dataset dataset = Dataset.findById(dataset_id);
@@ -276,7 +289,7 @@ public class Occurrences extends Controller {
 	 * ecat facet
 	 */
 	TermsFacet facet = response.getFacets().facet("ecatConceptId");
-	ArrayList<Taxa> taxas = new ArrayList<Taxa>();
+	List<Taxa> taxas = new ArrayList<Taxa>();
 	/***
 	 * Renders (max 10) taxas and their occurrences count that are matching with the request
 	 */
@@ -296,7 +309,7 @@ public class Occurrences extends Controller {
 	 * dataset facet
 	 */
 	facet = response.getFacets().facet("dataset");
-	ArrayList<Map<String, Object>> frequentDatasets = new ArrayList<Map<String, Object>>();
+	List<Map<String, Object>> frequentDatasets = new ArrayList<Map<String, Object>>();
 	/***
 	 * Renders datasets and their occurrences count that are matching with the request
 	 */
@@ -327,7 +340,7 @@ public class Occurrences extends Controller {
 	 * year facet
 	 */
 	facet = response.getFacets().facet("year");
-	ArrayList<Map<String, Object>> frequentYears = new ArrayList<Map<String, Object>>();
+	List<Map<String, Object>> frequentYears = new ArrayList<Map<String, Object>>();
 	
 	for (Entry entry : facet.entries())
 	{
@@ -352,14 +365,23 @@ public class Occurrences extends Controller {
 	  occurrencesTotalPages = (int) (nbHits/pagesize);
 	else occurrencesTotalPages = 100;
 	
-	System.out.println(response.toString());
-	render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets, frequentYears);
+	 System.out.println(response.toString());
+	if (request.format.equals("json")) {
+	  JsonObject jsonObject = new JsonObject();
+	  Gson gson = new Gson();
+	  jsonObject.addProperty("occurrences", gson.toJson(occurrences));
+	  jsonObject.addProperty("taxas", gson.toJson(taxas));
+	  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
+	  jsonObject.addProperty("years", gson.toJson(frequentYears));
+	  renderJSON(jsonObject);
+	}
+	else render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets, frequentYears);
   }
 
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
 	QueryBuilder q = termQuery("_id", id);
 	SearchResponse response = client.prepareSearch("idx_occurrence").setSearchType(SearchType.DEFAULT).setQuery(q).setExplain(true).execute().actionGet();
 	Occurrence occurrence = new Occurrence();

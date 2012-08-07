@@ -107,6 +107,15 @@ public class Taxas extends Controller {
 		taxa.nbGenus = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numG").getAsInt();
 	  if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numP").isJsonNull())
 		taxa.nbSpecies = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("numS").getAsInt(); 
+	  
+	  
+	  //if the taxa is a synonym, show the original taxa
+	  if (!ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("isSynonym").isJsonNull() && ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("isSynonym").getAsBoolean() == true)
+	  {
+		taxa.higherTaxon = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("higherTaxon").getAsString();
+		taxa.higherTaxonID = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonObject().get("higherTaxonID").getAsLong();
+	  }
+	  
 	}
 	return taxa;
   }

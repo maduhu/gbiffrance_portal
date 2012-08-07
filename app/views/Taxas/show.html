@@ -50,6 +50,9 @@
 			<i>${taxa.canonicalName}</i>
 		</h1>
 		<h4>${taxa.scientificName} | ${taxa.accordingTo}</h4>
+		#{if taxa.higherTaxon}
+		  Synonym of <i><a href="@{Taxas.show(taxa.higherTaxonID)}">${taxa.higherTaxon}</a></i>
+		#{/if}
 	</div>
 	<div class="row">
 	  <div class="span8">
