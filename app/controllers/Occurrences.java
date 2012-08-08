@@ -289,19 +289,22 @@ public class Occurrences extends Controller {
 	 * ecat facet
 	 */
 	TermsFacet facet = response.getFacets().facet("ecatConceptId");
-	List<Taxa> taxas = new ArrayList<Taxa>();
+	List<Map<String,Object>> frequentTaxas = new ArrayList<Map<String,Object>>();
 	/***
 	 * Renders (max 10) taxas and their occurrences count that are matching with the request
 	 */
 	
 	for (Entry entry : facet.entries())
 	{
+	  Map<String, Object> frequentTaxa = new HashMap<String, Object>();
 	  Taxa taxa = new Taxa();
 	  Taxas.ecatInformation(Long.parseLong(entry.getTerm()), taxa);
 	  if (taxa.scientificName != null) 
 	  {
-		taxa.occurrencesCount = entry.count();
-		taxas.add(taxa);
+		frequentTaxa.put("taxonId", Long.parseLong(entry.getTerm()));
+		frequentTaxa.put("scientificName", taxa.scientificName);
+		frequentTaxa.put("count", entry.getCount());
+		frequentTaxas.add(frequentTaxa);
 	  }
 	}
 	
@@ -355,27 +358,27 @@ public class Occurrences extends Controller {
 	from += 50;
 	client.close();
 
-	  
-	if (nbHits < pagesize) 
-	{
+	if (nbHits < pagesize) {
 	  pagesize = nbHits.intValue();
 	  occurrencesTotalPages = 1;
-	}
-	else if (nbHits/pagesize < 100)
-	  occurrencesTotalPages = (int) (nbHits/pagesize);
-	else occurrencesTotalPages = 100;
+	} else if (nbHits / pagesize < 100)
+	  occurrencesTotalPages = (int) (nbHits / pagesize);
+	else
+	  occurrencesTotalPages = 100;
 
-	 System.out.println(response.toString());
+	System.out.println(response.toString());
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();
 	  Gson gson = new Gson();
+	  jsonObject.addProperty("frequentTaxas", gson.toJson(frequentTaxas));
 	  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
 	  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
 	  renderJSON(jsonObject);
-	}
-	else render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets, frequentYears);
-
-}
+	} else
+	  render("Application/Search/occurrences.html", occurrences, search,
+		  nbHits, from, occurrencesTotalPages, pagesize, current,
+		  frequentTaxas, frequentDatasets, frequentYears);
+  }
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();

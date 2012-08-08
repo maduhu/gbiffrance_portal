@@ -272,18 +272,18 @@ public class Taxas extends Controller {
 
   }
 
-  public static void search(String search, int page) {
+  /*public static void search(String search, int page) {
 
-	/* Splits the search in words */
+	 Splits the search in words 
 	String[] splittedSearch = search.split(" ");
-	/* for each word, tries to find a corresponding taxa */
+	 for each word, tries to find a corresponding taxa 
 	for (int i = 0; i < splittedSearch.length; ++i)
 	{
 	  HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i]).get();	
 	  if(ecatResponse.success())
 	  {
 		int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
-		/* if there are results, it could be a genus, try to find a specificEpithet */
+		 if there are results, it could be a genus, try to find a specificEpithet 
 		//System.out.println ("count :" + count);
 		if (count > 0)
 		{
@@ -331,6 +331,57 @@ public class Taxas extends Controller {
 	  int current = page;
 	  render ("Application/Search/taxas.html", taxas, taxasTotalPages, search, count, current, pagesize);
 	}
+  }*/
+  
+  public static void search(String search, int page) 
+  {
+	String[] splittedSearch = search.split(";");
+	int count = 0;
+	List<Taxa> taxas = new ArrayList<Taxa>();
+	for (int i = 0; i < splittedSearch.length; ++i) 
+	{
+	  splittedSearch[i] = splittedSearch[i].replaceAll(" ", "%20");
+	  HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i]).get();
+
+	  if (ecatResponse.success()) 
+	  {
+		ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q="	+ splittedSearch[i].replaceAll(" ", "%20")).get();
+		if (ecatResponse.success()) 
+		{
+		  count += ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt();
+		  ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20")).get();
+		  System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20"));
+
+		  int numTaxas = ecatResponse.getJson().getAsJsonObject().get("data")
+			  .getAsJsonArray().size();
+		  for (int j = 0; j < numTaxas; ++j) {
+			String rank = ecatResponse.getJson().getAsJsonObject().get("data")
+				.getAsJsonArray().get(j).getAsJsonObject().get("rank")
+				.getAsString();
+			Taxa taxa = new Taxa();
+			taxa.rank = rank;
+			taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data")
+				.getAsJsonArray().get(j).getAsJsonObject().get("taxonID")
+				.getAsLong();
+			taxa.scientificName = ecatResponse.getJson().getAsJsonObject()
+				.get("data").getAsJsonArray().get(j).getAsJsonObject()
+				.get("scientificName").getAsString();
+			taxas.add(taxa);
+		  }
+		}
+	  }
+	}
+
+	int pagesize = 10;
+
+	int taxasTotalPages;
+	if (count < pagesize) {
+	  pagesize = count;
+	  taxasTotalPages = 1;
+	} else
+	  taxasTotalPages = count / pagesize + 1;
+	int current = page;
+	render("Application/Search/taxas.html", taxas, taxasTotalPages, count, search, current, pagesize);
   }
 
   public static void show(Long taxonId) {
