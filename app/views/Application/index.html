@@ -4,6 +4,8 @@
 <script src="@{'/public/json/france_institutions.json'}"></script>
       <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
       <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+      <script src="@{'/public/javascripts/nv.d3.min.js'}"></script>
+      <script src="@{'/public/javascripts/pieChart.js'}"></script>
       <script src="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/wax/dist/wax.leaf.min.js"></script>
 <script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
 <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/tipsy.css'}">
@@ -25,56 +27,58 @@ wax.tilejson(url, function(tilejson) {
           })
  map._initPathRoot() //we add the leaflet SVG, covering all map. Here we will append d3.js vectorial data
 
- //format = d3.format(",d");
  fill = d3.scale.category10();  //10 random colors by category
 
-  var total_datasets=json.total_datasets; 
-
+ var total_datasets=json.total_datasets; 
  // all g radius scaled depending on number datasets containing
   var gScale = d3.scale.linear()
-                     .domain([0, total_datasets])
-                     .range([100, 350]);
+                     .domain([1, json.total_occurrences])
+                     .range([70, 450]);
   // all text scaled depending on number datasets containing                  
    var  textScale = d3.scale.linear()
                      .domain([1, total_datasets])
                      .range([10, 20]);
-
-  
+  //for each city group
   json.children.forEach(function(d,i) {
 
-  var width=gScale(d.num_datasets);
-  var height=gScale(d.num_datasets);
- 
+  var svg = d3.select("#map").select("svg")//.attr('pack_svg')
+  var width=gScale(d.city_occurrences);
+  var height=gScale(d.city_occurrences);
+  //console.log(width)
   //one pack for each json children
-  var pack = d3.layout.pack()
-   .size([width - 4, height - 4])
-    .value(function(d) { 
-      //console.dir(d);  
-      return d.count; 
-    });
+  pack = d3.layout.pack()
+   .size([width - 4, height - 4])    
   
-  svg = d3.select("#map").select("svg"),
+  
   g = svg.append("g");
-  g.attr("class", "pack").attr('class',d.city+' datasets') 
-  g_circle=svg.append("g").attr("class", "circles")
- d.LatLng = new L.LatLng(d.geometry[1],d.geometry[0])
+  g.attr('class',d.city+' datasets') 
+
+  d.LatLng = new L.LatLng(d.geometry[1],d.geometry[0])
   //a lat/lng for each institution to be georeferenced
   latlng=new L.LatLng(d.geometry[1],d.geometry[0])
 
-    g.attr("transform", function ()
+  g.attr("transform", function ()
     {
-   console.info(this)
-   console.warn(d3.select(this))
     return "translate(" + ((map.latLngToLayerPoint(latlng).x)-width/2) + "," + ((map.latLngToLayerPoint(latlng).y)-height/2) + ")";
     });
 
     var this_node=json.children[i]    
     //for each institution, create a node and apply its pack (children bubbles)
-    var node = g.data([json]).selectAll("g.node")
-     .data(pack.nodes(json.children[i]))  //data to be plotted
+    pack.value(function(d2) {   
+    var count_datasets=this_node.num_datasets
 
-    //finally we append to the main SVG each g
-    node.enter().append("g")
+     var gScale = d3.scale.linear()
+                     .domain([0, this_node.city_occurrences])
+                     .range([4, 350]);
+      //console.info('scaled value'+gScale(d2.count))
+      return gScale(d2.count); 
+    });
+
+    var node = g.data([json]).selectAll("g")
+    .data(pack.nodes(json.children[i]))  //data to be plotted
+
+    //finally we append to the g.city_name each new created g
+    final_node=node.enter().append("g")
      .attr("class", function(d) { return d.children ? "node" : "leaf node"; })
      .attr("class", function(d) { 
      if (d.institution_code) return "institution_root"
@@ -85,8 +89,10 @@ wax.tilejson(url, function(tilejson) {
      })
       .attr('fill',function (d){  return fill(d.name);  })
       .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-      .append("circle")
-      .attr("r", function(d) { return d.r; });
+      .append("circle").attr('class','data_circle')
+      .attr("r", function(d) {       
+       return d.r; 
+      });
 
    node.filter(function(d) { return d.children; }).append("text")      
       .attr('class','parent_text')
@@ -106,6 +112,7 @@ wax.tilejson(url, function(tilejson) {
      //$('g .'+d.city).fadeOut() 
 });
 
+      //circles pointing exclusively to each city
       svg_c = d3.select("#map").select("svg")
       g_circle = svg_c.append("g").attr("class", "circles")
 
@@ -119,7 +126,7 @@ wax.tilejson(url, function(tilejson) {
 
       circle.enter().append("circle")
 
-      circle.attr('r',function (d) 
+    circle.attr('r',function (d) 
         {
           return circle_rScale(d.num_datasets)
         }).attr('fill','red')
@@ -138,11 +145,71 @@ wax.tilejson(url, function(tilejson) {
       var this_city=d3.select(this).attr('city')     
      $('g.'+this_city).show()
      d3.select(this).attr('opacity',0)
+     if ($('#test_geo').not(':visible'))
+     {
+      $('#test_geo').show();
+     }
 
     })
 
-//not('.institution_root')
+$('#test_geo').click(function ()
+{
 
+  if ($('g.pack').not('visible'))
+  json.children.forEach(function(d,i) {
+  var this_node=json.children[i] 
+ // all g radius scaled depending on number datasets containing
+  var gScale = d3.scale.linear()
+                     .domain([0, json.total_geo_occurrences])
+                     .range([10, 450]);
+ 
+  //  var width=gScale(d.city_occurrences);
+  // var height=gScale(d.city_occurrences);
+
+     var gScale2 = d3.scale.linear()
+                     .domain([0, this_node.georef_count])
+                     .range([4, 350]);
+                      
+
+  var width=gScale(d.georef_count);
+  var height=gScale(d.georef_count);
+
+   pack = d3.layout.pack()
+   .size([width - 4, height - 4])  
+
+    pack.value(function(d2) {   
+    var count_datasets=this_node.num_datasets
+
+     var gScale = d3.scale.linear()
+                     .domain([0, this_node.georef_count])
+                     .range([4, 350]);
+      
+      return gScale(d2.georef_count); 
+    }); 
+
+   var g= d3.select("g."+this_node.city);
+
+   var nodes = g.data(pack.nodes(json.children[i]))  //data to be plotted
+     
+   nodes.selectAll("g")
+   .transition()
+   .duration(4500)
+   .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+  .attr("r", function(d) { return d.r });
+  
+ var circles=d3.selectAll("circle")
+   .transition()
+   .duration(4500)
+   .attr("r", function(d) { return d.r });
+
+})
+
+})  
+   
+
+
+
+// })
      $('svg circle,text.children_text').tipsy({ 
                               delayIn: 500, 
                               fade: true, 
@@ -150,7 +217,7 @@ wax.tilejson(url, function(tilejson) {
                               html: true, 
                              //trigger: 'hover',
                               title: function() {
-                                var d = this.__data__;                             
+                                var d = this.__data__; console.warn(d)                            
                                 var text='';
                                if (d.depth=1)
                                if (d.institution_code)
@@ -159,6 +226,7 @@ wax.tilejson(url, function(tilejson) {
                                  text+='Institution ';
                                  if (d.full_name)
                                  text+=d.full_name  
+                               text+='<br>'+d.institution_occurrences+' occurrences';
                                  text+='<p><a target="blank" href="'+d.metadata_url+'">Visualizer metadata</a>';
                                  text+='<br><a target="blank" href="'+d.institution_url+'">Site url</a>';
                                  text+='<br><a target="blank" href="http://www.gbif.fr:8080/gbiffrance-portal-demo/datapublishers/show?id='+d.institution_code+'">Explore sur GBIF France portal</a>';
@@ -166,16 +234,23 @@ wax.tilejson(url, function(tilejson) {
                                  
                               else
                                 {
+
                                  text+='Dataset ';
                                   if (d.full_name)
                                  text+=d.full_name 
                                  if (d.id)
                                     text+='<br><a target="blank" href="http://www.gbif.fr:8080/gbiffrance-portal-demo/datasets/show?id='+d.id+'">Explore sur GBIF France portal</a>';
+                                  text+='<br>'+d.count+' occurrences';
+                                  text+='<br>'+d.georef_count+' Georeferenced occurrences';
+
+                                    text+='<br><div dataset_id="'+d.dataset_id+'" id="explore_graphic">Explore data in graphic</div>';
+
+
                                   
                                 }
                                 
                                 return text
-                                   console.warn(text)
+                                  
                       
                               }
           })
@@ -187,11 +262,11 @@ wax.tilejson(url, function(tilejson) {
       {
         $target_class=$(event.target).attr('class')
         $target_id=$(event.target).attr('id')
-        console.info($(event.target))
-        console.warn($target_class)
+        // console.info($(event.target))
+        // console.warn($target_class)
         if ($target_class!=='tipsy_inner' && $target_id!=='tipsy' && $target_class!=='children_text')
         {
-        console.warn('out')
+      //  console.warn('out')
      $('g.pack').hide() 
         }
        
@@ -247,6 +322,8 @@ wax.tilejson(url, function(tilejson) {
 });
 </script>
 <div class="container">
+
+<a id='test_geo' href='#' style='display:none' >Show datasets by count georeferenced occurrences (test)</a>
 <div id="map" class="container" style='width:950px;height:600px'>
 
 </div>
