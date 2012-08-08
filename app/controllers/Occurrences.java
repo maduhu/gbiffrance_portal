@@ -358,17 +358,15 @@ public class Occurrences extends Controller {
 	from += 50;
 	client.close();
 
-	  
-	if (nbHits < pagesize) 
-	{
+	if (nbHits < pagesize) {
 	  pagesize = nbHits.intValue();
 	  occurrencesTotalPages = 1;
-	}
-	else if (nbHits/pagesize < 100)
-	  occurrencesTotalPages = (int) (nbHits/pagesize);
-	else occurrencesTotalPages = 100;
-	
-	 System.out.println(response.toString());
+	} else if (nbHits / pagesize < 100)
+	  occurrencesTotalPages = (int) (nbHits / pagesize);
+	else
+	  occurrencesTotalPages = 100;
+
+	System.out.println(response.toString());
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();
 	  Gson gson = new Gson();
@@ -376,10 +374,11 @@ public class Occurrences extends Controller {
 	  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
 	  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
 	  renderJSON(jsonObject);
-	}
-	else render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears);
+	} else
+	  render("Application/Search/occurrences.html", occurrences, search,
+		  nbHits, from, occurrencesTotalPages, pagesize, current,
+		  frequentTaxas, frequentDatasets, frequentYears);
   }
-
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();
