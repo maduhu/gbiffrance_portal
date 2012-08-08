@@ -1,4 +1,10 @@
+  <script type="text/javascript">
+console.warn('${taxa}')
+
+//    </script>
+
   #{if nbHits}
+
     <div class="span6">
     <h3>Occurrences</h3>    
     <!-- Pagination -->
@@ -51,10 +57,12 @@
       #{list items:occurrences, as:'occurrence'}  
       <tr>
         <td>
+
           <a target="_blank" href ="@{Occurrences.show(occurrence.id)}"><i>#{if occurrence.scientificName.size () < 40}${occurrence.scientificName}#{/if}#{else}${occurrence.scientificName[0..39]}[...]#{/else}</i></a><br/>
           #{if occurrence.specificEpithet_interpreted} 
             (as : <i>${occurrence.specificEpithet_interpreted}</i>)
           #{/if} 
+
           <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}${occurrence.catalogNumber}</h6>         
         </td>    
         <td><a target="_blank" href ="@{Datasets.show(occurrence.dataset.id)}">${occurrence.dataset.title}</a></td>
@@ -67,7 +75,7 @@
     <div class="span3">
       <div id="chart_div"></div>      
       <h4>Taxons les plus fréquents</h4>
-      <table class="table table-condensed">
+      <table id='freq_taxa' class="table table-condensed">
         #{list items:taxas, as:'taxa'}
           <tr>
             <td><a target="_blank" href ="@{Taxas.show(taxa.taxonId)}"><i>${taxa.scientificName}</i></a></td>
@@ -103,5 +111,6 @@
     <h3>Occurrences</h3>    
     <h6>Pas de résultats</h6>
   </div>    
+  
   #{/else}
   
