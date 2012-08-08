@@ -1,27 +1,35 @@
 var json={
     "data": "root",
     "total_datasets":18,
+    "total_occurrences":16323143,
+    "total_geo_occurrences":6054766,
+
     "children": [
         {
             "city": "Paris",
             "names": "Institutions de Paris",
+            "city_occurrences": 15604632,
+            "georef_count": 5604632,
              "num_datasets" : "12",
              "geometry": [
                         2.3412,
                         48.85693
                     ],
             "children": [
-       {
+                {
                     "name": "CRBIP",
                     "full_name":"Centre de Ressources Biologiques de l'institut Pasteur (CRBIP)",
                     "institution_code": "11",
-
-                  
+                    "institution_occurrences":8203,
+                    
                     "children": [
                         {
                             "name": "crbip",
+                            "dataset_id":24,
                             "full_name":"Centre de Ressources Biologiques de l'institut Pasteur (CRBIP)",
-                            "count":30
+                            "count":8203,
+                            "georef_count":0,                     
+                            "taxa_stats": [702,3284,15,22,62,3139,162,6]
                         }
                     ],
                     "num_children": "1"
@@ -29,12 +37,15 @@ var json={
                 {
                     "name": "UPMC",
                    "full_name":"Université Pierre et Marie Curie (UPMC)",
-                    "institution_code": "15",                
+                    "institution_code": "15",  
+                    "institution_occurrences": 94,              
                     "children": [
                         {
                             "name": "palbot",
                             "full_name":"Collection Paleobotanique de l'Universite Paris 6",
-                            "count":130
+                            "count":94,
+                            "georef_count":0,  
+                            "taxa_stats":[42,48,4,4,6,6,7,3]
                         }
                     ],
                     "num_children": "1"
@@ -43,12 +54,17 @@ var json={
                     "name": "CBNBP",
                     "full_name":"Conservatoire Botanique National du Bassin Parisien (CBNBP)",
                     "institution_code": "1",
+                    "institution_occurrences": 4588136,
                  
                     "children": [
                         {
                             "name": "cbnbp",
+                            "dataset_id":1,
                             "full_name":"Conservatoire Botanique National du Bassin Parisien (CBNBP)",
-                            "count": 190
+                            "count": 4588136, 
+                            "georef_count":4463779,  
+                            "taxa_stats":[]
+
                         }
                     ],
                     "num_children": "1"
@@ -57,61 +73,91 @@ var json={
                     "name": "MNHN",
                     "full_name": "Muséum National d'Histoire Naturelle (MNHN)",
                     "institution_code": "3",
+                    "institution_occurrences":3205859 ,
+                    "georef_count":154265,
                     "metadata_url": "http://www.gbif.fr/?page_id=780&i=1",
-                    "institution_url": "http://www.mnhn.fr/",
-                    
+                    "institution_url": "http://www.mnhn.fr/",                    
+                    "num_children": "8",
                     "children": [
                         {
                             "name": "Hemipteres",
                             "full_name": "Hemipteres",
-                            "count": 50
+                            "dataset_id":7,
+                            "count": 4078,
+                            "georef_count":0,
+                            "taxa_stats": [409,937,2,2,3,908,33,2]
                         },
                         {
                             "name" : "sonnerat",
                             "full_name": "Sonnerat",
-                            "count" : 150
+                            "dataset_id":3,
+                            "count" : 3001983,
+                            "georef_count":113873, 
+                            "taxa_stats": [14740,212583,44,90,366,165583,1265,8]
                         },
                         {
                             "name": "Ensiferes",
                             "full_name": "Ensiferes",
-                            "count":60
+                            "dataset_id":6,
+                            "count":1270,
+                            "georef_count":0,
+                            
+                            //"GENUS","SCIENTIFICNAME","PHYLUM","CLASS","ORDER","specificepithet",FAMILY,KINGDOM
+                            "taxa_stats": [175,358,2,2,3,342,8,2]
+
                         },
                         {
                             "name": "reptamph",
                             "full_name": "Reptilia et Amphibia",
-                            "count":10
+                            "dataset_id":9,
+                            "count":137623,
+                            "georef_count":3241,
+                            "taxa_stats": [1159,5354,5,7,12,4069,120,4]
+
                         },
                         {
                             "name": "invmar",
                             "full_name": "INVMAR",
-                            "count":90
+                            "dataset_id":4,
+                            "count":55042,
+                            "georef_count":37151,
+                            "taxa_stats": [2555,7829,15,34,121,6676,732,3]
                         },
                         {
                             "name": "coleopteres",
                             "full_name": "Coleopteres",
-                            "id": 5,
-                            "count":150
+                            "dataset_id": 5,
+                            "count":1195,
+                            "georef_count":0,
+                            "taxa_stats": [149,703,5,3,3,608,11,3]
                         },
                         {
                             "name": "arachnee",
                             "full_name": "arachnee",
-                            "count":13
+                            "dataset_id": 8,
+                            "count":2102,
+                            "georef_count":0,
+                            "taxa_stats":[357,831,3,2,5,782,65,2]
                         },
                         {
                             "name": "mycobase",
                             "full_name": "mycobase",
-                            "count":70
+                            "dataset_id":13,
+                            "count":2566,
+                            "georef_count":0,
+                            "taxa_stats": [394,1048,6,18,47,982,115,4]
                         }
-                    ],
-                    "num_children": "8"
+                    ]
                 }
-                            ]
+            ]
         },
+
         {
 
         "names": "Institutions de Montpellier",
         "city": "Montpellier",
          "num_datasets" : "2",
+         "city_occurrences": 417524,
         "geometry": [
                 3.87609,
                 43.610855
@@ -123,16 +169,24 @@ var json={
             "full_name": "Tela Botanica",
             "city": "Montpellier",
             "institution_code": "4",
+            "institution_occurrences": 417524,
+            "georef_count":0,
             "children": [
                 {
                     "name": "chorodep",
-                    "full_name": "chorodep",
-                    "count": 100
+                    "full_name": "chorodep",                    
+                    "dataset_id":13,
+                    "count":227217,
+                    "georef_count":0,
+                    "taxa_stats": [1315,10145,11,11,74,6426,205,2]
                 },
                 {
                     "name": "cel",
                     "full_name": "cel",
-                    "count": 300
+                    "dataset_id":11,
+                    "count": 190307,
+                    "georef_count":0,
+                    "taxa_stats": [1350,7791,13,16,95,5107,252,2]
                 }
             ]
             
@@ -143,7 +197,9 @@ var json={
         {
           "names": "Institutions de Banyuls",
           "city": "Banyuls",
+          "city_occurrences": 66650,
            "num_datasets" : "1",
+           "georef_count":0,
            "geometry": [
                 3.1293,
                 42.481319
@@ -154,11 +210,15 @@ var json={
             "name": "Microbial Observatory of the Laboratoire Arago",
             "city": "Banyuls",
             "institution_code": "13",           
+            "institution_occurrences": 66650, 
             "children": [
                 {
                     "name": "mola",
                     "full_name": "Microbial Observatory of the Laboratoire Arago",
-                    "count": 200
+                    "dataset_id":28,
+                    "count": 66650,
+                    "georef_count":0,
+                    "taxa_stats": [131,239,7,10,22,235,46,5]
                 }
             ],
             "num_children": "1"
@@ -169,6 +229,8 @@ var json={
             "names": "Institutions a Bourges",
             "city": "Borges",
             "num_datasets": 1,
+            "city_occurrences": 430,
+            "georef_count":0,
             "geometry": [
                 2.3929,
                 47.085855
@@ -178,16 +240,20 @@ var json={
                 {
             "name": "Muséum d'Histoire Naturelle de Bourges",
             "city": "Bourges",
-            "institution_code": "6",            
+            "institution_code": "6",        
+            "institution_occurrences": 430,    
             "children": [
                 {
                     "name": "bourges_mammiferes_sauf_chiropteres",
                     "full_name": "Mammiferes Bourges",
-                    "count": 200
+                    "dataset_id":17,
+                    "count": 430,
+                    "georef_count":0,
+                    "taxa_stats": [101,135,3,3,17,126,47,1]
                 }
-            ],
-            "num_children": "1"
-        }
+                ],
+                "num_children": "1"
+            }
             ]
 
         },
@@ -195,6 +261,8 @@ var json={
             "names": "Institutions de Besançon",
             "city": "Besançon",
             "num_datasets": 1,
+            "city_occurrences": 155591,
+            "georef_count":0,
             "institution_code": "9",
               "geometry": [
                 6,
@@ -205,12 +273,16 @@ var json={
             {
             "name": "Conservatoire Botanique de Franche-Comté",
             "city": "Besançon",
+            "institution_occurrences": 155591,
             
             "children": [
                 {
                     "name": "cbnfc",
                     "full_name": "Conservatoire Botanique de Franche-Comté",
-                    "count": 500
+                    "dataset_id":20,
+                    "count": 155591,
+                    "georef_count":0,
+                    "taxa_stats": [680,2155,8,10,67,1917,146,1]
                 }
             ]
             }
@@ -221,7 +293,9 @@ var json={
             "names":"Institutions Clermont-Ferrand ",
             "city": "Clermont-Ferrand",
             "num_datasets": 1,
-              "geometry": [
+            "city_occurrences" :  4553, 
+            "georef_count":0,
+            "geometry": [
                 3.0772,
                 45.776665
             ],
@@ -231,12 +305,16 @@ var json={
 
             "name": "Museum Henri-Lecoq de Clermont-Ferrand",
             "city": "Clermont-Ferrand",
-            "institution_code": "10",          
+            "institution_code": "10",   
+            "institution_occurrences" :  4553,     
             "children": [
                 {
                     "name": "barthelemy",
                     "full_name": "barthelemy",
-                    "count" : 10
+                    "dataset_id":23,
+                    "count": 4553,
+                    "georef_count":0,
+                    "taxa_stats": [291,709,3,4,6,683,25,2]
                 }
             ]
            
@@ -250,8 +328,10 @@ var json={
         {
             "names":"Institutions Strasbourg ",
             "city": "Strasbourg",
-             "institution_code": "8",
+             "institution_code": "8",             
             "num_datasets": "3",
+            "city_occurrences" : 73763,
+            "georef_count":32610,
              "geometry": [
                 7.7364,
                 48.58508
@@ -263,23 +343,34 @@ var json={
             "name": "Université de Strasbourg",
             "city": "Strasbourg",
             "institution_code": "8",
+            "institution_occurrences" : 73763,
+             "georef_count":32610,
           
             "children": [
 
                 {
                     "name": "wal_fut",
                     "full_name" : "Herbier de Wallis et Futuna",
-                    "count": 3000
+                    "dataset_id":33,
+                    "count": 3374,
+                    "georef_count":3374,
+                    "taxa_stats": [319,430,8,8,49,430,114,1]
                 },
                 {
                     "name": "cal",
                     "full_name" : "Nouvelle Caledonie",
-                    "count": 500
+                    "dataset_id":19,
+                    "count": 28484,
+                    "georef_count":28484,
+                    "taxa_stats": [640,1487,7,8,61,1408,175,2]
                 },
                 {
                     "name": "herbstrasbourg",
                     "full_name": "Herbier de Strasbourg",
-                    "count": 3500
+                    "dataset_id":27,
+                    "count": 41905,
+                    "georef_count":752,
+                    "taxa_stats": [1197,3962,12,19,102,3836,236,2]
                 }
             ]
             
