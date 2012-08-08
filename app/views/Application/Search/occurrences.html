@@ -68,11 +68,11 @@
       <div id="chart_div"></div>      
       <h4>Taxons les plus fréquents</h4>
       <table class="table table-condensed">
-        #{list items:taxas, as:'taxa'}
+        #{list items:frequentTaxas, as:'frequentTaxa'}
           <tr>
-            <td><a target="_blank" href ="@{Taxas.show(taxa.taxonId)}"><i>${taxa.scientificName}</i></a></td>
+            <td><a target="_blank" href ="@{Taxas.show(frequentTaxa.get('taxonId'))}"><i>${frequentTaxa.get('scientificName')}</i></a></td>
             <!-- Result filter based on ecat -->
-            <td><a target="_blank" onClick="searchOccurrences('${taxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${taxa.occurrencesCount}</a></td>        
+            <td><a target="_blank" onClick="searchOccurrences('${frequentTaxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentTaxa.get('count')}</a></td>        
           </tr>
        #{/list}
       </table>
