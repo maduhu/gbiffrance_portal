@@ -364,7 +364,7 @@ public class Occurrences extends Controller {
 	else if (nbHits/pagesize < 100)
 	  occurrencesTotalPages = (int) (nbHits/pagesize);
 	else occurrencesTotalPages = 100;
-	
+
 	 System.out.println(response.toString());
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();
@@ -376,8 +376,8 @@ public class Occurrences extends Controller {
 	  renderJSON(jsonObject);
 	}
 	else render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets, frequentYears);
-  }
 
+}
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();
