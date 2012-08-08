@@ -369,10 +369,8 @@ public class Occurrences extends Controller {
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();
 	  Gson gson = new Gson();
-	  jsonObject.addProperty("occurrences", gson.toJson(occurrences));
-	  jsonObject.addProperty("taxas", gson.toJson(taxas));
 	  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
-	  jsonObject.addProperty("years", gson.toJson(frequentYears));
+	  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
 	  renderJSON(jsonObject);
 	}
 	else render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, taxas, frequentDatasets, frequentYears);
