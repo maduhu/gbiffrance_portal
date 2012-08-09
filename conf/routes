@@ -12,6 +12,8 @@ GET     /searchOccurrence.{<json>format}        Occurrences.search
 GET     /datasets/edit/{id}                     Datasets.edit
 GET     /datasets/autocomplete                  Datasets.autocomplete
 
+GET     /occurrences/download                   Occurrences.download(request)
+
 
 
 # Ignore favicon requests

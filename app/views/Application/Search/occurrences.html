@@ -4,9 +4,9 @@ console.warn('${taxa}')
 //    </script>
 
   #{if nbHits}
-
+    
     <div class="span6">
-    <h3>Occurrences</h3>    
+    <h3>Occurrences (<a href="@{Occurrences.download(searchRequestText)}">download</a>)</h3>    
     <!-- Pagination -->
     #{if occurrencesTotalPages == 100}<i>5000 first results for a total of ${nbHits} occurrences</i><br/>#{/if}
     #{else}Page ${current} for ${nbHits} results<br/>#{/else}

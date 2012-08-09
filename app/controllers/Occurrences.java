@@ -6,16 +6,24 @@ import play.libs.WS;
 import play.libs.WS.HttpResponse;
 import play.mvc.*;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.search.BooleanFilter;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
+import org.elasticsearch.action.count.CountResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
@@ -33,16 +41,19 @@ import org.elasticsearch.index.query.FilterBuilders;
 import static org.elasticsearch.index.query.FilterBuilders.*;
 
 import org.elasticsearch.index.query.AndFilterBuilder;
+import org.elasticsearch.index.query.BoolFilterBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.GeoBoundingBoxFilterBuilder;
 import org.elasticsearch.index.query.GeoDistanceFilterBuilder;
 import org.elasticsearch.index.query.OrFilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TextQueryBuilder;
 import org.elasticsearch.index.query.TextQueryBuilder.Operator;
 import org.elasticsearch.index.search.geo.GeoDistanceFilter;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
@@ -54,6 +65,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mongodb.DBRef;
 import com.mongodb.util.JSON;
 
@@ -198,19 +210,15 @@ public class Occurrences extends Controller {
 		  					.must(queryFilter(termQuery("decimalLatitude_interpreted", 0)))));  
 	}
 
-	FilterBuilder f = null;
+	BoolFilterBuilder f = boolFilter();
 
-	if (search.onlyWithCoordinates == true && search.datasetsIds.size() > 0)
+	if (search.onlyWithCoordinates == true)
 	{
-	  f = boolFilter().must(coordinatesF).must(datasetF);	  
+	  f = f.must(coordinatesF);	  
 	}
-	else if (search.onlyWithCoordinates == true && search.datasetsIds.size() == 0)
+	if (search.datasetsIds.size() > 0)
 	{
-	  f = boolFilter().must(coordinatesF);	  
-	}
-	else if (search.onlyWithCoordinates == false && search.datasetsIds.size() > 0)
-	{
-	  f = boolFilter().must(datasetF);	  
+	  f = f.must(datasetF);	  
 	}
 
 	
@@ -246,13 +254,19 @@ public class Occurrences extends Controller {
 	}
 	
 	SearchResponse response;
-	//System.out.println(search.onlyWithCoordinates == true && search.datasetsIds.size() == 0);
-	if (search.onlyWithCoordinates == false && search.datasetsIds.size() == 0)
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();
-	else 
-	  response = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).execute().actionGet();  
 	
-	System.out.println(client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).setFilter(f).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
+	//System.out.println(search.onlyWithCoordinates == true && search.datasetsIds.size() == 0);
+	
+	SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
+	SearchRequestBuilder searchRequestWithFacets = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  searchRequest = searchRequest.setFilter(f);
+	  searchRequestWithFacets = searchRequestWithFacets.setFilter(f);
+	}
+	response = searchRequestWithFacets.execute().actionGet();
+	
+	//System.out.println(searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
 	
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();
@@ -366,18 +380,22 @@ public class Occurrences extends Controller {
 	else
 	  occurrencesTotalPages = 100;
 
-	System.out.println(response.toString());
+	//System.out.println(response.toString());
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();
 	  Gson gson = new Gson();
+	  jsonObject.addProperty("Occurrences", gson.toJson(frequentTaxas));
 	  jsonObject.addProperty("frequentTaxas", gson.toJson(frequentTaxas));
 	  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
 	  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
 	  renderJSON(jsonObject);
-	} else
-	  render("Application/Search/occurrences.html", occurrences, search,
-		  nbHits, from, occurrencesTotalPages, pagesize, current,
-		  frequentTaxas, frequentDatasets, frequentYears);
+	} 
+	else
+	{
+	  String searchRequestText = searchRequest.toString();
+	  System.out.println("TEST" + searchRequestText);
+	  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears, searchRequestText);
+	}
   }
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
@@ -567,9 +585,44 @@ public class Occurrences extends Controller {
 	render(occurrence, taxa);
   } 
 
+  public static void download(String searchRequestText)
+  {
+	/*** ElasticSearch configuration ***/
+	int pagesize = 50;
+	Settings settings = ImmutableSettings.settingsBuilder()
+		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
 
-
-
+	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	
+	//System.out.println("Q :"  +  q);
+	CountResponse countResponse;
+	SearchResponse response;
+	List<Occurrence> occurrences = new ArrayList<Occurrence>();
+	countResponse = client.prepareCount("idx_occurrence").setQuery(QueryBuilders.wrapperQuery(searchRequestText)).execute().actionGet();
+	long count = countResponse.count();
+	System.out.println(count);
+	for (int i = 0; i < 100; i = i + pagesize)
+	{
+	  response = client.prepareSearch("idx_occurrence").setFrom(i).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(QueryBuilders.wrapperQuery(searchRequestText)).execute().actionGet();
+	  //System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------");
+	  //System.out.println(client.prepareSearch("idx_occurrence").setFrom(i).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(QueryBuilders.wrapperQuery(searchRequestText)).toString());
+	  //System.out.println(response.toString());
+	  
+	  for (SearchHit hit : response.getHits()) 
+	  {   
+		  Occurrence occurrence = new Occurrence();	
+		  occurrence.id = (Integer) hit.getSource().get("_id");
+		  occurrence.scientificName = (String) hit.getSource().get("scientificName");
+		  occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
+		  
+		  occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
+		  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");	
+		  
+		  occurrences.add(occurrence);
+	    }
+	}
+	render("Occurrences/download.html", occurrences);
+  }
 
 
 }
