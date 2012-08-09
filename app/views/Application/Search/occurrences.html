@@ -1,8 +1,3 @@
-  <script type="text/javascript">
-console.warn('${taxa}')
-
-//    </script>
-
   #{if nbHits}
     
     <div class="span6">
@@ -72,13 +67,14 @@ console.warn('${taxa}')
       #{/list}
       </table>
     </div>
+
     <div class="span3">
-      <div id="chart_div"></div>      
+       
       <h4>Taxons les plus fréquents</h4>
 
-  
-
-      <table id='freq_taxa'class="table table-condensed">
+      <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_taxa","freq_taxa")'>Show as list</a>
+      <svg style='width:200px;height:200px' id='graph_freq_taxa'></svg>
+      <table id='freq_taxa' style='display:none' class="table table-condensed">
         #{list items:frequentTaxas, as:'frequentTaxa'}
 
           <tr>
@@ -89,7 +85,9 @@ console.warn('${taxa}')
        #{/list}
       </table>
       <h4>Datasets les plus fréquents</h4>
-      <table class="table table-condensed">
+      <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_dataset","freq_dataset")'>Show as list</a>
+      <svg id='graph_freq_dataset'></svg>
+      <table id="freq_dataset" style='display:none' class="table table-condensed">
         #{list items:frequentDatasets, as:'frequentDataset'}
           <tr>
             <td><a target="_blank" href ="@{Datasets.show(frequentDataset.get('id'))}"><i>${frequentDataset.get('title')}</i></a></td>
@@ -99,7 +97,9 @@ console.warn('${taxa}')
        #{/list}
       </table>
       <h4>Dates les plus fréquentes</h4>
-      <table class="table table-condensed">
+         <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_dates","freq_dates")'>Show as list</a>
+      <svg id='graph_freq_dates'></svg>
+      <table id="freq_dates" style='display:none' class="table table-condensed">
         #{list items:frequentYears, as:'frequentYear'}
           <tr>
             <td><i>${frequentYear.get('year')}</i></td>
@@ -118,3 +118,129 @@ console.warn('${taxa}')
   
   #{/else}
   
+  <script type="text/javascript">
+
+//QUICK AND DIRTY CODE
+function show_hide (elem,graph_name,list_name)
+{
+
+
+  $this=$(elem);
+
+  if ($this.hasClass('graphic'))
+  {    
+    $('#'+graph_name).hide()
+    $('#'+list_name).show()    
+    $this.html('Show as graphic')
+  }
+  else
+  {
+    $('#'+list_name).hide()
+    $('#'+graph_name).show() 
+    $this.html('Show as list')
+  }
+  $this.toggleClass('graphic')
+    return false;
+
+}
+var taxes=[];
+var datasets=[];
+var dates=[];
+
+taxes.push({keys: "taxes",values:[]})  
+datasets.push({keys: "taxes",values:[]})
+dates.push({keys: "taxes",values:[]})
+
+$('#freq_taxa tr').size()>5 ? labels=false : labels=true;
+$('#freq_taxa tr').each(function(i,_this)
+{
+if (i<10)
+{
+ taxes[0]['values'].push(
+{ 'name' :  $(_this).find('td').eq(0).text(),
+  'count' : $(_this).find('td').eq(1).text()}
+) 
+}
+})
+
+$('#freq_dates tr').each(function(i,_this)
+{
+
+if (i<5)
+{
+   dates[0]['values'].push(
+{ 'year' :  $(_this).find('td').eq(0).text(),
+  'count' : $(_this).find('td').eq(1).text()}
+) 
+//  dates[0]['values'].push(
+// { 'x' :  parseFloat($(_this).find('td').eq(0).text()),
+//   'y' : parseFloat($(_this).find('td').eq(1).text())}
+// ) 
+ }
+})
+
+
+$('#freq_dataset tr').each(function(i,_this)
+{
+if (i<10)
+{
+ datasets[0]['values'].push(
+{ 'name' :  $(_this).find('td').eq(0).text(),
+  'count' : $(_this).find('td').eq(1).text()}
+) 
+}
+})
+
+//Piecharts 
+function render_chart (data,container)
+{
+
+  nv.addGraph(function() {
+        var width = 230,
+        height = 230;      
+        var chart = nv.models.pieChart()        
+        .x(function(d) { return d.name })
+        .y(function(d) { return d.count })        
+        .color(d3.scale.category10().range())
+        .width(width)
+        .height(height)
+        .donut(false)
+        .showLabels(labels);
+          
+        d3.select("#"+container)
+          .datum([data[0]])
+          .transition().duration(2800)
+          .attr('width', width)
+          .attr('height', height)
+          .call(chart);
+
+    return chart;
+})
+}
+render_chart(datasets,"graph_freq_dataset");
+render_chart(taxes,"graph_freq_taxa");
+
+//DATES histogram
+nv.addGraph(function() {  
+  var chart = nv.models.discreteBarChart()
+      .x(function(d) { return d.year })
+      .y(function(d) { return d.count })
+      .staggerLabels(false)      
+      .tooltips(true)
+      .showValues(false)
+
+  d3.select('#graph_freq_dates')
+
+      .datum(dates)
+      .transition().duration(1500)
+      .attr('width',200)
+      .attr('height',200)
+      .call(chart);
+  return chart;
+});
+
+
+
+
+
+//    </script>
