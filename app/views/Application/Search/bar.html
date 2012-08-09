@@ -1,5 +1,13 @@
 #{extends 'main.html' /}
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}">
 <script src="@{'/public/javascripts/search/search.js'}"></script>
+<script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+<script src="@{'/public/javascripts/nv.d3.js'}"></script>
+<script src="@{'/public/javascripts/pieChart.js'}"></script>
+
+<script src="@{'/public/javascripts/discreteBar.js'}"></script>
+
+<script src="@{'/public/javascripts/tooltip.js'}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   
@@ -44,6 +52,7 @@ $(document).ready(function() {
       }  
     })
   })
+  console.warn('loaded')
 });
 </script>
 <div class="container">
