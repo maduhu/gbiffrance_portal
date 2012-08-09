@@ -1,9 +1,9 @@
 
 nv.models.pieChart = function() {
-  var margin = {top: 30, right: 20, bottom: 20, left: 20},
+  var margin = {top: 5, right: 50, bottom: 5, left: 10},
       width = null,
       height = null,
-      showLegend = true,
+      showLegend = false,
       color = d3.scale.category20().range(),
       tooltips = true,
       tooltip = function(key, y, e, graph) { 
@@ -30,8 +30,11 @@ nv.models.pieChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+
       var container = d3.select(this),
           that = this;
+
+      
 
       var availableWidth = (width  || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
@@ -39,15 +42,17 @@ nv.models.pieChart = function() {
                              - margin.top - margin.bottom;
 
 
+   
+ 
 
       var wrap = container.selectAll('g.wrap.pieChart').data([data]);
+ 
       var gEnter = wrap.enter().append('g').attr('class', 'wrap nvd3 pieChart').append('g');
 
       gEnter.append('g').attr('class', 'pieWrap');
       gEnter.append('g').attr('class', 'legendWrap');
 
       var g = wrap.select('g');
-
 
       if (showLegend) {
         legend
@@ -82,6 +87,8 @@ nv.models.pieChart = function() {
 
       var pieWrap = g.select('.pieWrap')
           .datum(data)
+
+
           //.datum(data.filter(function(d) { return !d.disabled }))
 
 
@@ -94,6 +101,7 @@ nv.models.pieChart = function() {
       legend.dispatch.on('legendClick', function(d,i, that) {
         d.disabled = !d.disabled;
 //alert('legend clicked')
+console.warn(data[0])
         if (!pie.values()(data[0]).filter(function(d) { return !d.disabled }).length) {
           pie.values()(data[0]).map(function(d) {
             d.disabled = false;
