@@ -6,13 +6,14 @@
 GET     /                                       Application.index
 GET		/search									Application.search
 GET     /search                                 Application.search
+
 GET		/show									Occurrences.show
 GET     /searchOccurrence                       Occurrences.search
 GET     /searchOccurrence.{<json>format}        Occurrences.search
 GET     /datasets/edit/{id}                     Datasets.edit
 GET     /datasets/autocomplete                  Datasets.autocomplete
+GET     /download                               Occurrences.download
 
-GET     /occurrences/download                   Occurrences.download(request)
 
 
 

@@ -1,10 +1,15 @@
+ 
   #{if nbHits}
-    
     <div class="span6">
-    <h3>Occurrences (<a href="@{Occurrences.download(searchRequestText)}">download</a>)</h3>    
+    
+    <h3>Occurrences</h3>
+    
     <!-- Pagination -->
-    #{if occurrencesTotalPages == 100}<i>5000 first results for a total of ${nbHits} occurrences</i><br/>#{/if}
-    #{else}Page ${current} for ${nbHits} results<br/>#{/else}
+    #{if occurrencesTotalPages == 100}<i>5000 first results for a total of ${nbHits} occurrences</i>#{/if}
+    #{else}Page ${current} for ${nbHits} results#{/else}
+    #{if nbHits <= 5000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates, 'DIRECT')}">Download it!</a>#{/if}
+    #{else}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates)}">Download it!</a>#{/else}
+    <br/>
     #{if occurrencesTotalPages > 1}
       #{if current >= 10 && current+10 < occurrencesTotalPages}        
         <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>

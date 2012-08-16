@@ -28,7 +28,7 @@ public class Search
   {
 	Search search = new Search();
 	/*** Taxa parser ***/
-	if (!searchTaxa.isEmpty())
+	if (searchTaxa != null && !searchTaxa.isEmpty())
 	{
 	  searchTaxa = searchTaxa.trim();
 	  search.taxaText = searchTaxa;
@@ -43,25 +43,36 @@ public class Search
 	  //System.out.println("nbTaxa" + splittedSearchTaxa.length);
 	}
 	/*** Place parser ***/
-	if (!searchPlace.isEmpty())
+	if (searchPlace != null && !searchPlace.isEmpty())
 	{
 	  search.placeText = searchPlace;  
 	  if (search.placeText != null || !search.placeText.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.placeText);
 	  if (!search.place.isEmpty())
 	  {
 	    search.boundingBox = Search.extractBoundingBox(search.place);
+	    String[] splittedEnrichedSearch = search.place.split(" ");
+	    search.place = "";
+		for (int i = 0; i < splittedEnrichedSearch.length; ++i)
+		{
+		  if (!splittedEnrichedSearch[i].startsWith("{{") && !splittedEnrichedSearch[i].endsWith("}}"))
+		  {
+			search.place += splittedEnrichedSearch[i] + " ";
+			System.out.println(search.place);
+		  }		  		
+		}
+	    
 	  } 
 	}	
 	/*** Coordinates ***/
 	if (searchCoordinates) search.onlyWithCoordinates = true;
 	/*** Dataset ***/
-	if (!searchDataset.isEmpty()) 
+	if (searchDataset != null && !searchDataset.isEmpty()) 
 	{
 	  search.dataset = searchDataset.replaceAll("\'", "");	
 	  search.datasetsIds = Dataset.getDatasetsIds(searchDataset);
 	}
 	/*** Date ***/
-	if (!searchDate.isEmpty()) 
+	if (searchDate != null && !searchDate.isEmpty()) 
 	{
 	  search.dateText = searchDate.trim();	  
 	  if (search.dateText.split("-").length == 2)

@@ -35,7 +35,6 @@ public class Application extends Controller {
 
   public static void search(String searchTaxa, String searchPlace, String searchCoordinates, String searchDataset, String searchDate)
   {
-
 	searchTaxa = Util.normalize(searchTaxa);
 	searchPlace = Util.normalize(searchPlace);
 	searchDataset = Util.normalize(searchDataset);

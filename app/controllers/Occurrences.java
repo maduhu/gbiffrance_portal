@@ -2,10 +2,12 @@ package controllers;
 
 import play.*;
 import play.db.DB;
+import play.jobs.Job;
 import play.libs.WS;
 import play.libs.WS.HttpResponse;
 import play.mvc.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,6 +23,7 @@ import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.search.BooleanFilter;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
+import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -68,6 +71,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mongodb.DBRef;
 import com.mongodb.util.JSON;
+import java.io.FileWriter;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.MimeMessage;
 
 import static org.elasticsearch.node.NodeBuilder.*;
 
@@ -76,21 +87,23 @@ import models.*;
 
 public class Occurrences extends Controller {
 
-  public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) {   
-
-	System.out.println(taxaSearch + " " + placeSearch + " " + datasetSearch + " " + dateSearch);
-	Search search = Search.parser(taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates);
-
+  
+  //public static int pagesize = 50;
+  
+  public static Client setESClient()
+  {
 	/*** ElasticSearch configuration ***/
-	int pagesize = 50;
-	if (from == null) from = 0;
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
 
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	Client client = new TransportClient(settings)
+		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))));
+	return client;
+  }
 
-
-
+  public static SearchRequestBuilder buildRequest(Client client, Search search, Integer pagesize, Integer from, boolean withFacets)
+  {
+	
 	/*** Query configuration ***/
 	BoolQueryBuilder scientificNameQ = boolQuery();
 	BoolQueryBuilder genusQ = boolQuery();
@@ -102,10 +115,8 @@ public class Occurrences extends Controller {
 	if (search.boundingBox != null)
 	{
 	  boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBox[0]).to(search.boundingBox[2]);
-	  //System.out.println("bboxLat " + boundingBoxLatitudeQ.toString());
 
 	  boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(search.boundingBox[1]).to(search.boundingBox[3]);
-	  //System.out.println("bboxLong " + boundingBoxLongitudeQ.toString());
 	}
 	
 	/***
@@ -221,8 +232,6 @@ public class Occurrences extends Controller {
 	  f = f.must(datasetF);	  
 	}
 
-	
-	
 	/***
 	 * This facet is working as a SQL "group by ecatConceptId"
 	 */
@@ -253,24 +262,35 @@ public class Occurrences extends Controller {
 	  yearFacetBuilder.facetFilter(f);
 	}
 	
-	SearchResponse response;
 	
-	//System.out.println(search.onlyWithCoordinates == true && search.datasetsIds.size() == 0);
-	
-	SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
-	SearchRequestBuilder searchRequestWithFacets = client.prepareSearch("idx_occurrence").setFrom(from).setSize(50).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q).addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
+	SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
+	if (withFacets) searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
 	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
 	{
 	  searchRequest = searchRequest.setFilter(f);
-	  searchRequestWithFacets = searchRequestWithFacets.setFilter(f);
 	}
-	response = searchRequestWithFacets.execute().actionGet();
 	
-	//System.out.println(searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).toString());
 	
+	
+	return searchRequest;
+  }
+
+  public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) 
+  {   
+	int pagesize = 50;
+	if (from == null) from = 0;
+	
+	Client client = setESClient();
+	Search search = Search.parser(taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates);
+	SearchRequestBuilder searchRequest = buildRequest(client, search, pagesize, from, true);
+	
+	SearchResponse response;
+	
+	response = searchRequest.execute().actionGet();
 	List<Occurrence> occurrences = new ArrayList<Occurrence>();
 	Long nbHits = response.getHits().getTotalHits();
 	NameParser nameParser = new NameParser();
+	
 	for (SearchHit hit : response.getHits()) {   
 	  Occurrence occurrence = new Occurrence();	
 	  occurrence.id = (Integer) hit.getSource().get("_id");
@@ -370,6 +390,10 @@ public class Occurrences extends Controller {
 	int occurrencesTotalPages;
 	int current = from/pagesize + 1;
 	from += 50;
+	
+	/***
+	 * Close the ElasticSearch Client
+	 */
 	client.close();
 
 	if (nbHits < pagesize) {
@@ -380,7 +404,6 @@ public class Occurrences extends Controller {
 	else
 	  occurrencesTotalPages = 100;
 
-	//System.out.println(response.toString());
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();
 	  Gson gson = new Gson();
@@ -392,11 +415,10 @@ public class Occurrences extends Controller {
 	} 
 	else
 	{
-	  String searchRequestText = searchRequest.toString();
-	  System.out.println("TEST" + searchRequestText);
-	  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears, searchRequestText);
+	  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears);
 	}
   }
+  
   public static void show(Integer id) {
 	Settings settings = ImmutableSettings.settingsBuilder()
 		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();
@@ -585,44 +607,715 @@ public class Occurrences extends Controller {
 	render(occurrence, taxa);
   } 
 
-  public static void download(String searchRequestText)
+  
+  public static boolean createCSV(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, String link) throws IOException
   {
-	/*** ElasticSearch configuration ***/
-	int pagesize = 50;
-	Settings settings = ImmutableSettings.settingsBuilder()
-		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
+	int pagesize = 500;
 
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
-	
-	//System.out.println("Q :"  +  q);
-	CountResponse countResponse;
-	SearchResponse response;
-	List<Occurrence> occurrences = new ArrayList<Occurrence>();
-	countResponse = client.prepareCount("idx_occurrence").setQuery(QueryBuilders.wrapperQuery(searchRequestText)).execute().actionGet();
-	long count = countResponse.count();
-	System.out.println(count);
-	for (int i = 0; i < 100; i = i + pagesize)
-	{
-	  response = client.prepareSearch("idx_occurrence").setFrom(i).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(QueryBuilders.wrapperQuery(searchRequestText)).execute().actionGet();
-	  //System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------");
-	  //System.out.println(client.prepareSearch("idx_occurrence").setFrom(i).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(QueryBuilders.wrapperQuery(searchRequestText)).toString());
-	  //System.out.println(response.toString());
-	  
-	  for (SearchHit hit : response.getHits()) 
-	  {   
-		  Occurrence occurrence = new Occurrence();	
+	  Client client = setESClient();
+	  Search search = Search.parser(taxaSearch, placeSearch, datasetSearch,
+		  dateSearch, onlyWithCoordinates);
+	  // SearchRequestBuilder searchRequest = buildRequest(client, search,
+	  // pagesize, 0, true);
+
+	  SearchResponse response;
+	  List<Occurrence> occurrences = new ArrayList<Occurrence>();
+	  response = buildRequest(client, search, pagesize, 0, true).execute()
+		  .actionGet();
+	  Long nbHits = response.getHits().getTotalHits();
+	  FileWriter writer;
+
+	  File f = new File(link);
+	  writer = new FileWriter(link);
+	  link = f.getName();
+	  writer.append("ID").append('\t').append("typee").append('\t')
+		  .append("modified").append('\t').append("language").append('\t')
+		  .append("rights").append('\t').append("rightsHolder").append('\t')
+		  .append("accessRights").append('\t').append("bibliographicCitation")
+		  .append('\t').append("referencess").append('\t')
+		  .append("institutionID").append('\t').append("collectionID")
+		  .append('\t').append("datasetID").append('\t')
+		  .append("institutionCode").append('\t').append("collectionCode")
+		  .append('\t').append("datasetName").append('\t')
+		  .append("ownerInstitutionCode").append('\t').append("basisOfRecord")
+		  .append('\t').append("informationWithheld").append('\t')
+		  .append("dataGeneralizations").append('\t')
+		  .append("dynamicProperties").append('\t').append("occurrenceID")
+		  .append('\t').append("catalogNumber").append('\t')
+		  .append("occurrenceRemarks").append('\t').append("recordNumber")
+		  .append('\t').append("recordedBy").append('\t')
+		  .append("individualID").append('\t').append("individualCount")
+		  .append('\t').append("sex").append('\t').append("lifeStage")
+		  .append('\t').append("reproductiveCondition").append('\t')
+		  .append("behavior").append('\t').append("establishmentMeans")
+		  .append('\t').append("occurrenceStatus").append('\t')
+		  .append("preparations").append('\t').append("disposition")
+		  .append('\t').append("otherCatalogNumbers").append('\t')
+		  .append("previousIdentifications").append('\t')
+		  .append("associatedMedia").append('\t')
+		  .append("associatedReferences").append('\t')
+		  .append("associatedOccurrences").append('\t')
+		  .append("associatedSequences").append('\t').append("associatedTaxa")
+		  .append('\t').append("eventID").append('\t')
+		  .append("samplingProtocol").append('\t').append("samplingEffort")
+		  .append('\t').append("eventDate").append('\t').append("eventTime")
+		  .append('\t').append("startDayOfYear").append('\t')
+		  .append("endDayofYear").append('\t').append("year").append('\t')
+		  .append("month").append('\t').append("day").append('\t')
+		  .append("verbatimEventDate").append('\t').append("habitat")
+		  .append('\t').append("fieldNumber").append('\t').append("fieldNotes")
+		  .append('\t').append("eventRemarks").append('\t')
+		  .append("locationID").append('\t').append("higherGeographyID")
+		  .append('\t').append("higherGeography").append('\t')
+		  .append("continent").append('\t').append("waterBody").append('\t')
+		  .append("islandGroup").append('\t').append("island").append('\t')
+		  .append("country").append('\t').append("countryCode").append('\t')
+		  .append("stateProvince").append('\t').append("county").append('\t')
+		  .append("municipality").append('\t').append("locality").append('\t')
+		  .append("verbatimLocality").append('\t').append("verbatimElevation")
+		  .append('\t').append("minimumElevationInMeters").append('\t')
+		  .append("maximumElevationInMeters").append('\t')
+		  .append("verbatimDepth").append('\t').append("minimumDepthInMeters")
+		  .append('\t').append("maximumDepthInMeters").append('\t')
+		  .append("minimumDistanceAboveSurfaceInMeters").append('\t')
+		  .append("maximumDistanceAboveSurfaceInMeters").append('\t')
+		  .append("locationAccordingTo").append('\t').append("locationRemarks")
+		  .append('\t').append("verbatimCoordinates").append('\t')
+		  .append("verbatimLatitude").append('\t').append("verbatimLongitude")
+		  .append('\t').append("verbatimCoordinateSystem").append('\t')
+		  .append("verbatimSRS").append('\t').append("decimalLatitude")
+		  .append('\t').append("decimalLongitude").append('\t')
+		  .append("geodeticDatum").append('\t')
+		  .append("coordinateUncertaintyInMeters").append('\t')
+		  .append("coordinatePrecision").append('\t')
+		  .append("pointRadiusSpatialFit").append('\t').append("footprintWKT")
+		  .append('\t').append("footprintSRS").append('\t')
+		  .append("footprintSpatialFit").append('\t').append("georeferencedBy")
+		  .append('\t').append("georeferencedDate").append('\t')
+		  .append("georeferenceProtocol").append('\t')
+		  .append("georeferenceSources").append('\t')
+		  .append("georeferenceVerificationStatus").append('\t')
+		  .append("georeferenceRemarks").append('\t')
+		  .append("geologicalContextID").append('\t')
+		  .append("earliestEonOrLowestEonothem").append('\t')
+		  .append("latestEonOrHighestEonothem").append('\t')
+		  .append("earliestEraOrLowestErathem").append('\t')
+		  .append("latestEraOrHighestErathem").append('\t')
+		  .append("earliestPeriodOrLowestSystem").append('\t')
+		  .append("latestPeriodOrHighestSystem").append('\t')
+		  .append("earliestEpochOrLowestSeries").append('\t')
+		  .append("latestEpochOrHighestSeries").append('\t')
+		  .append("earliestAgeOrLowestStage").append('\t')
+		  .append("latestAgeOrHighestStage").append('\t')
+		  .append("lowestBiostratigraphicZone").append('\t')
+		  .append("highestBiostratigraphicZone").append('\t')
+		  .append("lithostratigraphicTerms").append('\t').append("groupp")
+		  .append('\t').append("formation").append('\t').append("member")
+		  .append('\t').append("bed").append('\t').append("identificationID")
+		  .append('\t').append("identifiedBy").append('\t')
+		  .append("dateIdentified").append('\t')
+		  .append("identificationVerificationStatus").append('\t')
+		  .append("identificationRemarks").append('\t')
+		  .append("identificationQualifier").append('\t').append("typeStatus")
+		  .append('\t').append("taxonID").append('\t')
+		  .append("scientificNameID").append('\t')
+		  .append("acceptedNameUsageID").append('\t')
+		  .append("parentNameUsageID").append('\t')
+		  .append("originalNameUsageID").append('\t')
+		  .append("nameAccordingToID").append('\t').append("namePublishedInID")
+		  .append('\t').append("taxonConceptID").append('\t')
+		  .append("scientificName").append('\t').append("acceptedNameUsage")
+		  .append('\t').append("parentNameUsage").append('\t')
+		  .append("originalNameUsage").append('\t').append("nameAccordingTo")
+		  .append('\t').append("namePublishedIn").append('\t')
+		  .append("namePublishedInYear").append('\t')
+		  .append("higherClassification").append('\t').append("kingdom")
+		  .append('\t').append("phylum").append('\t').append("classs")
+		  .append('\t').append("orderr").append('\t').append("family")
+		  .append('\t').append("genus").append('\t').append("subgenus")
+		  .append('\t').append("specificEpithet").append('\t')
+		  .append("infraSpecificEpithet").append('\t')
+		  .append("kingdom_interpreted").append('\t')
+		  .append("phylum_interpreted").append('\t')
+		  .append("classs_interpreted").append('\t')
+		  .append("orderr_interpreted").append('\t')
+		  .append("family_interpreted").append('\t')
+		  .append("genus_interpreted").append('\t')
+		  .append("subgenus_interpreted").append('\t')
+		  .append("specificEpithet_interpreted").append('\t')
+		  .append("infraSpecificEpithet_interpreted").append('\t')
+		  .append("taxonRank").append('\t').append("verbatimTaxonRank")
+		  .append('\t').append("scientificNameAuthorship").append('\t')
+		  .append("vernacularName").append('\t').append("nomenclaturalCode")
+		  .append('\t').append("taxonomicStatus").append('\t')
+		  .append("nomenclaturalStatus").append('\t').append("taxonRemarks")
+		  .append('\t').append("taxonStatus").append('\n');
+
+	  for (int i = 0; i < nbHits; i = i + pagesize) {
+
+		response = buildRequest(client, search, pagesize, i, true).execute()
+			.actionGet();
+
+		for (SearchHit hit : response.getHits()) {
+		  Occurrence occurrence = new Occurrence();
+
 		  occurrence.id = (Integer) hit.getSource().get("_id");
-		  occurrence.scientificName = (String) hit.getSource().get("scientificName");
-		  occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
-		  
-		  occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
-		  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");	
-		  
+		  occurrence.typee = (String) hit.getSource().get("typee");
+		  occurrence.modified = (String) hit.getSource().get("modified");
+		  occurrence.language = (String) hit.getSource().get("language");
+		  occurrence.rights = (String) hit.getSource().get("rights");
+		  occurrence.rightsHolder = (String) hit.getSource()
+			  .get("rightsHolder");
+		  occurrence.accessRights = (String) hit.getSource()
+			  .get("accessRights");
+		  occurrence.bibliographicCitation = (String) hit.getSource().get(
+			  "bibliographicCitation");
+		  occurrence.referencess = (String) hit.getSource().get("referencess");
+		  occurrence.institutionID = (String) hit.getSource().get(
+			  "institutionID");
+		  occurrence.collectionID = (String) hit.getSource()
+			  .get("collectionID");
+		  occurrence.datasetID = (String) hit.getSource().get("datasetID");
+		  occurrence.institutionCode = (String) hit.getSource().get(
+			  "institutionCode");
+		  occurrence.collectionCode = (String) hit.getSource().get(
+			  "collectionCode");
+		  occurrence.datasetName = (String) hit.getSource().get("datasetName");
+		  occurrence.ownerInstitutionCode = (String) hit.getSource().get(
+			  "ownerInstitutionCode");
+		  occurrence.basisOfRecord = (String) hit.getSource().get(
+			  "basisOfRecord");
+		  occurrence.informationWithheld = (String) hit.getSource().get(
+			  "informationWithheld");
+		  occurrence.dataGeneralizations = (String) hit.getSource().get(
+			  "dataGeneralizations");
+		  occurrence.dynamicProperties = (String) hit.getSource().get(
+			  "dynamicProperties");
+		  occurrence.occurrenceID = (String) hit.getSource()
+			  .get("occurrenceID");
+		  occurrence.catalogNumber = (String) hit.getSource().get(
+			  "catalogNumber");
+		  occurrence.occurrenceRemarks = (String) hit.getSource().get(
+			  "occurrenceRemarks");
+		  occurrence.recordNumber = (String) hit.getSource()
+			  .get("recordNumber");
+		  occurrence.recordedBy = (String) hit.getSource().get("recordedBy");
+		  occurrence.individualID = (String) hit.getSource()
+			  .get("individualID");
+		  occurrence.individualCount = (String) hit.getSource().get(
+			  "individualCount");
+		  occurrence.sex = (String) hit.getSource().get("sex");
+		  occurrence.lifeStage = (String) hit.getSource().get("lifeStage");
+		  occurrence.reproductiveCondition = (String) hit.getSource().get(
+			  "reproductiveCondition");
+		  occurrence.behavior = (String) hit.getSource().get("behavior");
+		  occurrence.establishmentMeans = (String) hit.getSource().get(
+			  "establishmentMeans");
+		  occurrence.occurrenceStatus = (String) hit.getSource().get(
+			  "occurrenceStatus");
+		  occurrence.preparations = (String) hit.getSource()
+			  .get("preparations");
+		  occurrence.disposition = (String) hit.getSource().get("disposition");
+		  occurrence.otherCatalogNumbers = (String) hit.getSource().get(
+			  "otherCatalogNumbers");
+		  occurrence.previousIdentifications = (String) hit.getSource().get(
+			  "previousIdentifications");
+		  occurrence.associatedMedia = (String) hit.getSource().get(
+			  "associatedMedia");
+		  occurrence.associatedReferences = (String) hit.getSource().get(
+			  "associatedReferences");
+		  occurrence.associatedOccurrences = (String) hit.getSource().get(
+			  "associatedOccurrences");
+		  occurrence.associatedSequences = (String) hit.getSource().get(
+			  "associatedSequences");
+		  occurrence.associatedTaxa = (String) hit.getSource().get(
+			  "associatedTaxa");
+		  occurrence.eventID = (String) hit.getSource().get("eventID");
+		  occurrence.samplingProtocol = (String) hit.getSource().get(
+			  "samplingProtocol");
+		  occurrence.samplingEffort = (String) hit.getSource().get(
+			  "samplingEffort");
+		  occurrence.eventDate = (String) hit.getSource().get("eventDate");
+		  occurrence.eventTime = (String) hit.getSource().get("eventTime");
+		  occurrence.startDayOfYear = (String) hit.getSource().get(
+			  "startDayOfYear");
+		  occurrence.endDayofYear = (String) hit.getSource()
+			  .get("endDayofYear");
+		  occurrence.year = (String) hit.getSource().get("year");
+		  occurrence.month = (String) hit.getSource().get("month");
+		  occurrence.day = (String) hit.getSource().get("day");
+		  occurrence.verbatimEventDate = (String) hit.getSource().get(
+			  "verbatimEventDate");
+		  occurrence.habitat = (String) hit.getSource().get("habitat");
+		  occurrence.fieldNumber = (String) hit.getSource().get("fieldNumber");
+		  occurrence.fieldNotes = (String) hit.getSource().get("fieldNotes");
+		  occurrence.eventRemarks = (String) hit.getSource()
+			  .get("eventRemarks");
+		  occurrence.locationID = (String) hit.getSource().get("locationID");
+		  occurrence.higherGeographyID = (String) hit.getSource().get(
+			  "higherGeographyID");
+		  occurrence.higherGeography = (String) hit.getSource().get(
+			  "higherGeography");
+		  occurrence.continent = (String) hit.getSource().get("continent");
+		  occurrence.waterBody = (String) hit.getSource().get("waterBody");
+		  occurrence.islandGroup = (String) hit.getSource().get("islandGroup");
+		  occurrence.island = (String) hit.getSource().get("island");
+		  occurrence.country = (String) hit.getSource().get("country");
+		  occurrence.countryCode = (String) hit.getSource().get("countryCode");
+		  occurrence.stateProvince = (String) hit.getSource().get(
+			  "stateProvince");
+		  occurrence.county = (String) hit.getSource().get("county");
+		  occurrence.municipality = (String) hit.getSource()
+			  .get("municipality");
+		  occurrence.locality = (String) hit.getSource().get("locality");
+		  occurrence.verbatimLocality = (String) hit.getSource().get(
+			  "verbatimLocality");
+		  occurrence.verbatimElevation = (String) hit.getSource().get(
+			  "verbatimElevation");
+		  occurrence.minimumElevationInMeters = (String) hit.getSource().get(
+			  "minimumElevationInMeters");
+		  occurrence.maximumElevationInMeters = (String) hit.getSource().get(
+			  "maximumElevationInMeters");
+		  occurrence.verbatimDepth = (String) hit.getSource().get(
+			  "verbatimDepth");
+		  occurrence.minimumDepthInMeters = (String) hit.getSource().get(
+			  "minimumDepthInMeters");
+		  occurrence.maximumDepthInMeters = (String) hit.getSource().get(
+			  "maximumDepthInMeters");
+		  occurrence.minimumDistanceAboveSurfaceInMeters = (String) hit
+			  .getSource().get("minimumDistanceAboveSurfaceInMeters");
+		  occurrence.maximumDistanceAboveSurfaceInMeters = (String) hit
+			  .getSource().get("maximumDistanceAboveSurfaceInMeters");
+		  occurrence.locationAccordingTo = (String) hit.getSource().get(
+			  "locationAccordingTo");
+		  occurrence.locationRemarks = (String) hit.getSource().get(
+			  "locationRemarks");
+		  occurrence.verbatimCoordinates = (String) hit.getSource().get(
+			  "verbatimCoordinates");
+		  occurrence.verbatimLatitude = (String) hit.getSource().get(
+			  "verbatimLatitude");
+		  occurrence.verbatimLongitude = (String) hit.getSource().get(
+			  "verbatimLongitude");
+		  occurrence.verbatimCoordinateSystem = (String) hit.getSource().get(
+			  "verbatimCoordinateSystem");
+		  occurrence.verbatimSRS = (String) hit.getSource().get("verbatimSRS");
+		  occurrence.decimalLatitude = (String) hit.getSource().get(
+			  "decimalLatitude");
+		  occurrence.decimalLongitude = (String) hit.getSource().get(
+			  "decimalLongitude");
+		  occurrence.geodeticDatum = (String) hit.getSource().get(
+			  "geodeticDatum");
+		  occurrence.coordinateUncertaintyInMeters = (String) hit.getSource()
+			  .get("coordinateUncertaintyInMeters");
+		  occurrence.coordinatePrecision = (String) hit.getSource().get(
+			  "coordinatePrecision");
+		  occurrence.pointRadiusSpatialFit = (String) hit.getSource().get(
+			  "pointRadiusSpatialFit");
+		  occurrence.footprintWKT = (String) hit.getSource()
+			  .get("footprintWKT");
+		  occurrence.footprintSRS = (String) hit.getSource()
+			  .get("footprintSRS");
+		  occurrence.footprintSpatialFit = (String) hit.getSource().get(
+			  "footprintSpatialFit");
+		  occurrence.georeferencedBy = (String) hit.getSource().get(
+			  "georeferencedBy");
+		  occurrence.georeferencedDate = (String) hit.getSource().get(
+			  "georeferencedDate");
+		  occurrence.georeferenceProtocol = (String) hit.getSource().get(
+			  "georeferenceProtocol");
+		  occurrence.georeferenceSources = (String) hit.getSource().get(
+			  "georeferenceSources");
+		  occurrence.georeferenceVerificationStatus = (String) hit.getSource()
+			  .get("georeferenceVerificationStatus");
+		  occurrence.georeferenceRemarks = (String) hit.getSource().get(
+			  "georeferenceRemarks");
+		  occurrence.geologicalContextID = (String) hit.getSource().get(
+			  "geologicalContextID");
+		  occurrence.earliestEonOrLowestEonothem = (String) hit.getSource()
+			  .get("earliestEonOrLowestEonothem");
+		  occurrence.latestEonOrHighestEonothem = (String) hit.getSource().get(
+			  "latestEonOrHighestEonothem");
+		  occurrence.earliestEraOrLowestErathem = (String) hit.getSource().get(
+			  "earliestEraOrLowestErathem");
+		  occurrence.latestEraOrHighestErathem = (String) hit.getSource().get(
+			  "latestEraOrHighestErathem");
+		  occurrence.earliestPeriodOrLowestSystem = (String) hit.getSource()
+			  .get("earliestPeriodOrLowestSystem");
+		  occurrence.latestPeriodOrHighestSystem = (String) hit.getSource()
+			  .get("latestPeriodOrHighestSystem");
+		  occurrence.earliestEpochOrLowestSeries = (String) hit.getSource()
+			  .get("earliestEpochOrLowestSeries");
+		  occurrence.latestEpochOrHighestSeries = (String) hit.getSource().get(
+			  "latestEpochOrHighestSeries");
+		  occurrence.earliestAgeOrLowestStage = (String) hit.getSource().get(
+			  "earliestAgeOrLowestStage");
+		  occurrence.latestAgeOrHighestStage = (String) hit.getSource().get(
+			  "latestAgeOrHighestStage");
+		  occurrence.lowestBiostratigraphicZone = (String) hit.getSource().get(
+			  "lowestBiostratigraphicZone");
+		  occurrence.highestBiostratigraphicZone = (String) hit.getSource()
+			  .get("highestBiostratigraphicZone");
+		  occurrence.lithostratigraphicTerms = (String) hit.getSource().get(
+			  "lithostratigraphicTerms");
+		  occurrence.groupp = (String) hit.getSource().get("groupp");
+		  occurrence.formation = (String) hit.getSource().get("formation");
+		  occurrence.member = (String) hit.getSource().get("member");
+		  occurrence.bed = (String) hit.getSource().get("bed");
+		  occurrence.identificationID = (String) hit.getSource().get(
+			  "identificationID");
+		  occurrence.identifiedBy = (String) hit.getSource()
+			  .get("identifiedBy");
+		  occurrence.dateIdentified = (String) hit.getSource().get(
+			  "dateIdentified");
+		  occurrence.identificationVerificationStatus = (String) hit
+			  .getSource().get("identificationVerificationStatus");
+		  occurrence.identificationRemarks = (String) hit.getSource().get(
+			  "identificationRemarks");
+		  occurrence.identificationQualifier = (String) hit.getSource().get(
+			  "identificationQualifier");
+		  occurrence.typeStatus = (String) hit.getSource().get("typeStatus");
+		  occurrence.taxonID = (String) hit.getSource().get("taxonID");
+		  occurrence.scientificNameID = (String) hit.getSource().get(
+			  "scientificNameID");
+		  occurrence.acceptedNameUsageID = (String) hit.getSource().get(
+			  "acceptedNameUsageID");
+		  occurrence.parentNameUsageID = (String) hit.getSource().get(
+			  "parentNameUsageID");
+		  occurrence.originalNameUsageID = (String) hit.getSource().get(
+			  "originalNameUsageID");
+		  occurrence.nameAccordingToID = (String) hit.getSource().get(
+			  "nameAccordingToID");
+		  occurrence.namePublishedInID = (String) hit.getSource().get(
+			  "namePublishedInID");
+		  occurrence.taxonConceptID = (String) hit.getSource().get(
+			  "taxonConceptID");
+		  occurrence.scientificName = (String) hit.getSource().get(
+			  "scientificName");
+		  occurrence.acceptedNameUsage = (String) hit.getSource().get(
+			  "acceptedNameUsage");
+		  occurrence.parentNameUsage = (String) hit.getSource().get(
+			  "parentNameUsage");
+		  occurrence.originalNameUsage = (String) hit.getSource().get(
+			  "originalNameUsage");
+		  occurrence.nameAccordingTo = (String) hit.getSource().get(
+			  "nameAccordingTo");
+		  occurrence.namePublishedIn = (String) hit.getSource().get(
+			  "namePublishedIn");
+		  occurrence.namePublishedInYear = (String) hit.getSource().get(
+			  "namePublishedInYear");
+		  occurrence.higherClassification = (String) hit.getSource().get(
+			  "higherClassification");
+		  occurrence.kingdom = (String) hit.getSource().get("kingdom");
+		  occurrence.phylum = (String) hit.getSource().get("phylum");
+		  occurrence.classs = (String) hit.getSource().get("classs");
+		  occurrence.orderr = (String) hit.getSource().get("orderr");
+		  occurrence.family = (String) hit.getSource().get("family");
+		  occurrence.genus = (String) hit.getSource().get("genus");
+		  occurrence.subgenus = (String) hit.getSource().get("subgenus");
+		  occurrence.specificEpithet = (String) hit.getSource().get(
+			  "specificEpithet");
+		  occurrence.infraSpecificEpithet = (String) hit.getSource().get(
+			  "infraSpecificEpithet");
+		  occurrence.kingdom_interpreted = (String) hit.getSource().get(
+			  "kingdom_interpreted");
+		  occurrence.phylum_interpreted = (String) hit.getSource().get(
+			  "phylum_interpreted");
+		  occurrence.classs_interpreted = (String) hit.getSource().get(
+			  "classs_interpreted");
+		  occurrence.orderr_interpreted = (String) hit.getSource().get(
+			  "orderr_interpreted");
+		  occurrence.family_interpreted = (String) hit.getSource().get(
+			  "family_interpreted");
+		  occurrence.genus_interpreted = (String) hit.getSource().get(
+			  "genus_interpreted");
+		  occurrence.subgenus_interpreted = (String) hit.getSource().get(
+			  "subgenus_interpreted");
+		  occurrence.specificEpithet_interpreted = (String) hit.getSource()
+			  .get("specificEpithet_interpreted");
+		  occurrence.infraSpecificEpithet_interpreted = (String) hit
+			  .getSource().get("infraSpecificEpithet_interpreted");
+		  occurrence.taxonRank = (String) hit.getSource().get("taxonRank");
+		  occurrence.verbatimTaxonRank = (String) hit.getSource().get(
+			  "verbatimTaxonRank");
+		  occurrence.scientificNameAuthorship = (String) hit.getSource().get(
+			  "scientificNameAuthorship");
+		  occurrence.vernacularName = (String) hit.getSource().get(
+			  "vernacularName");
+		  occurrence.nomenclaturalCode = (String) hit.getSource().get(
+			  "nomenclaturalCode");
+		  occurrence.taxonomicStatus = (String) hit.getSource().get(
+			  "taxonomicStatus");
+		  occurrence.nomenclaturalStatus = (String) hit.getSource().get(
+			  "nomenclaturalStatus");
+		  occurrence.taxonRemarks = (String) hit.getSource()
+			  .get("taxonRemarks");
+		  occurrence.taxonStatus = (String) hit.getSource().get("taxonStatus");
+
+		  writer.append(occurrence.id.toString()).append('\t')
+			  .append(occurrence.typee).append('\t')
+			  .append(occurrence.modified).append('\t')
+			  .append(occurrence.language).append('\t')
+			  .append(occurrence.rights).append('\t')
+			  .append(occurrence.rightsHolder).append('\t')
+			  .append(occurrence.accessRights).append('\t')
+			  .append(occurrence.bibliographicCitation).append('\t')
+			  .append(occurrence.referencess).append('\t')
+			  .append(occurrence.institutionID).append('\t')
+			  .append(occurrence.collectionID).append('\t')
+			  .append(occurrence.datasetID).append('\t')
+			  .append(occurrence.institutionCode).append('\t')
+			  .append(occurrence.collectionCode).append('\t')
+			  .append(occurrence.datasetName).append('\t')
+			  .append(occurrence.ownerInstitutionCode).append('\t')
+			  .append(occurrence.basisOfRecord).append('\t')
+			  .append(occurrence.informationWithheld).append('\t')
+			  .append(occurrence.dataGeneralizations).append('\t')
+			  .append(occurrence.dynamicProperties).append('\t')
+			  .append(occurrence.occurrenceID).append('\t')
+			  .append(occurrence.catalogNumber).append('\t')
+			  .append(occurrence.occurrenceRemarks).append('\t')
+			  .append(occurrence.recordNumber).append('\t')
+			  .append(occurrence.recordedBy).append('\t')
+			  .append(occurrence.individualID).append('\t')
+			  .append(occurrence.individualCount).append('\t')
+			  .append(occurrence.sex).append('\t').append(occurrence.lifeStage)
+			  .append('\t').append(occurrence.reproductiveCondition)
+			  .append('\t').append(occurrence.behavior).append('\t')
+			  .append(occurrence.establishmentMeans).append('\t')
+			  .append(occurrence.occurrenceStatus).append('\t')
+			  .append(occurrence.preparations).append('\t')
+			  .append(occurrence.disposition).append('\t')
+			  .append(occurrence.otherCatalogNumbers).append('\t')
+			  .append(occurrence.previousIdentifications).append('\t')
+			  .append(occurrence.associatedMedia).append('\t')
+			  .append(occurrence.associatedReferences).append('\t')
+			  .append(occurrence.associatedOccurrences).append('\t')
+			  .append(occurrence.associatedSequences).append('\t')
+			  .append(occurrence.associatedTaxa).append('\t')
+			  .append(occurrence.eventID).append('\t')
+			  .append(occurrence.samplingProtocol).append('\t')
+			  .append(occurrence.samplingEffort).append('\t')
+			  .append(occurrence.eventDate).append('\t')
+			  .append(occurrence.eventTime).append('\t')
+			  .append(occurrence.startDayOfYear).append('\t')
+			  .append(occurrence.endDayofYear).append('\t')
+			  .append(occurrence.year).append('\t').append(occurrence.month)
+			  .append('\t').append(occurrence.day).append('\t')
+			  .append(occurrence.verbatimEventDate).append('\t')
+			  .append(occurrence.habitat).append('\t')
+			  .append(occurrence.fieldNumber).append('\t')
+			  .append(occurrence.fieldNotes).append('\t')
+			  .append(occurrence.eventRemarks).append('\t')
+			  .append(occurrence.locationID).append('\t')
+			  .append(occurrence.higherGeographyID).append('\t')
+			  .append(occurrence.higherGeography).append('\t')
+			  .append(occurrence.continent).append('\t')
+			  .append(occurrence.waterBody).append('\t')
+			  .append(occurrence.islandGroup).append('\t')
+			  .append(occurrence.island).append('\t')
+			  .append(occurrence.country).append('\t')
+			  .append(occurrence.countryCode).append('\t')
+			  .append(occurrence.stateProvince).append('\t')
+			  .append(occurrence.county).append('\t')
+			  .append(occurrence.municipality).append('\t')
+			  .append(occurrence.locality).append('\t')
+			  .append(occurrence.verbatimLocality).append('\t')
+			  .append(occurrence.verbatimElevation).append('\t')
+			  .append(occurrence.minimumElevationInMeters).append('\t')
+			  .append(occurrence.maximumElevationInMeters).append('\t')
+			  .append(occurrence.verbatimDepth).append('\t')
+			  .append(occurrence.minimumDepthInMeters).append('\t')
+			  .append(occurrence.maximumDepthInMeters).append('\t')
+			  .append(occurrence.minimumDistanceAboveSurfaceInMeters)
+			  .append('\t')
+			  .append(occurrence.maximumDistanceAboveSurfaceInMeters)
+			  .append('\t').append(occurrence.locationAccordingTo).append('\t')
+			  .append(occurrence.locationRemarks).append('\t')
+			  .append(occurrence.verbatimCoordinates).append('\t')
+			  .append(occurrence.verbatimLatitude).append('\t')
+			  .append(occurrence.verbatimLongitude).append('\t')
+			  .append(occurrence.verbatimCoordinateSystem).append('\t')
+			  .append(occurrence.verbatimSRS).append('\t')
+			  .append(occurrence.decimalLatitude).append('\t')
+			  .append(occurrence.decimalLongitude).append('\t')
+			  .append(occurrence.geodeticDatum).append('\t')
+			  .append(occurrence.coordinateUncertaintyInMeters).append('\t')
+			  .append(occurrence.coordinatePrecision).append('\t')
+			  .append(occurrence.pointRadiusSpatialFit).append('\t')
+			  .append(occurrence.footprintWKT).append('\t')
+			  .append(occurrence.footprintSRS).append('\t')
+			  .append(occurrence.footprintSpatialFit).append('\t')
+			  .append(occurrence.georeferencedBy).append('\t')
+			  .append(occurrence.georeferencedDate).append('\t')
+			  .append(occurrence.georeferenceProtocol).append('\t')
+			  .append(occurrence.georeferenceSources).append('\t')
+			  .append(occurrence.georeferenceVerificationStatus).append('\t')
+			  .append(occurrence.georeferenceRemarks).append('\t')
+			  .append(occurrence.geologicalContextID).append('\t')
+			  .append(occurrence.earliestEonOrLowestEonothem).append('\t')
+			  .append(occurrence.latestEonOrHighestEonothem).append('\t')
+			  .append(occurrence.earliestEraOrLowestErathem).append('\t')
+			  .append(occurrence.latestEraOrHighestErathem).append('\t')
+			  .append(occurrence.earliestPeriodOrLowestSystem).append('\t')
+			  .append(occurrence.latestPeriodOrHighestSystem).append('\t')
+			  .append(occurrence.earliestEpochOrLowestSeries).append('\t')
+			  .append(occurrence.latestEpochOrHighestSeries).append('\t')
+			  .append(occurrence.earliestAgeOrLowestStage).append('\t')
+			  .append(occurrence.latestAgeOrHighestStage).append('\t')
+			  .append(occurrence.lowestBiostratigraphicZone).append('\t')
+			  .append(occurrence.highestBiostratigraphicZone).append('\t')
+			  .append(occurrence.lithostratigraphicTerms).append('\t')
+			  .append(occurrence.groupp).append('\t')
+			  .append(occurrence.formation).append('\t')
+			  .append(occurrence.member).append('\t').append(occurrence.bed)
+			  .append('\t').append(occurrence.identificationID).append('\t')
+			  .append(occurrence.identifiedBy).append('\t')
+			  .append(occurrence.dateIdentified).append('\t')
+			  .append(occurrence.identificationVerificationStatus).append('\t')
+			  .append(occurrence.identificationRemarks).append('\t')
+			  .append(occurrence.identificationQualifier).append('\t')
+			  .append(occurrence.typeStatus).append('\t')
+			  .append(occurrence.taxonID).append('\t')
+			  .append(occurrence.scientificNameID).append('\t')
+			  .append(occurrence.acceptedNameUsageID).append('\t')
+			  .append(occurrence.parentNameUsageID).append('\t')
+			  .append(occurrence.originalNameUsageID).append('\t')
+			  .append(occurrence.nameAccordingToID).append('\t')
+			  .append(occurrence.namePublishedInID).append('\t')
+			  .append(occurrence.taxonConceptID).append('\t')
+			  .append(occurrence.scientificName).append('\t')
+			  .append(occurrence.acceptedNameUsage).append('\t')
+			  .append(occurrence.parentNameUsage).append('\t')
+			  .append(occurrence.originalNameUsage).append('\t')
+			  .append(occurrence.nameAccordingTo).append('\t')
+			  .append(occurrence.namePublishedIn).append('\t')
+			  .append(occurrence.namePublishedInYear).append('\t')
+			  .append(occurrence.higherClassification).append('\t')
+			  .append(occurrence.kingdom).append('\t')
+			  .append(occurrence.phylum).append('\t').append(occurrence.classs)
+			  .append('\t').append(occurrence.orderr).append('\t')
+			  .append(occurrence.family).append('\t').append(occurrence.genus)
+			  .append('\t').append(occurrence.subgenus).append('\t')
+			  .append(occurrence.specificEpithet).append('\t')
+			  .append(occurrence.infraSpecificEpithet).append('\t')
+			  .append(occurrence.kingdom_interpreted).append('\t')
+			  .append(occurrence.phylum_interpreted).append('\t')
+			  .append(occurrence.classs_interpreted).append('\t')
+			  .append(occurrence.orderr_interpreted).append('\t')
+			  .append(occurrence.family_interpreted).append('\t')
+			  .append(occurrence.genus_interpreted).append('\t')
+			  .append(occurrence.subgenus_interpreted).append('\t')
+			  .append(occurrence.specificEpithet_interpreted).append('\t')
+			  .append(occurrence.infraSpecificEpithet_interpreted).append('\t')
+			  .append(occurrence.taxonRank).append('\t')
+			  .append(occurrence.verbatimTaxonRank).append('\t')
+			  .append(occurrence.scientificNameAuthorship).append('\t')
+			  .append(occurrence.vernacularName).append('\t')
+			  .append(occurrence.nomenclaturalCode).append('\t')
+			  .append(occurrence.taxonomicStatus).append('\t')
+			  .append(occurrence.nomenclaturalStatus).append('\t')
+			  .append(occurrence.taxonRemarks).append('\t')
+			  .append(occurrence.taxonStatus).append('\n');
+
 		  occurrences.add(occurrence);
-	    }
-	}
-	render("Occurrences/download.html", occurrences);
+		}
+
+	  }
+	  writer.flush();
+	  writer.close();
+	  return true;
   }
+  
+  /*** TODO: envoie de mail, zip, clean du dossier ***/
+  public static void download(String taxaSearch, String placeSearch,
+	  String datasetSearch, String dateSearch, boolean onlyWithCoordinates,
+	  String mode, String email) throws IOException 
+  {
+	
+	/*** Download location ***/
+	String fileName = String.valueOf(((Double) (Math.random() * 100000000)).intValue());
+	String link = Play.configuration.getProperty("download.physical.path") + fileName + ".csv";
+	if (mode != null)
+	{
+	  if (mode.equals("DIRECT")) 
+	  {
+		createCSV(taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates, link);
+		String serverLink = Play.configuration.getProperty("download.server.path") + fileName + ".csv";
+		render("Occurrences/download.html", serverLink, mode);
+	  }
+	  else if (mode.equals("EMAIL") && !email.isEmpty())
+	  { 
+	    DownloadThread downloadThread = new DownloadThread(taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates, email);
+	    downloadThread.start();
+	    Application.search(taxaSearch, placeSearch, String.valueOf(onlyWithCoordinates), datasetSearch, dateSearch);
+	  }
+	}
+	else 
+	{
+	  render("Occurrences/download.html", taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates, mode);
+	}
+  }
+  
+  public static class DownloadThread extends Thread
+  {
+    String taxaSearch;
+	String placeSearch;
+ 	String datasetSearch;
+ 	String dateSearch; 
+ 	boolean onlyWithCoordinates;
+	String email;
+	
+	 public DownloadThread(String taxaSearch, String placeSearch,
+   	  String datasetSearch, String dateSearch, boolean onlyWithCoordinates, String email)
+     {
+       this.taxaSearch = taxaSearch;
+       this.placeSearch = placeSearch;
+       this.datasetSearch = datasetSearch;
+       this.dateSearch = dateSearch;
+       this.onlyWithCoordinates = onlyWithCoordinates;
+	   this.email = email;
+     }
+	 
+	 public void run()
+	 {
+	   /*** Download location ***/
+	   String fileName = String.valueOf(((Double) (Math.random() * 100000000)).intValue());
+	   String link = Play.configuration.getProperty("download.physical.path") + fileName + ".csv";
+	   String serverLink = Play.configuration.getProperty("download.server.path") + fileName + ".csv";
+	   try
+	   {
+		 createCSV(taxaSearch, placeSearch, datasetSearch, dateSearch, onlyWithCoordinates, link);
+	   }
+	   catch (IOException e)
+	   {
+		 System.out.println("Error during the csv file creation: " + e.getMessage());
+	   }  
+	   Properties props = new Properties();
+	   props.put("mail.smtp.host", Play.configuration.getProperty("mail.smtp.host"));
+	   props.put("mail.from", Play.configuration.getProperty("mail.from"));
+	   props.put("mail.smtp.auth", Play.configuration.getProperty("mail.smtp.auth"));
+	   props.put("mail.smtp.starttls.enable", Play.configuration.getProperty("mail.smtp.starttls.enable"));
+	   props.put("mail.smtp.port", Play.configuration.getProperty("mail.smtp.port"));
+	   Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(Play.configuration.getProperty("mail.username"), Play.configuration.getProperty("mail.password"));
+			}
+		  });
 
-
+	    try {
+	        MimeMessage msg = new MimeMessage(session);
+	        msg.setFrom();
+	        msg.setRecipients(Message.RecipientType.TO,
+	                          this.email);
+	        msg.setSubject("GBIF France : Your requested data");
+	        msg.setSentDate(new Date());
+	        msg.setText("Your data are ready to be downloaded. Here is the link: " + serverLink);
+	        Transport.send(msg);
+	        System.out.println("Email has been sent");
+	    } catch (MessagingException mex) {
+	        System.out.println("send failed, exception: " + mex);
+	    }
+	 }
+  }
+  
 }
