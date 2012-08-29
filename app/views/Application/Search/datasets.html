@@ -1,8 +1,13 @@
-#{if datasets}
-  <h3>Datasets</h3>
+<h3>Datasets</h3>
+#{if datasets.size > 0}
   <table class="table table-condensed">
   #{list items:datasets, as:'dataset'}
     <tr><td><a href="@{Datasets.show(dataset.id)}">${dataset.title}</a></td><td><a href="@{DataPublishers.show(dataset.dataPublisher.id)}">${dataset.dataPublisher.name}</a></td></tr>
   #{/list}
   </table>
 #{/if}
+#{else}
+  <div style="margin-bottom: 40px;">
+    <h6>Pas de résultats</h6>
+  </div>  
+#{/else}

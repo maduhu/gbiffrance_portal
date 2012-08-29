@@ -55,7 +55,7 @@
 		#{/if}
 	</div>
 	<div class="row">
-	  <div class="span8">
+	  <div #{if taxa.mediaURLs} class="span9" #{/if} #{else} class="span12" #{/else}>
 		<h3>Classification</h3>
 		<table class="table table-condensed table-striped">
 			<tbody>
@@ -147,7 +147,7 @@
 					<th>Species</th>
 					<td>
 					   #{if taxa.species} 
-					       <a id="species" href="@{Taxas.show(taxa.speciesID)}">${taxa.species}</a> 
+					       ${taxa.species} 
 					   #{/if}
 					   #{else} 
 					       #{if taxa.nbSpecies < 1000} 
@@ -162,10 +162,12 @@
 			</tbody>
 		</table>
       </div>
-	  <div class="span4">
-	    #{if taxa.mediaURLs} <img width="200" height="200"
-            style="float:right;" src="${taxa.mediaURLs[0][1]}" alt="" /> #{/if}
-	  </div>
+      #{if taxa.mediaURLs}
+        <div class="span3">
+         <img width="200" height="200"
+            style="float:right;" src="${taxa.mediaURLs[0][1]}" alt="" />
+        </div>
+      #{/if}  
 	</div>
 	<div id="children" class="well"></div>
 	#{if taxa.description || taxa.mediaURLs }
