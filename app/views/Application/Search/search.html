@@ -12,7 +12,7 @@
 	searchOccurrences("${search.taxaText}","${search.placeText}","${search.dataset}","${search.dateText}","${search.onlyWithCoordinates}", 0)
     searchTaxas("${search.taxaText}",'1');
     searchPlaces("${search.placeText}", 0);
-    searchDatasets("${search.dataset}");
+    searchDatasets("${search.dataset}");           
   });
 </script>
 
@@ -25,16 +25,4 @@
       <div id="taxas"></div>
     </div>  
   </div>
-  <!-- #{if dataPublishers}
-  <div style="margin-top:20px;">
-    <h3>Institutions</h3>
-    <table class="table table-condensed table-striped">
-    #{list items:dataPublishers, as:'dataPublisher'}
-      <td><a href="@{DataPublishers.show(dataPublisher.id)}">${dataPublisher.name}</a></td>
-    #{/list}
-    </table>
-  </div>-->
-  #{/if}
-  
-  
 </div>

@@ -512,7 +512,8 @@ $('#geo_genus').click(function()
         <li><i><a href="@{Taxas.show(taxa.speciesID)}">${taxa.canonicalSpecies}</a></i></li>
       #{/if}
     </ul>
-    <div>  
+    <div style="overflow: hidden;">  
+      #{if occurrence.associatedMedia}<img style="float:right;" width="200" height="150" src="${occurrence.associatedMedia}"/>#{/if}
       <div  class="page-header">
         <h1>${occurrence.scientificName}</h1>
         #{if taxa.canonicalSpecies}
@@ -585,7 +586,7 @@ $('#geo_genus').click(function()
 	  #{if occurrence.disposition}<tr><th>disposition</th><td>${occurrence.disposition}</td></tr>#{/if}
 	  #{if occurrence.otherCatalogNumbers}<tr><th>otherCatalogNumbers</th><td>${occurrence.otherCatalogNumbers}</td></tr>#{/if}
 	  #{if occurrence.previousIdentifications}<tr><th>previousIdentifications</th><td>${occurrence.previousIdentifications}</td></tr>#{/if}
-	  #{if occurrence.associatedMedia}<tr><th>associatedMedia</th><td>${occurrence.associatedMedia} <img style="floatright;" width="200" height="150" src="${occurrence.associatedMedia}"/></td></tr>#{/if}
+	  #{if occurrence.associatedMedia}<tr><th>associatedMedia</th><td>${occurrence.associatedMedia}</td></tr>#{/if}
 	  #{if occurrence.associatedReferences}<tr><th>associatedReferences</th><td>${occurrence.associatedReferences}</td></tr>#{/if}
 	  #{if occurrence.associatedOccurrences}<tr><th>associatedOccurrences</th><td>${occurrence.associatedOccurrences}</td></tr>#{/if}
 	  #{if occurrence.associatedSequences}<tr><th>associatedSequences</th><td>${occurrence.associatedSequences}</td></tr>#{/if}
