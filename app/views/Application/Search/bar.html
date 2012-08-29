@@ -82,7 +82,13 @@ $(document).ready(function() {
           <div id="search-coordinates" class="search-input btn btn-success input-small">
             <h4>Only with coordinates</h4>
             <input class="input-small search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}#{else}"false"#{/else}/>
-          </div>            
+          </div>      
+
+         <input id="input-search-bbul" type="hidden" value="">
+         <input id="input-search-bbur" type="hidden" value="">
+         <input id="input-search-bbbr" type="hidden" value="">
+         <input id="input-search-bbbl" type="hidden" value="">
+
           <input class="btn btn-large" id="search-submit" type="submit" value="Rechercher"/>
         </div>
         <div id="search-filters">          
