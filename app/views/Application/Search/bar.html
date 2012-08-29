@@ -1,5 +1,5 @@
 #{extends 'main.html' /}
-<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}">
+ <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"/>
 <script src="@{'/public/javascripts/search/search.js'}"></script>
 <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
 <script src="@{'/public/javascripts/nv.d3.js'}"></script>
@@ -11,7 +11,8 @@
 <script type="text/javascript">
 $(document).ready(function() {
   
-  /*** Dataset Auto-completion ***/	
+
+  /*** Dataset Auto-completion ***/ 
   $("#input-search-dataset").autocomplete().each(function() {
     var $input = $(this);
     // Set-up the autocomplete widget.
@@ -52,7 +53,7 @@ $(document).ready(function() {
       }  
     })
   })
-  console.warn('loaded')
+  
 });
 </script>
 <div class="container">
@@ -90,6 +91,7 @@ $(document).ready(function() {
           <div class="btn btn-tiny search-filter" id="search-filter-dataset">Dataset</div>
           <br/>
           <div class="btn btn-success btn-tiny search-filter" id="search-filter-coordinates">Only with coordinates</div>
+           <div class="btn btn-success btn-tiny search-filter" id="search-filter-area">Draw and search by area</div>
           <div class="btn btn-primary btn-tiny search-filter" id="search-filter-date">Date</div>   
         </div>        
       </div>
