@@ -438,8 +438,7 @@ jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.ph
  success: function(data)
  {
 
-polygon_geojson.on('featureparse', function(e) {
-  
+  polygon_geojson.on('featureparse', function(e) {    
   apply_parsing(e)
   })   
  geojson_max=data.max;
@@ -696,7 +695,7 @@ $('#geo_genus').click(function()
     #{if occurrence.originalNameUsage}<tr><th>originalNameUsage </th><td> ${occurrence.originalNameUsage}</td></tr>#{/if}
     #{if occurrence.nameAccordingTo}<tr><th>nameAccordingTo </th><td> ${occurrence.nameAccordingTo}</td></tr>#{/if}
     #{if occurrence.namePublishedIn}<tr><th>namePublishedIn </th><td> ${occurrence.namePublishedIn}</td></tr>#{/if}
-    #{if occurrence.namePublishedInYear}<tr><th>namePublishedInYear </th><td> ${occurrence.namePublishedInYear}</td></tr>#{/if}
+    #{if occurrence.namePublishedInYear}<tr><th>namePublishedInYear </th><td> ${occurrence.namePubfhedInYear}</td></tr>#{/if}
     #{if occurrence.higherClassification}<tr><th>higherClassification </th><td> ${occurrence.higherClassification}</td></tr>#{/if}
     #{if occurrence.kingdom}<tr><th>kingdom </th><td> ${occurrence.kingdom}</td></tr>#{/if}
     #{if occurrence.phylum}<tr><th>phylum </th><td> ${occurrence.phylum}</td></tr>#{/if}
