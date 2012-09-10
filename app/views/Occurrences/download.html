@@ -1,0 +1,27 @@
+#{extends 'main.html' /}
+#{set title:'Download' /}
+<div class="container">
+  
+  #{if mode.equals("DIRECT")}
+  <div class="well">
+    <h2><a href="${serverLink}">Download your results</a></h2>
+  </div>
+  #{/if}
+  #{else}
+  <div class="alert alert-info">
+  #{form @Occurrences.download(), id:'downloadForm', class:'alert alert-info hero-unit'}
+    <p>Give us your e-mail address and we will send you the results of your request!</p>
+    <label>E-mail: </label>
+    <input class="input-large" type="text" name="email"/>
+    <input type="hidden" name="taxaSearch" value='${taxaSearch}'/>
+    <input type="hidden" name="placeSearch" value='${placeSearch}'/>
+    <input type="hidden" name="datasetSearch" value='${datasetSearch}'/>
+    <input type="hidden" name="dateSearch" value='${dateSearch}'/>
+    <input type="hidden" name="onlyWithCoordinates" value='${onlyWithCoordinates}'/>
+    <input type="hidden" name="mode" value="EMAIL"/>
+    <input type="submit" value="Send it!"/>
+  #{/form}  
+  </div>
+  
+  #{/else}
+</div>

@@ -87,17 +87,21 @@ public class Dataset extends Model
   
   public static List<Long> getDatasetsIds(String search)
   {
-	search = Util.normalize(search);
-	search = search.toLowerCase();
 	List<Dataset> datasets = new ArrayList<Dataset>();
 	List<Long> datasetsIds = new ArrayList<Long>();
-	datasets.addAll((Collection) Dataset.find("tags", search).asList());		
-	//Removes duplicates
-	for (int i = 0; i < datasets.size(); ++i)
-	  for (int j = i + 1; j < datasets.size(); ++j)
-		if (datasets.get(i).id == datasets.get(j).id)
-		  datasets.remove(j);
-	for (int i = 0; i < datasets.size(); ++i) datasetsIds.add(datasets.get(i).id);	  	
+	String[] splittedSearch = search.split(";");
+	for (int h = 0; h < splittedSearch.length; ++h)
+	{ 
+      splittedSearch[h] = Util.normalize(splittedSearch[h]);
+      splittedSearch[h] = splittedSearch[h].toLowerCase();    	
+      datasets.addAll((Collection) Dataset.find("tags", splittedSearch[h]).asList());		
+      //Removes duplicates
+      for (int i = 0; i < datasets.size(); ++i)
+        for (int j = i + 1; j < datasets.size(); ++j)
+          if (datasets.get(i).id == datasets.get(j).id)
+    	    datasets.remove(j);
+    	for (int i = 0; i < datasets.size(); ++i) datasetsIds.add(datasets.get(i).id);	 
+	  }
 	return datasetsIds;
   }
 

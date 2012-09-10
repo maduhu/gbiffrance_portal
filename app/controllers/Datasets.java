@@ -37,18 +37,22 @@ public class Datasets extends Controller {
 	List<Dataset> datasets = new ArrayList<Dataset>();
 	if (!search.isEmpty())
 	{
-	  search = Util.normalize(search);
-	  search = search.toLowerCase();
-	  Pattern regex = Pattern.compile("^" + search);
-	  datasets.addAll((Collection) Dataset.find("tags", regex).asList());
-	  //System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
-	  //Removes duplicates
-	  for (int i = 0; i < datasets.size(); ++i)
-		for (int j = i + 1; j < datasets.size(); ++j)
-		  if (datasets.get(i).id == datasets.get(j).id)
-			datasets.remove(j);
+	  String[] splittedSearch = search.split(";");
+	  for (int h = 0; h < splittedSearch.length; ++h)
+	  {
+    	  splittedSearch[h] = Util.normalize(splittedSearch[h]);
+    	  splittedSearch[h] = splittedSearch[h].toLowerCase();
+    	  Pattern regex = Pattern.compile("^" + splittedSearch[h]);
+    	  datasets.addAll((Collection) Dataset.find("tags", regex).asList());
+    	  //System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
+    	  //Removes duplicates
+    	  for (int i = 0; i < datasets.size(); ++i)
+    		for (int j = i + 1; j < datasets.size(); ++j)
+    		  if (datasets.get(i).id == datasets.get(j).id)
+    			datasets.remove(j);
+	  }
 	}
-	render("Application/Search/datasets.html", datasets);
+	render("Application/Search/datasets.html", datasets, search);
   }
 
   public static void autocomplete(String search)

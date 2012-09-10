@@ -45,23 +45,32 @@ public class Search
 	/*** Place parser ***/
 	if (searchPlace != null && !searchPlace.isEmpty())
 	{
-	  search.placeText = searchPlace;  
-	  if (search.placeText != null || !search.placeText.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.placeText);
-	  if (!search.place.isEmpty())
+	  search.placeText = searchPlace;
+	  if (searchPlace.startsWith("[") && searchPlace.endsWith("]")) 
 	  {
-	    search.boundingBox = Search.extractBoundingBox(search.place);
-	    String[] splittedEnrichedSearch = search.place.split(" ");
-	    search.place = "";
-		for (int i = 0; i < splittedEnrichedSearch.length; ++i)
+		search.boundingBox = Search.extractBoundingBox(searchPlace);
+	  }
+	  else
+	  {
+		search.placeText = searchPlace;  
+		if (search.placeText != null || !search.placeText.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.placeText);
+		if (!search.place.isEmpty())
 		{
-		  if (!splittedEnrichedSearch[i].startsWith("{{") && !splittedEnrichedSearch[i].endsWith("}}"))
+		  search.boundingBox = Search.extractBoundingBox(search.place);
+		  String[] splittedEnrichedSearch = search.place.split(" ");
+		  search.place = "";
+		  for (int i = 0; i < splittedEnrichedSearch.length; ++i)
 		  {
+			if (!splittedEnrichedSearch[i].startsWith("[") && !splittedEnrichedSearch[i].endsWith("]"))
+			{
 			search.place += splittedEnrichedSearch[i] + " ";
 			System.out.println(search.place);
-		  }		  		
+			}		  		
+		  }
+		    
 		}
-	    
-	  } 
+	  }
+	   
 	}	
 	/*** Coordinates ***/
 	if (searchCoordinates) search.onlyWithCoordinates = true;
@@ -101,9 +110,9 @@ public class Search
 	  String[] splittedEnrichedSearch = place.split(" ");
 	  for (int i = 0; i < splittedEnrichedSearch.length; ++i)
 	  {
-		if (splittedEnrichedSearch[i].startsWith("{{") && splittedEnrichedSearch[i].endsWith("}}"))
+		if (splittedEnrichedSearch[i].startsWith("[") && splittedEnrichedSearch[i].endsWith("]"))
 		{
-		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("[{,}]", " ").trim();
+		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("[\\[,\\]]", " ").trim();
 		  //System.out.println(splittedEnrichedSearch[i]);
 		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("  ", " ");
 		  String[] boundingBox = splittedEnrichedSearch[i].split(" ");

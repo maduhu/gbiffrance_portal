@@ -97,7 +97,9 @@ public class Occurrences extends Controller {
 		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
 
 	Client client = new TransportClient(settings)
-		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))));
+		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))))
+		.addTransportAddress(new InetSocketTransportAddress("134.157.190.215", 9300));
+	System.out.println(client.toString());
 	return client;
   }
 
@@ -134,7 +136,7 @@ public class Occurrences extends Controller {
 	  else
 	  {
 		genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
-		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
+		//scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
 		classificationInterpretedQ = classificationInterpretedQ
 				.should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
 				.should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))
@@ -160,15 +162,16 @@ public class Occurrences extends Controller {
 	      .should(textQuery("countryCode", search.place).analyzer("french"))
 	  	  .should(textQuery("stateProvince", search.place).operator(Operator.AND).analyzer("french"))
 	  	  .should(textQuery("stateProvince", search.placeText).operator(Operator.AND));
-	  if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null && search.onlyWithCoordinates == false)
-	  {
-		placeQ = placeQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
-	  }
-	  else if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null && search.onlyWithCoordinates == true)
-	  {
-		placeQ = placeQ.must(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
-	  }
 	}
+	if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null && search.onlyWithCoordinates == false)
+	{
+	  placeQ = placeQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+	}
+	else if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null && search.onlyWithCoordinates == true)
+	{
+	  placeQ = placeQ.must(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+	}
+	
 	/**
 	 * Date query
 	 */
@@ -179,7 +182,7 @@ public class Occurrences extends Controller {
 	
 	
 	BoolQueryBuilder q = null;
-	if (search.taxas.size() > 0 || !search.place.isEmpty() || (search.fromDate != null && search.toDate != null))
+	if (search.taxas.size() > 0 || !search.place.isEmpty() || search.boundingBox != null || (search.fromDate != null && search.toDate != null))
 	{
 	  q = boolQuery();
 	  if (search.taxas.size() > 0)
@@ -189,7 +192,7 @@ public class Occurrences extends Controller {
 				.should(classificationInterpretedQ)
 				.should(genusQ));
 	  }
-	  if (!search.place.isEmpty())
+	  if (!search.place.isEmpty() || search.boundingBox != null)
 	  {
 		q = q.must(boolQuery()	    
 				.should(placeQ));		  
@@ -271,13 +274,13 @@ public class Occurrences extends Controller {
 	}
 	
 	
-	
+	System.out.println(searchRequest);
 	return searchRequest;
   }
 
   public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) 
   {   
-	int pagesize = 50;
+	int pagesize = 100;
 	if (from == null) from = 0;
 	
 	Client client = setESClient();
@@ -316,7 +319,7 @@ public class Occurrences extends Controller {
 	  occurrence.dataset = dataset;
 	  occurrence.score = hit.getScore();
 	  occurrences.add(occurrence);
-	  if (occurrences.size() >= 50) break;        
+	  if (occurrences.size() >= pagesize) break;        
 	}
 	
 	/***
@@ -337,6 +340,7 @@ public class Occurrences extends Controller {
 	  {
 		frequentTaxa.put("taxonId", Long.parseLong(entry.getTerm()));
 		frequentTaxa.put("scientificName", taxa.scientificName);
+		frequentTaxa.put("canonicalName", taxa.canonicalName);
 		frequentTaxa.put("count", entry.getCount());
 		frequentTaxas.add(frequentTaxa);
 	  }
@@ -389,7 +393,7 @@ public class Occurrences extends Controller {
 		
 	int occurrencesTotalPages;
 	int current = from/pagesize + 1;
-	from += 50;
+	from += pagesize;
 	
 	/***
 	 * Close the ElasticSearch Client
@@ -398,11 +402,13 @@ public class Occurrences extends Controller {
 
 	if (nbHits < pagesize) {
 	  pagesize = nbHits.intValue();
-	  occurrencesTotalPages = 1;
-	} else if (nbHits / pagesize < 100)
-	  occurrencesTotalPages = (int) (nbHits / pagesize);
+	  occurrencesTotalPages =  1;
+	} else if (nbHits / pagesize < pagesize)
+	{
+	  occurrencesTotalPages = (int) Math.ceil((double) nbHits / pagesize);
+	}
 	else
-	  occurrencesTotalPages = 100;
+	  occurrencesTotalPages = pagesize;
 
 	if (request.format.equals("json")) {
 	  JsonObject jsonObject = new JsonObject();

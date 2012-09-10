@@ -33,7 +33,8 @@ import models.Util;
 
 public class Application extends Controller {
 
-  public static void search(String searchTaxa, String searchPlace, String searchCoordinates, String searchDataset, String searchDate)
+  public static void search(String searchTaxa, String searchPlace, String searchCoordinates, 
+	  						String searchDataset, String searchDate)
   {
 	searchTaxa = Util.normalize(searchTaxa);
 	searchPlace = Util.normalize(searchPlace);

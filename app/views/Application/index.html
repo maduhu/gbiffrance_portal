@@ -59,45 +59,9 @@ var drawControl = new L.Control.Draw({
       drawnItems.addLayer(e.rect);
       e.rect.type='rect';
       window.rect_bbox={};
-
-    
-
-      for (var key in e.rect._latlngs) 
-      {
-      if (key==0)
-      {
-      //var top_left=[]
-     // top_left.push(e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng);    
-     var bbul=e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng ;
-      //rect_bbox.top_left=top_left;
-      $('#input-search-bbul').val(bbul);
-      }
-       if (key==1)
-      {
-//       var bottom_right=[]
-//       bottom_right.push(e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng)
-// rect_bbox.bottom_right=bottom_right;  
-      var bbur=e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng
-       $('#input-search-bbur').val(bbur);        
-      }
-      if (key==2)
-      {
-      // var bottom_right=[]
-      // bottom_right.push(e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng)
-      // rect_bbox.bottom_right=bottom_right;  
-       var bbbr=e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng
-       $('#input-search-bbbr').val(bbbr);    
-      }
-          if (key==3)
-      {
-      // var bottom_right=[]
-      // bottom_right.push(e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng)
-      // rect_bbox.bottom_right=bottom_right;  
-       var bbbl=e.rect._latlngs[key].lat+','+e.rect._latlngs[key].lng
-       $('#input-search-bbbl').val(bbbl);    
-      }
-
-      }
+      var bbox = '[' + e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng + ']';
+      $('#input-search-place').val(bbox);
+      
     
 
     });
@@ -112,7 +76,7 @@ var drawControl = new L.Control.Draw({
 map.setView(new L.LatLng(47.0701,2.6147),5);
 
 $('.leaflet-control-draw').hide();
-$('#search-filter-area').click(function()
+$('#search-filter-place').click(function()
 {
   if ($(this).hasClass('selected'))
   {

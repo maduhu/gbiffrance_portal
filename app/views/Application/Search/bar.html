@@ -59,47 +59,41 @@ $(document).ready(function() {
 <div class="container">
   <div class="form-search">
     #{form @Application.search(), id:'searchForm', class:'form-search alert alert-info'}
-      <h2>Découvrir l'information sur la biodiversité française</h2><br/>
+      <!-- <h3>Explorer les données relatives à la France connectées au GBIF</h3><br/> -->
+      <div class="btn-group" id="search-filters">          
+          <div class="btn btn-info btn-tiny search-filter" id="search-filter-taxa">Taxa</div>
+          <div class="btn btn-warning btn-tiny search-filter" id="search-filter-place">Place</div>
+          <div class="btn btn-primary btn-tiny search-filter" id="search-filter-date">Date</div>
+          <div class="btn btn-danger search-filter" id="search-filter-dataset">Dataset</div>
+          <div class="btn btn-success btn-tiny search-filter" id="search-filter-coordinates">Only with coordinates</div>
+          <!-- <div class="btn btn-success btn-tiny search-filter" id="search-filter-area">Draw and search by area</div> -->          
+      </div> 
       <div id="search-main-box">
-        <div id="search-inputs">
-          <div id="search-taxa" class="search-input btn btn-info">
+        <div id="search-inputs" class="btn-group">
+          <div id="search-taxa" class="search-input btn btn-large btn-info">
             <label><h5>Taxa: </h5></label>
             <input class="input-large search-query" type="text" id="input-search-taxa" name="searchTaxa" value=#{if search && search.taxaText}"${search.taxaText}"#{/if}#{else}""#{/else}/>
           </div>
-          <div id="search-place" class="search-input btn btn-warning">
+          <div id="search-place" class="search-input btn btn-large btn-warning">
             <label><h5>Place: </h5></label>
-            <input class="input-large search-query" type="text" id="input-search-place" name="searchPlace" value=#{if search && search.placeText}"${search.placeText}"#{/if}#{else}""#{/else}/>
+            <input class="input search-query" type="text" id="input-search-place" name="searchPlace" value=#{if search && search.placeText}"${search.placeText}"#{/if}#{else}""#{/else}/>
           </div>
-          <div id="search-dataset" class="search-input btn">
+          <div id="search-dataset" class="search-input btn btn-large btn-danger">
             <label><h5>Dataset: </h5></label>
-            <input class="input-large search-query" type="text" id="input-search-dataset" name="searchDataset" value=#{if search && search.dataset}"${search.dataset}"#{/if}#{else}""#{/else}/>
+            <input class="input search-query" type="text" id="input-search-dataset" name="searchDataset" value=#{if search && search.dataset}"${search.dataset}"#{/if}#{else}""#{/else}/>
           </div>
-          <div id="search-date" class="search-input btn btn-primary">
+          <div id="search-date" class="search-input btn btn-large btn-primary">
             <label><h5>Date: </h5></label>
             <input id="input-search-date" class="input-small search-query" name="searchDate" value=#{if search && search.dateText}"${search.dateText}"#{/if}#{else}""#{/else}/>            
           </div>
-          <br/>        
-          <div id="search-coordinates" class="search-input btn btn-success input-small">
+          <div id="search-coordinates" class="search-input btn btn-large btn-success">
             <h4>Only with coordinates</h4>
-            <input class="input-small search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}#{else}"false"#{/else}/>
-          </div>      
-
-         <input id="input-search-bbul" type="hidden" value="">
-         <input id="input-search-bbur" type="hidden" value="">
-         <input id="input-search-bbbr" type="hidden" value="">
-         <input id="input-search-bbbl" type="hidden" value="">
-
-          <input class="btn btn-large" id="search-submit" type="submit" value="Rechercher"/>
-        </div>
-        <div id="search-filters">          
-          <div class="btn btn-info btn-tiny search-filter" id="search-filter-taxa">Taxa</div>
-          <div class="btn btn-warning btn-tiny search-filter" id="search-filter-place">Place</div>
-          <div class="btn btn-tiny search-filter" id="search-filter-dataset">Dataset</div>
-          <br/>
-          <div class="btn btn-success btn-tiny search-filter" id="search-filter-coordinates">Only with coordinates</div>
-           <div class="btn btn-success btn-tiny search-filter" id="search-filter-area">Draw and search by area</div>
-          <div class="btn btn-primary btn-tiny search-filter" id="search-filter-date">Date</div>   
-        </div>        
+            <input class="input search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}
+                                                                                                                               #{elseif search && search.placeText && search.placeText.substring(0,1).equals('[')}"true"#{/elseif}
+                                                                                                                               #{else}"false"#{/else}/>
+          </div>       
+          <input class="btn btn-large" style="float:right;"id="search-submit" type="submit" value="Rechercher"/>
+        </div>       
       </div>
     #{/form}
   </div>

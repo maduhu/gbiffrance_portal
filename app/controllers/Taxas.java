@@ -379,7 +379,7 @@ public class Taxas extends Controller {
 	  pagesize = count;
 	  taxasTotalPages = 1;
 	} else
-	  taxasTotalPages = count / pagesize + 1;
+	  taxasTotalPages = (int) Math.ceil((double) count / pagesize);
 	int current = page;
 	render("Application/Search/taxas.html", taxas, taxasTotalPages, count, search, current, pagesize);
   }

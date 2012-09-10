@@ -1,6 +1,10 @@
-
+#{if search}  
+  <div class="alert alert-warn">
   <h3>Places</h3>
-  #{if results}
+  #{if boundingBox}
+    <a href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france5.html?bboxSWLatitude=${boundingBox[0]}&bboxSWLongitude=${boundingBox[1]}&bboxNELatitude=${boundingBox[2]}&bboxNELongitude=${boundingBox[3]}">See all occurrences in this bounding box</a>
+  #{/if}
+  #{elseif results}
     <table class="table table-bordered table-condensed table-striped">
       <thead>
         <tr>        
@@ -11,14 +15,16 @@
       </thead>        
       #{list items:places, as:'place'}
       <tr>
-        <td><a href="">${place.nameFr}</a></td>
+        <td><a href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france5.html?bboxSWLatitude=${place.boundingBoxSWLatitude}&bboxSWLongitude=${place.boundingBoxSWLongitude}&bboxNELatitude=${place.boundingBoxNELatitude}&bboxNELongitude=${place.boundingBoxNELongitude}">${place.nameFr}</a></td>
         <td>${place.placeTypeNameFr}</td>
         <td>${place.country}</td>
         <!-- <td>${place.centroidLatitude},${place.centroidLongitude}</td> -->
       </tr>  
       #{/list}
     </table>
-  #{/if} 
+  #{/elseif} 
   #{else}
     <h6>Pas de résultats</h6>
   #{/else}
+  </div>
+#{/if}

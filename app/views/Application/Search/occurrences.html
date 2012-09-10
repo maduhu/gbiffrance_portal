@@ -1,50 +1,60 @@
  
   #{if nbHits}
     <div class="span6">
-    
+    <h6><ul class="breadcrumb"> Your search:<br/>
+      #{if search.taxaText}<li>Taxa: ${search.taxaText} / </li>#{/if}
+      #{if search.placeText}<li>Place: ${search.placeText} / </li>#{/if}
+      #{if search.dataset}<li>Dataset: ${search.dataset} / </li>#{/if}
+      #{if search.dateText}<li>Date: ${search.dateText} / </li>#{/if}
+      #{if search.onlyWithCoordinates}<li>Only with coordinates</li>#{/if}
+    </ul></h6>
     <h3>Occurrences</h3>
-    
     <!-- Pagination -->
-    #{if occurrencesTotalPages == 100}<i>5000 first results for a total of ${nbHits} occurrences</i>#{/if}
+    #{if occurrencesTotalPages == 100}<i>${pagesize*occurrencesTotalPages} first results for a total of ${nbHits} occurrences</i>#{/if}
     #{else}Page ${current} for ${nbHits} results#{/else}
     #{if nbHits <= 5000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates, 'DIRECT')}">Download it!</a>#{/if}
-    #{else}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates)}">Download it!</a>#{/else}
+    #{elseif nbHits <= 300000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates)}">Download it!</a>#{/elseif}
     <br/>
-    #{if occurrencesTotalPages > 1}
+    #{if occurrencesTotalPages > 10}
       #{if current >= 10 && current+10 < occurrencesTotalPages}        
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
+        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">1 </a>
         ...
         #{list items:current-5..current+5, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
         ...
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
+        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
       #{/if} 
       #{elseif current >= 10 && current+10 >= occurrencesTotalPages}        
         <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
         ...
         #{list items:current-10..occurrencesTotalPages, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
       #{/elseif}
       #{elseif current == occurrencesTotalPages}
         <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${1} </a>
         ...
         #{list items:current-10..current, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
       #{/elseif}  
       #{elseif current == 0 || current < 10}
         #{list items:1..10, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${i*pagesize}');">${i} </a>
+          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
         ...
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize}');">${occurrencesTotalPages} </a>
+        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
       #{/elseif}  
       #{if current < occurrencesTotalPages}    
         <a style="float:right;" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${current*pagesize}');">Next >></a>
       #{/if}
     #{/if}
+    #{else}  
+        #{list items:1..occurrencesTotalPages, as:'i'}
+          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+        #{/list}
+    #{/else}
     
     <table class="table table-condensed table-striped table-bordered">
       <thead>
@@ -58,7 +68,7 @@
       <tr>
         <td>
 
-          <a target="_blank" href ="@{Occurrences.show(occurrence.id)}"><i>#{if occurrence.scientificName.size () < 40}${occurrence.scientificName}#{/if}#{else}${occurrence.scientificName[0..39]}[...]#{/else}</i></a><br/>
+          <a target="_blank" href ="@{Occurrences.show(occurrence.id)}"><i>#{if occurrence.scientificName && occurrence.scientificName.size() < 40}${occurrence.scientificName}#{/if}#{elseif occurrence.scientificName}${occurrence.scientificName[0..39]}[...]#{/elseif}#{else}N/A#{/else}</i></a><br/>
           #{if occurrence.specificEpithet_interpreted} 
             (as : <i>${occurrence.specificEpithet_interpreted}</i>)
           #{/if} 
@@ -74,24 +84,26 @@
     </div>
 
     <div class="span3">
-       
+      #{if frequentTaxas}
       <h4>Taxons les plus fréquents</h4>
 
       <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_taxa","freq_taxa")'>Show as list</a>
-      <svg style='width:200px;height:200px' id='graph_freq_taxa'></svg>
+      <svg style='width:300px;height:300px' id='graph_freq_taxa'></svg>
       <table id='freq_taxa' style='display:none' class="table table-condensed">
         #{list items:frequentTaxas, as:'frequentTaxa'}
 
           <tr>
             <td><a target="_blank" href ="@{Taxas.show(frequentTaxa.get('taxonId'))}"><i>${frequentTaxa.get('scientificName')}</i></a></td>
             <!-- Result filter based on ecat -->
-            <td><a target="_blank" onClick="searchOccurrences('${frequentTaxa.taxonId}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentTaxa.get('count')}</a></td>        
+            <td><a target="_blank" onClick="searchOccurrences('${frequentTaxa.get('canonicalName')}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentTaxa.get('count')}</a></td>        
           </tr>
        #{/list}
       </table>
+      #{/if}
+      #{if frequentDatasets}
       <h4>Datasets les plus fréquents</h4>
       <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_dataset","freq_dataset")'>Show as list</a>
-      <svg id='graph_freq_dataset'></svg>
+      <svg style='width:300px;height:300px' id='graph_freq_dataset'></svg>
       <table id="freq_dataset" style='display:none' class="table table-condensed">
         #{list items:frequentDatasets, as:'frequentDataset'}
           <tr>
@@ -101,9 +113,11 @@
           </tr>
        #{/list}
       </table>
+      #{/if}
+       #{if frequentYears}
       <h4>Dates les plus fréquentes</h4>
          <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_dates","freq_dates")'>Show as list</a>
-      <svg id='graph_freq_dates'></svg>
+      <svg style='width:230px;height:300px' id='graph_freq_dates'></svg>
       <table id="freq_dates" style='display:none' class="table table-condensed">
         #{list items:frequentYears, as:'frequentYear'}
           <tr>
@@ -113,6 +127,7 @@
           </tr>
        #{/list}
       </table>
+      #{/if}      
     </div>
   #{/if}
   #{else}

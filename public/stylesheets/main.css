@@ -61,14 +61,12 @@ th {
 }
 
 #search-filters {
-  float: right;
+  float: left;
 }
 
 .search-input {
   margin: 5px;
 }
-
-
 
 .input-large
 {
@@ -80,9 +78,8 @@ th {
 }
 
 #search-inputs {
-  margin-top: 20px;
-  width: 500px;
-  float: left;
+  margin-top: 5px;
+  //float: right;
   
 }
 

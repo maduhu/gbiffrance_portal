@@ -65,7 +65,7 @@ public class Place
 		float boundingBoxNELatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("latitude").getAsFloat();
 		float boundingBoxNELongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("longitude").getAsFloat();
 
-		textPlace += " {{"+boundingBoxSWLatitude+","+boundingBoxSWLongitude+"}{"+boundingBoxNELatitude+","+boundingBoxNELongitude+"}}";		 
+		textPlace += " ["+boundingBoxSWLatitude+","+boundingBoxSWLongitude+","+boundingBoxNELatitude+","+boundingBoxNELongitude+"]";		 
 
 		HttpResponse geoResponseEn = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=en&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		String nameEn = geoResponseEn.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
