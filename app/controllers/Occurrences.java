@@ -113,12 +113,16 @@ public class Occurrences extends Controller {
 	BoolQueryBuilder placeQ = boolQuery();
 	BoolQueryBuilder dateQ = boolQuery();
 	QueryBuilder boundingBoxLatitudeQ = null, boundingBoxLongitudeQ = null;
+	BoolQueryBuilder boundingBoxQ = boolQuery();
 
-	if (search.boundingBox != null)
+	if (!search.boundingBoxes.isEmpty())
 	{
-	  boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBox[0]).to(search.boundingBox[2]);
-
-	  boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(search.boundingBox[1]).to(search.boundingBox[3]);
+	  for (int i = 0; i < search.boundingBoxes.size(); ++i)
+	  {
+	    boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBoxes.get(i)[0]).to(search.boundingBoxes.get(i)[2]);
+		boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(search.boundingBoxes.get(i)[1]).to(search.boundingBoxes.get(i)[3]);
+		boundingBoxQ = boundingBoxQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+	  }
 	}
 	
 	/***
@@ -135,7 +139,7 @@ public class Occurrences extends Controller {
 	  }
 	  else
 	  {
-		genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
+		//genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
 		//scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
 		classificationInterpretedQ = classificationInterpretedQ
 				.should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
@@ -151,25 +155,35 @@ public class Occurrences extends Controller {
 	/**
 	 * Place query	
 	 */
-	if (!search.place.isEmpty())
+	if (!search.places.isEmpty())
 	{ 
-	  placeQ = placeQ
-		  .should(textQuery("locality", search.place).operator(Operator.AND).analyzer("french"))
-		  .should(textQuery("locality", search.placeText).operator(Operator.AND))
-		  .should(textQuery("county", search.place).operator(Operator.AND).analyzer("french"))
+	  for (String place : search.places)
+	  {
+	    placeQ = placeQ
+		  .should(textQuery("locality", place).operator(Operator.AND).analyzer("french"))
+		  .should(textQuery("county", place).operator(Operator.AND).analyzer("french"))
+	  	  .should(textQuery("country", place))
+	      .should(textQuery("countryCode", place).analyzer("french"))
+	  	  .should(textQuery("stateProvince", place).operator(Operator.AND).analyzer("french"));
+	  }
+	}
+	if (!search.placesText.isEmpty())
+	{
+	  for (String placeText : search.placesText)
+	  {
+	    placeQ = placeQ
+		  .should(textQuery("locality", placeText).operator(Operator.AND))
 	  	  .should(textQuery("county", search.placeText).operator(Operator.AND))
-	  	  .should(textQuery("country", search.place))
-	      .should(textQuery("countryCode", search.place).analyzer("french"))
-	  	  .should(textQuery("stateProvince", search.place).operator(Operator.AND).analyzer("french"))
 	  	  .should(textQuery("stateProvince", search.placeText).operator(Operator.AND));
+	  }
 	}
-	if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null && search.onlyWithCoordinates == false)
+	if (!search.boundingBoxes.isEmpty() && search.onlyWithCoordinates == false)
 	{
-	  placeQ = placeQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+	  placeQ = placeQ.should(boundingBoxQ);
 	}
-	else if (boundingBoxLatitudeQ != null && boundingBoxLongitudeQ != null && search.onlyWithCoordinates == true)
+	else if (!search.boundingBoxes.isEmpty() && search.onlyWithCoordinates == true)
 	{
-	  placeQ = placeQ.must(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+	  placeQ = placeQ.must(boundingBoxQ);
 	}
 	
 	/**
@@ -182,17 +196,17 @@ public class Occurrences extends Controller {
 	
 	
 	BoolQueryBuilder q = null;
-	if (search.taxas.size() > 0 || !search.place.isEmpty() || search.boundingBox != null || (search.fromDate != null && search.toDate != null))
+	if (search.taxas.size() > 0 || !search.places.isEmpty() || !search.boundingBoxes.isEmpty() || (search.fromDate != null && search.toDate != null))
 	{
 	  q = boolQuery();
 	  if (search.taxas.size() > 0)
 	  {
 	    q = q.must(boolQuery()
 				.should(scientificNameQ)
-				.should(classificationInterpretedQ)
-				.should(genusQ));
+				.should(classificationInterpretedQ));
+				//.should(genusQ));
 	  }
-	  if (!search.place.isEmpty() || search.boundingBox != null)
+	  if (!search.places.isEmpty() || !search.boundingBoxes.isEmpty())
 	  {
 		q = q.must(boolQuery()	    
 				.should(placeQ));		  
@@ -213,9 +227,8 @@ public class Occurrences extends Controller {
 	  {
 		datasetF.add(boolFilter().must(termFilter("dataset", search.datasetsIds.get(i))));	
 	  }
-
 	}
-	if (search.onlyWithCoordinates || search.boundingBox != null)
+	if (search.onlyWithCoordinates || !search.boundingBoxes.isEmpty())
 	{	
 	  coordinatesF = boolFilter()
 		  			.must(existsFilter("decimalLatitude_interpreted")).must(existsFilter("decimalLongitude_interpreted"))
@@ -426,9 +439,7 @@ public class Occurrences extends Controller {
   }
   
   public static void show(Integer id) {
-	Settings settings = ImmutableSettings.settingsBuilder()
-		.put("cluster.name", "elasticsearch") .put("client.transport.sniff", true).build();
-	Client client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress("134.157.190.208", 9300));
+	Client client = setESClient();
 	QueryBuilder q = termQuery("_id", id);
 	SearchResponse response = client.prepareSearch("idx_occurrence").setSearchType(SearchType.DEFAULT).setQuery(q).setExplain(true).execute().actionGet();
 	Occurrence occurrence = new Occurrence();

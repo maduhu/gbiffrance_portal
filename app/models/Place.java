@@ -55,7 +55,7 @@ public class Place
 		//{
 		HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		textPlace += " " + nameFr;
+		textPlace += ";" + nameFr;
 		//float centroidLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("latitude").getAsFloat();
 		//float centroidLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("longitude").getAsFloat();
 		//search += " " + centroidLatitude+"#"+centroidLongitude;	
@@ -65,30 +65,30 @@ public class Place
 		float boundingBoxNELatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("latitude").getAsFloat();
 		float boundingBoxNELongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("longitude").getAsFloat();
 
-		textPlace += " ["+boundingBoxSWLatitude+","+boundingBoxSWLongitude+","+boundingBoxNELatitude+","+boundingBoxNELongitude+"]";		 
+		textPlace += ";["+boundingBoxSWLatitude+","+boundingBoxSWLongitude+","+boundingBoxNELatitude+","+boundingBoxNELongitude+"]";		 
 
 		HttpResponse geoResponseEn = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=en&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		String nameEn = geoResponseEn.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		textPlace += " " + nameEn;
+		textPlace += ";" + nameEn;
 
 		HttpResponse geoResponseEs = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=es&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		String nameEs = geoResponseEs.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		textPlace += " " + nameEs;
+		textPlace += ";" + nameEs;
 
 		HttpResponse geoResponseDe = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=de&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		String nameDe = geoResponseDe.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
-		textPlace += " " + nameDe;
+		textPlace += ";" + nameDe;
 
 		if (!(geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("")) 
 			&& !geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country").getAsString().equals("France")
 			&& placeTypeName.equals("country"))
 		{
 		  String countryCode = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("country attrs").getAsJsonObject().get("code").getAsString();
-		  textPlace += " " + countryCode;
+		  textPlace += ";" + countryCode;
 		}			
 	  }	
 	}
-	//System.out.println("search: " + search);
+	System.out.println("search: " + textPlace);
 	return textPlace;
   }  
 

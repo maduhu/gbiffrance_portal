@@ -2,10 +2,10 @@
   #{if nbHits}
     <div class="span6">
     <h6><ul class="breadcrumb"> Your search:<br/>
-      #{if search.taxaText}<li>Taxa: ${search.taxaText} / </li>#{/if}
-      #{if search.placeText}<li>Place: ${search.placeText} / </li>#{/if}
-      #{if search.dataset}<li>Dataset: ${search.dataset} / </li>#{/if}
-      #{if search.dateText}<li>Date: ${search.dateText} / </li>#{/if}
+      #{if search.taxaText}<li>Taxa: ${search.taxaText}</li><br/>#{/if}
+      #{if search.placeText}<li>Place: ${search.placeText}<br/></li>#{/if}
+      #{if search.dataset}<li>Dataset: ${search.dataset}<br/></li>#{/if}
+      #{if search.dateText}<li>Date: ${search.dateText}<br/></li>#{/if}
       #{if search.onlyWithCoordinates}<li>Only with coordinates</li>#{/if}
     </ul></h6>
     <h3>Occurrences</h3>
@@ -56,27 +56,49 @@
         #{/list}
     #{/else}
     
-    <table class="table table-condensed table-striped table-bordered">
+    <table id="occurrences_table" class="table table-condensed table-striped table-bordered">
       <thead>
         <tr>
           <th>Scientific Name</th>
-          <th>Dataset</th>
-          <th>Data Publisher</th>
+          <!-- <th>Dataset</th>
+          <th>Data Publisher</th>-->
         </tr>
       </thead>
+      %{i = 0}%
       #{list items:occurrences, as:'occurrence'}  
+      %{i = i + 1}%
       <tr>
-        <td>
-
-          <a target="_blank" href ="@{Occurrences.show(occurrence.id)}"><i>#{if occurrence.scientificName && occurrence.scientificName.size() < 40}${occurrence.scientificName}#{/if}#{elseif occurrence.scientificName}${occurrence.scientificName[0..39]}[...]#{/elseif}#{else}N/A#{/else}</i></a><br/>
+        <td class="hoverable">
+          <div style="float:left;">
+          <a target="_blank" href ="@{Occurrences.show(occurrence.id)}">
+            <i>
+              #{if occurrence.scientificName && occurrence.scientificName.size() < 70}
+                ${occurrence.scientificName}
+              #{/if}
+              #{elseif occurrence.scientificName}
+                ${occurrence.scientificName[0..69]}[...]
+              #{/elseif}
+              #{else}
+                N/A
+              #{/else}
+            </i>
+          </a>
+          <br/>
           #{if occurrence.specificEpithet_interpreted} 
             (as : <i>${occurrence.specificEpithet_interpreted}</i>)
-          #{/if} 
-
-          <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}${occurrence.catalogNumber}</h6>         
+          #{/if}
+          </div> 
+          <div style="float:right;">  
+          <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}
+              #{if occurrence.catalogNumber && occurrence.catalogNumber.size() < 40}${occurrence.catalogNumber}#{/if}
+              #{elseif occurrence.catalogNumber}${occurrence.catalogNumber[0..39]}[...]#{/elseif}
+          </h6>
+          </div>  
+          <div style="clear:both;" class="well occurrence_info">
+            <a target="_blank" href ="@{Datasets.show(occurrence.dataset.id)}">Dataset: ${occurrence.dataset.title}</a><br/>
+            <a target="_blank" href ="@{DataPublishers.show(occurrence.dataset.dataPublisher.id)}">Datapublisher: ${occurrence.dataset.dataPublisher.name}</a>
+          </div>       
         </td>    
-        <td><a target="_blank" href ="@{Datasets.show(occurrence.dataset.id)}">${occurrence.dataset.title}</a></td>
-        <td><a target="_blank" href ="@{DataPublishers.show(occurrence.dataset.dataPublisher.id)}">${occurrence.dataset.dataPublisher.name}</a></td>
         <!-- <td>${occurrence.score}</td> -->  
       </tr>
       #{/list}
@@ -140,6 +162,22 @@
   
   <script type="text/javascript">
 
+  $("#occurrences_table .hoverable").hover( function () {
+	    $(this).find('.occurrence_info').show();
+	  }, 
+	  function () {
+	        $(this).find('.occurrence_info').hide();
+	  });
+ $(document).ready(function() {
+	 $("div.occurrence_info").hide(); 
+ } );
+   
+  
+  
+  
+  
+  
+  
 //QUICK AND DIRTY CODE
 function show_hide (elem,graph_name,list_name)
 {

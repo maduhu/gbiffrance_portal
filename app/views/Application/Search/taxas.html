@@ -1,8 +1,8 @@
 #{if search}
 <div class="alert alert-info"> 
-  <h3>Taxons</h3>
+  <h3>&{'taxa'}</h3>
   #{if count > 0}
-    <h6>${count} taxons</h6>
+    <h6>${count} &{'taxa'}</h6>
     #{if taxasTotalPages > 10 }
       #{if current >= 10 && current+10 < taxasTotalPages}        
         <a onClick="searchTaxas('${search}','1');">1 </a>
@@ -44,8 +44,8 @@
     <table class="table table-condensed table-striped">
       <thead>
         <tr>        
-          <th>Taxon</th>
-          <th>Rang</th>     
+          <th>&{'taxon'}</th>
+          <th>&{'rank'}</th>     
         </tr>
       </thead>
       #{list items:taxas, as:'taxa'}
@@ -56,7 +56,7 @@
     </table>
   #{/if} 
   #{else}
-    <h6>Pas de résultats</h6>
+    <h6>&{'noResults'}</h6>
   #{/else}
 </div>
 #{/if}
