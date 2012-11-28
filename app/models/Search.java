@@ -14,10 +14,13 @@ public class Search
   public String taxaText; //original query text
   public List<String> taxas = new ArrayList<String>();
   public String place = "";
+  public ArrayList<String> places = new ArrayList<String>();
   public String placeText; //original query text
+  public ArrayList<String> placesText = new ArrayList<String>();
   public boolean onlyWithCoordinates = false;
   public String dataset = "";
   public List<Long> datasetsIds = new ArrayList<Long>();
+  public ArrayList<Float[]> boundingBoxes = new ArrayList<Float[]>();
   public Float[] boundingBox;
   public String dateText = "";
   public Integer fromDate;
@@ -40,36 +43,40 @@ public class Search
 	      search.taxas.add(splittedSearchTaxa[i]);
 	    }
 	  }	
-	  //System.out.println("nbTaxa" + splittedSearchTaxa.length);
 	}
 	/*** Place parser ***/
 	if (searchPlace != null && !searchPlace.isEmpty())
 	{
 	  search.placeText = searchPlace;
-	  if (searchPlace.startsWith("[") && searchPlace.endsWith("]")) 
+	  String[] splittedSearch = searchPlace.split(";");
+	  for (int h = 0; h < splittedSearch.length; ++h)
 	  {
-		search.boundingBox = Search.extractBoundingBox(searchPlace);
-	  }
-	  else
-	  {
-		search.placeText = searchPlace;  
-		if (search.placeText != null || !search.placeText.isEmpty()) search.place = Place.enrichSearchWithPlaces(search.placeText);
-		if (!search.place.isEmpty())
+		search.placesText.add(splittedSearch[h]);
+		if (splittedSearch[h].startsWith("[") && splittedSearch[h].endsWith("]"))
 		{
-		  search.boundingBox = Search.extractBoundingBox(search.place);
-		  String[] splittedEnrichedSearch = search.place.split(" ");
-		  search.place = "";
-		  for (int i = 0; i < splittedEnrichedSearch.length; ++i)
+		  search.boundingBoxes.add(Search.extractBoundingBox(splittedSearch[h]));
+		}
+		else
+		{
+		  if (splittedSearch[h] != null || !splittedSearch[h].isEmpty()) search.place += " " + Place.enrichSearchWithPlaces(splittedSearch[h]);
+		  if (!search.place.isEmpty())
 		  {
-			if (!splittedEnrichedSearch[i].startsWith("[") && !splittedEnrichedSearch[i].endsWith("]"))
+			search.boundingBoxes.add(Search.extractBoundingBox(search.place));
+			String[] splittedEnrichedSearch = search.place.split(";");
+			search.place = "";
+			for (int i = 0; i < splittedEnrichedSearch.length; ++i)
 			{
-			search.place += splittedEnrichedSearch[i] + " ";
-			System.out.println(search.place);
-			}		  		
+			  if (!splittedEnrichedSearch[i].startsWith("[") && !splittedEnrichedSearch[i].endsWith("]"))
+			  {
+				search.places.add(splittedEnrichedSearch[i]);
+			  }		  		
+			}
+
 		  }
-		    
+		  
 		}
 	  }
+	  System.out.println(search.places.size());
 	   
 	}	
 	/*** Coordinates ***/
@@ -107,7 +114,7 @@ public class Search
 	float boundingBoxNELongitude = 0;	  
 	if (place != null)
 	{
-	  String[] splittedEnrichedSearch = place.split(" ");
+	  String[] splittedEnrichedSearch = place.split(";");
 	  for (int i = 0; i < splittedEnrichedSearch.length; ++i)
 	  {
 		if (splittedEnrichedSearch[i].startsWith("[") && splittedEnrichedSearch[i].endsWith("]"))

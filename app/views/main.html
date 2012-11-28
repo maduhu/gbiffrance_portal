@@ -6,10 +6,11 @@
       <meta charset="UTF-16">
       <link rel="stylesheet" media="screen" href="@{'/public/bootstrap/css/bootstrap.css'}">
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/main.css'}">
-      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}">    
-        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.draw.css'}">
-     <script src="@{'public/javascripts/mapping/leaflet-src.js'}"></script>
-      
+
+      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}"> 
+      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/site-style.css'}">       
+      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.draw.css'}">
+       <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
 
 
        <script src="@{'/public/javascripts/mapping/leaflet.draw.js'}"></script>
@@ -25,16 +26,66 @@
     <body>
       <div id="feedback-button"><a href="https://github.com/michaelakbaraly/gbiffrance-portal/issues" ></a></div>
       <div class="container">
-        <div class="navbar navbar-top-fixed">
-          <div class="navbar-inner">
-            <div class="container">
-              <div class="brand"><h2><a href="@{Application.index()}"><img height="50" width="50" src="http://www.gbif.fr/wp-content/themes/gbif/img/gbif-logo3.gif"/></a></h2></div>             
-            </div>
-          </div>          
-        </div>
-      </div>
-      #{doLayout /}
-      <footer class="footer">
+	<div class="alert navbar" id="header">
+	  <div id="header-holder">
+	    <div id="contact-button">
+	      <a href="http://www.gbif.fr/?page_id=158" id="contact-link">Nous contacter</a>
+	    </div>
+	    <div class="" id="banner">
+	      <div id="logo">
+		<h1>
+		  <a href="http://www.gbif.fr" accesskey="1" title="GBIF France">
+		    <img id="img-logo" alt="gbif.fr" src="http://www.gbif.fr/wp-content/themes/gbif/img/gbif-logo3.gif">
+		  </a>
+		</h1>
+	    </div>
+	    <div class="brand" id="slogan">
+	      <p id="slogan-title">
+		GBIF France
+	      </p>
+	      <p id="slogan-description">						
+		Système mondial d'information sur la biodiversité					</p>
+	    </div>
+	    <!-- nav.php: barre de navigation (menu, sous-menu, recherche) -->
+	    <div class="navbar" id="nav">
+	      <div id="menu">
+	        <div class="menu-header-container">
+                  <ul id="menu-header" class="menu">
+                    <li id="menu-item-326" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-326">
+                      <a href="http://www.gbif.fr/?page_id=324">GBIF</a>
+                    </li>
+                    <li id="menu-item-149" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-149">
+                      <a href="http://www.gbif.fr/?category_name=actualites">Actualités</a>
+                    </li>
+                    <li id="menu-item-515" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-515">
+                      <a href="http://www.gbif.fr/?page_id=121">Participer</a>
+                    </li>
+                    <li id="menu-item-282" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-282">
+                      <a href="http://www.gbif.fr/?page_id=274">Ressources</a>
+                    </li>
+                    <li id="menu-item-608" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-608">
+                      <a href="http://www.gbif.fr/?page_id=225">Documentation</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="search" id="search">
+	        <form method="get" id="searchform" action="http://www.gbif.fr/">
+                  <div id="search">
+                    <input type="text" value="" name="s" id="s">
+                    <input type="submit" id="searchsubmit" value="Chercher">
+                  </div>
+                </form>
+              </div>
+              <div id="sub-menu">
+	      </div>
+	    </div>
+	  </div>	
+	</div>
+      </div>        
+    </div>
+    #{doLayout /}
+    <footer class="footer">
         <div class="container">
           <p class="pull-right">
             <a href="#">Back to top</a>

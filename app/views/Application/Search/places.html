@@ -1,10 +1,13 @@
 #{if search}  
   <div class="alert alert-warn">
   <h3>Places</h3>
-  #{if boundingBox}
-    <a href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france_3.html?bl=${boundingBox[0]},${boundingBox[1]}&ur=${boundingBox[2]},${boundingBox[3]}">See all occurrences in this bounding box</a>
-  #{/if}
-  #{elseif results}
+
+  #{if results}
+    #{if boundingBox}
+    <a href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france5.html?bboxSWLongitude=${boundingBox[1]}&bboxSWLatitude=${boundingBox[0]}&bboxNELongitude=${boundingBox[3]bboxNELatitude=${boundingBox[2]}}">See all occurrences in this bounding box</a>
+    #{/if}
+    #{if places}
+
     <table class="table table-bordered table-condensed table-striped">
       <thead>
         <tr>        
@@ -22,7 +25,8 @@
       </tr>  
       #{/list}
     </table>
-  #{/elseif} 
+    #{/if}
+  #{/if} 
   #{else}
     <h6>Pas de résultats</h6>
   #{/else}

@@ -62,7 +62,7 @@ public class Datasets extends Controller {
 	List<Dataset> datasets = new ArrayList<Dataset>();	
 	Pattern regex = Pattern.compile("^" + search);
 	datasets.addAll((Collection) Dataset.find("tags", regex).asList());
-	System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
+	//System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
 	renderJSON(datasets);
   }
 

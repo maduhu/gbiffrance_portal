@@ -1,6 +1,6 @@
 #{if search}
 <div class="alert alert-error">
-  <h3>Datasets</h3>
+  <h3>&{'datasets'}</h3>
   #{if datasets.size > 0}
     <table class="table table-condensed table-bordered">
     #{list items:datasets, as:'dataset'}
@@ -10,7 +10,7 @@
   #{/if}
   #{else}
     <div style="margin-bottom: 40px;">
-      <h6>Pas de résultats</h6>
+      <h6>&{'noResults'}</h6>
     </div>  
   #{/else}
 </div>

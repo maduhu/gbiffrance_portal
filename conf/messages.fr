@@ -1,0 +1,8 @@
+# You can specialize this file for each language.
+# For example, for French create a messages.fr file
+#
+taxa=Taxon 
+place=Lieu
+date=Date
+dataset=Dataset
+onlyWithCoordinates=Avec géolocalisation

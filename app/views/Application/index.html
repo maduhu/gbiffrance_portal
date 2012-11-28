@@ -59,7 +59,7 @@ var drawControl = new L.Control.Draw({
       drawnItems.addLayer(e.rect);
       e.rect.type='rect';
       window.rect_bbox={};
-      var bbox = '[' + e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng + ']';
+      var bbox = $('#input-search-place').val() + '[' + e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng + '];';
       $('#input-search-place').val(bbox);
       
     

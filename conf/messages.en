@@ -1,0 +1,16 @@
+# You can specialize this file for each language.
+# For example, for French create a messages.fr file
+#
+taxon=Taxon
+taxa=Taxa
+place=Place
+date=Date
+dataset=Dataset
+datasets=Datasets
+onlyWithCoordinates=Only with coordinates
+search=Search
+rank=Rank
+name=Name
+type=Type
+country=Country
+noResults=No results
