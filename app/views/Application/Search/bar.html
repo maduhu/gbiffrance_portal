@@ -10,8 +10,13 @@
 <script src="@{'/public/javascripts/tooltip.js'}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-  
 
+
+  if ($('#occurrences div').length==0)
+    {
+//we are processing request by java   
+$("#ajax_image").show();
+  }
   /*** Dataset Auto-completion ***/ 
   $("#input-search-dataset").autocomplete().each(function() {
     var $input = $(this);
@@ -57,6 +62,7 @@ $(document).ready(function() {
 });
 </script>
 <div class="container">
+
   <div class="form-search">
     #{form @Application.search(), id:'searchForm', class:'form-search alert alert-info'}
       <!-- <h3>Explorer les données relatives à la France connectées au GBIF</h3><br/> -->
@@ -97,4 +103,4 @@ $(document).ready(function() {
       </div>
     #{/form}
   </div>
-</div>  
+  <img id='ajax_image' src="@{'/public/images/spinner3-greenie.gif'}" style='height:50px;width:50px;display:none;position:relative;'/>
