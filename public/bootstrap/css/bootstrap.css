@@ -101,6 +101,9 @@ textarea {
   overflow: auto;
   vertical-align: top;
 }
+a {
+  cursor: pointer;
+}
 .clearfix {
   *zoom: 1;
 }
