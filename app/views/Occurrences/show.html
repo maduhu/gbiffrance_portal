@@ -3,13 +3,11 @@
 <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}">
       
       <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
-      <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+
   <script src="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/wax/dist/wax.leaf.min.js">
   </script>
-<script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
-<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/tipsy.css'}">
 <script type="text/javascript">
- var _selected_circle;
+ 
 $(document).ready(function() {
 
 dataset='${occurrence.dataset.id}';
@@ -26,478 +24,30 @@ var classs='${occurrence.classs_interpreted}'
 var order='${occurrence.orderr_interpreted}'
 var family='${occurrence.family_interpreted}' 
 genus='${occurrence.genus_interpreted}' 
- 
+
 var specificEpithet='${specificEpithet_interpreted}'
-
-if (lat && lng)
-{
-
-var geojson;
-
-function remove_json()
-{
-for (var k in map._layers) {
-    if (map._layers.hasOwnProperty(k)) {
-
-       if (map._layers[k].my_geojson==true)
-{
-map.removeLayer(map._layers[k])
-//console.warn(map._layers[k])
-}
-
-    }
-}
-}
-    
-//to improve symbology, not proportional
-function apply_parsing(e)
-{
-
- var count=e.properties.count; 
-
-this_count=count;
-//default styles for all paths are already defined in leaflet-src.js (L.Path = L.Class.extend({ options....)
-if (this_count>=geojson_min && this_count<interval_1)
-{
- e.layer.setStyle({fillColor:'#E0E043'});
-}
-if (this_count>=interval_1 && this_count<geojson_medium)
-{
- e.layer.setStyle({fillColor:'#64E580'});
-}
-if 
-(this_count>=geojson_medium && this_count<interval_2)
-{
-e.layer.setStyle({fillColor:'#6391ED'});
-}
-if (this_count>=interval_2 && this_count<=geojson_max)
-{
-e.layer.setStyle({fillColor:'#EA38D5'});
-}
- 
-
-   // }  
-    var popupContent='Here we found '+ count+' occurrences for taxa '+taxa;
-    e.layer.bindPopup(popupContent);
-
-}
-
-
-function explode_cluster(options,explode_level)
-{
-
-$.ajax({
-    url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson.php',
-    method: 'get',
-    dataType: 'jsonp',
-    crossDomain: 'true',
-    // options={'taxa':taxa,'explode_level':'all','type':to_plot,'collection':collection}  //explode_all options
-    data: options,
-    success: function(data) {
-
-      if (explode_level=='by_cluster')
-      {
-        //console.warn('exploding cluster')
-        var bounds=data.data_bbox;
-        var bottom_left=bounds[0].split(',')
-        var up_right=bounds[1].split(',')
-        bounds = new L.LatLngBounds(
-        new L.LatLng(bottom_left[1],bottom_left[0]),
-        new L.LatLng(up_right[1],up_right[0]));
-        zoom=map.getBoundsZoom(bounds)        
-        map.setView(new L.LatLng(data.y_center,data.x_center), zoom);
-
-      } 
-      else
-      {
-        zoom=map.getBoundsZoom(map.getBounds())
-      }
-     
-maxValue=data.total ;
-   
-switch (true)
-{
-    case (zoom <=3):
-      grid=10; 
-      min_range=5;
-      max_range=15;
-      break;
-   case (zoom >=4 && zoom<6): 
-    min_range=2; max_range=10;
-   break;
-
-   case (zoom>=6): 
-   min_range=4;max_range=15;
-   break;
-}
-
- 
-    var rScale = d3.scale.linear()
-                     .domain([0, d3.max(data.features, function(d) { return d.properties.count; })])
-                     .range([min_range, max_range]);
-     
-  //  var ramp=d3.scale.linear().domain([min_range, maxValue]).range(["#E2F268","#F22B88"]);
-  //  var ramp=d3.scale.linear().domain([min_range, maxValue])//.range(['red','grey']);
-    var ramp=d3.scale.category20c().domain([min_range, maxValue]) 
-    /* Add a LatLng object to each item in the dataset */
-   
-    data.features.forEach(function(d) {
-      d.LatLng = new L.LatLng(d.geometry.coordinates[1],d.geometry.coordinates[0])
-    
-    })
-
-    var circle = g.selectAll("circle .exploded_cluster")
-      .data(data.features);
-
-      circle.enter().append("circle").attr('class','exploded_cluster');
-     // circle.exit().remove()
-
-    function first_update2() {
-      circle.attr("cx",function(d) { return map.latLngToLayerPoint(d.LatLng).x})
-      circle.attr("cy",function(d) { return map.latLngToLayerPoint(d.LatLng).y}).attr("stroke", "black")
-      circle.on("mouseover", function(d) {
-        var _this=d3.select(this)
-        _this.original_color=_this.attr('fill');
-      _this.transition().duration(500).attr('opacity',1)
-
-    })
-  
-
-      circle.attr("r", function(d) {      
-        return rScale(d.properties.count);
-      }).attr('fill',function (d){ 
-
-        return ramp(d.properties.count)})
-                        .attr('opacity',0.7)
-
-    
-    }
-
-     function update() {
-      circle.attr("cx",function(d) { return map.latLngToLayerPoint(d.LatLng).x})
-      circle.attr("cy",function(d) { return map.latLngToLayerPoint(d.LatLng).y})
-
-
-    }
-    map.on("viewreset", update);
-    first_update2();
-
-         $('svg circle').tipsy({ 
-                              delayIn: 500, 
-                              fade: true, 
-                              gravity: 'w', 
-                              html: true, 
-                              title: function() {
-                                var d = this.__data__;
-                                d.bounds=bounds;
-                                zoom=map.getBoundsZoom(bounds)
-                                d.zoom=zoom;
-                                
-                                var this_text='There are <b>'+d.properties.count+'</b> occurrences for taxa '+taxa+' in this cluster';
-                                // this_text+='<p><a href="#" class="back_cluster" zoom="'+zoom+'" degree="'+cluster_degree+'" bbox="'+d.geometry.coordinates+'">Re-construct this cluster</a>'; 
-                                                              
-                                return this_text;
-                                
-                              }
-                            });
-
-    } //end ajax callback
-     });
-
-   }  //end function explode_cluster
-
-$('.tipsy-inner a').live('click',function()
-{
-cluster_action=$(this).attr('class')
-
-taxa=genus;
-
-if (cluster_action=='by_cluster')
-{
-  var bbox=$(this).attr('bbox');  
-  circle_xy=$(this).attr('bbox');
-  options={'taxa':taxa,'explode_level':'by_cluster','bbox':circle_xy,'type':to_plot,'dataset':dataset,'cluster_degree':cluster_degree,'explode_type':cluster_action,'requested_action':'explode'}
-  explode_cluster(options,'by_cluster');
-  _selected_circle.attr('opacity',0);
-}
-})
- function create_circles (data,options)
- {
-maxValue=data.total;
-cluster_degree=data.cluster_degree;
-var zoom=options.zoom;
-switch (true)
-{
-   case (zoom <=3):
-      grid=10; 
-      min_range=5;
-      max_range=15;
-      break;
-   case (zoom >=4 && zoom<6): 
-    min_range=4; 
-    max_range=15;
-   break;
-   case (zoom>=6): 
-   min_range=10;
-   max_range=30;
-   break;
-}
-
-    var rScale = d3.scale.linear()
-                     .domain([0, d3.max(data.features, function(d) { return d.properties.count; })])
-                     .range([min_range, max_range]);
-
-    var count_extent = d3.extent( data.features, function(d){return d.properties.count});
-    //other symbolizing options
-    //var ramp = d3.scale.linear() .domain(count_extent)// .range(["blue","red"]);
-   //.range(["#FDFFCB", "#232942"])
-   var ramp =d3.scale.category20c().domain(count_extent)
-   //.interpolate(d3.cie.interpolateLch);
-
-    /* Add a LatLng object to each item in the dataset */  
-    data.features.forEach(function(d) {
-      d.LatLng = new L.LatLng(d.geometry.coordinates[1],d.geometry.coordinates[0])
-    })
-
-    var circle = g.selectAll("circle")
-      .data(data.features);
-      circle.enter().append("circle");
-      circle.exit().remove()
-
-    function first_update(cluster_degree) 
-    {
-      circle.attr("cx",function(d) { return map.latLngToLayerPoint(d.LatLng).x})
-      circle.attr("cy",function(d) { return map.latLngToLayerPoint(d.LatLng).y}).attr("stroke", "black")
-
-      circle.on("mouseover", function(d) {
-        circle.on("mouseover", function(d) {   
-        _selected_circle=d3.select(this)      
-        _selected_circle.original_color=_selected_circle.attr('fill');
-        _selected_circle.transition().duration(500).attr('opacity',1)
-
-      })
-})
-
-      .on("mouseout", function(d) {
-         var _this=d3.select(this)        
-        d3.select(this).transition().duration(500).attr('opacity',0.6)
-     })
-
-      circle.attr('r',0).transition().duration(500).attr("r", function(d) {
-       // console.warn(rScale(d.properties.count))
-        return rScale(d.properties.count);
-      }).attr('fill',function (d){ 
- 
-      return ramp(d.properties.count)})
-                        .attr('opacity',0.7)
- 
-    }  //end first_update
-
-     function update() {
-      circle.attr("cx",function(d) { return map.latLngToLayerPoint(d.LatLng).x})
-      circle.attr("cy",function(d) { return map.latLngToLayerPoint(d.LatLng).y})
-
-
-    }
-    map.on("viewreset", update);
-    first_update(cluster_degree);
-
-function  get_text(d)
-{                           
- var text='There are <b>'+d.properties.count+'</b> occurrences for taxa '+taxa+' in this cluster';
-                                text+='<p><a href="#" class="by_cluster"  degree="'+cluster_degree+'" bbox="'+d.geometry.coordinates+'">Explode around this cluster</a>';
-                                // text+='<p><a href="#" class="explode_all" degree="'+cluster_degree+'" bbox="'+d.geometry.coordinates+'">Explode all clusters</a>' 
-  return text;
-}                                
-
-       $('svg circle').tipsy({ 
-                              delayIn: 500, 
-                              fade: true, 
-                              gravity: 'w', 
-                              html: true, 
-                              title: function() {
-                                var d = this.__data__;
-                                //alert(get_text(d))
-                                return get_text(d);                               
-                              }
-                            });
- } //end create_circles
-
-
-var geojson;
 
 map = new L.Map('map',{ 'crs': L.CRS.EPSG900913})
 
 url='http://a.tiles.mapbox.com/v1/perikut.map-ua7dmxeg.jsonp';
 
 wax.tilejson(url, function(tilejson) {
-          basemap = new wax.leaf.connector(tilejson);
-         
+          basemap = new wax.leaf.connector(tilejson);         
             map.addLayer(basemap,true)
               })
 
 $('#map').show();
-
 var latlng=new L.LatLng(lat,lng);
-
 //to be changed
 var to_plot='scientificname';
 
 map.setView(latlng, 6); 
 map.addLayer(new L.Marker(latlng)); 
-//we iniciate a SVG layer over which we will append d3.js generated circles (g elements with circles)
-map._initPathRoot() 
-//select the SVG we just have created and append a g element
-  var svg = d3.select("#map").select("svg"),
-  g = svg.append("g");
 
-function create_simple_clusters (params)
-{
-var bounds=params.bounds;
-
-var ajax_params={'taxa':params.taxa,type:to_plot,'zoom':params.zoom,dataset:dataset,
-    'requested_action':'get_clusters'}
-if( typeof params.bounds != "undefined" ) 
-  jQuery.extend(ajax_params,{'literal_bounds':params.literal_bounds})
-
-  jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson.php',
-  data: ajax_params,
-  type: 'GET',
- dataType: 'jsonp',
- crossDomain: 'true',
- success: function (data)
- {
-if (params.explode_type=='by_view')
-{
-jQuery.extend(ajax_params,{'bounds':bounds})
-}
-//$("#ajax_image").hide()
-create_circles.call(this,data,ajax_params);
- },
- error:function ()
- {
- alert('some error')
- }
- })  //end second ajax
-} //end create_simple_clusters
-   	
-function query_bounds()
-{  
- return jQuery.ajax({
-  url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_extents_by_taxa.php',
- // data: {'taxa':taxa,type:to_plot,collection:collection},
-  data: {'taxa':taxa,'type':'scientificname','dataset':dataset},
-  type: 'GET',
-  dataType: 'jsonp',
-  crossDomain : true,
- success: function(data)
- { 
-if (data.main_bbox[0].length= 0) 
-  {
-   alert('some error in bbox??')
-   zoom=2;
-    map.fitWorld()
-  }
-  else
-  {  
-var bottom_left=data.main_bbox[0].split(',')
-var up_right=data.main_bbox[1].split(',')
- bounds = new L.LatLngBounds(
-        new L.LatLng(bottom_left[1],bottom_left[0]),
-        new L.LatLng(up_right[1],up_right[0]));
-
-zoom=map.getBoundsZoom(bounds)
-
-    var params={'zoom':zoom,'taxa':taxa}
-
-    create_simple_clusters(params);
-
-map.fitBounds(bounds)
-  }
- }
-})
-}  //end query_bounds function
-
-$('#polygon_genus').click(function()
-{
-geom_type='polygon';
-remove_json();
-if (d3.selectAll("circle")[0].length>0) d3.selectAll("circle").remove();
-
-//ALL THIS COULD ALSO HAPPENS USING D3.js
-polygon_geojson=new L.GeoJSON(null);
-
-polygon_geojson.my_geojson=true;
-//my PHP folder!
-jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_portal.php',
-  data: {taxa:genus,type:'genus',collection:dataset,geom_type:'polygon'},
-  type: 'GET',
-  dataType: "jsonp", 
-    crossDomain : true,
-  
- success: function(data)
- {
-
-  polygon_geojson.on('featureparse', function(e) {    
-  apply_parsing(e)
-  })   
- geojson_max=data.max;
- geojson_min=data.min;
-
- geojson_medium=data.medium;
- interval_1=data.interval_1;
- interval_2=data.interval_2; 	
- polygon_geojson.addGeoJSON(data);
- 
- map.addLayer(polygon_geojson)
- },
- error:function (e)
- {
-
- alert('error')
- }
- })
-
-})
-
-$('#geo_genus').click(function()
-{
-
-  remove_json();
-
-  $.when(query_bounds())
-  .then(function(data){
-
-    // $("#ajax_image")
-    // .ajaxStart(function(){
-    //   //console.warn($(this))
-    //   $(this).show();
-    // })
-    // .ajaxComplete(function(){
-    //   $(this).hide();
-    // });
-    var bottom_left=data.main_bbox[0].split(',')
-    var up_right=data.main_bbox[1].split(',')
-
-    bounds = new L.LatLngBounds(
-        new L.LatLng(bottom_left[1],bottom_left[0]),
-
-        new L.LatLng(up_right[1],up_right[0]));
-
-    zoom=map.getBoundsZoom(bounds)
-
-    map.fitBounds(bounds) 
-  })
-
-});
- 
-
-}
- 
-  
 });
 </script>
 <div class="container">
+
   <div class="well">
   #{if taxa}
     <ul class="breadcrumb">
@@ -536,11 +86,12 @@ $('#geo_genus').click(function()
   </div> 
   #{if occurrence.decimalLatitude && occurrence.decimalLongitude}
     <div id='map' style='display:none;width:70%px;height:300px'></div> 
-      <!-- to extend to all taxa levels, this is just for testing -->
-    <div style="margin:10px;">
+      <!-- to extend to all taxa levels, this is just for testing   -->
+   <!-- <div style="margin:10px;">
       <button id='geo_genus'>All occurrences for Specie</button>
       <button id='polygon_genus'>All polygon for Specie</button>
     </div>  
+    -->
   #{/if}
   #{if occurrence.occurrenceID || 
 	   occurrence.catalogNumber || 
