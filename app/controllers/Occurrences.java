@@ -94,11 +94,10 @@ public class Occurrences extends Controller {
   {
 	/*** ElasticSearch configuration ***/
 	Settings settings = ImmutableSettings.settingsBuilder()
-		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
+		.put("cluster.name", "elasticsearch_index").put("client.transport.sniff", false).build();
 
 	Client client = new TransportClient(settings)
-		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))))
-		.addTransportAddress(new InetSocketTransportAddress("134.157.190.215", 9300));
+		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))));
 	System.out.println(client.toString());
 	return client;
   }
@@ -121,7 +120,7 @@ public class Occurrences extends Controller {
 	  {
 	    boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBoxes.get(i)[0]).to(search.boundingBoxes.get(i)[2]);
 		boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(search.boundingBoxes.get(i)[1]).to(search.boundingBoxes.get(i)[3]);
-		boundingBoxQ = boundingBoxQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+		boundingBoxQ = boundingBoxQ.must(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
 	  }
 	}
 	
@@ -139,8 +138,7 @@ public class Occurrences extends Controller {
 	  }
 	  else
 	  {
-		//genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
-		//scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
+		genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND)); 
 		classificationInterpretedQ = classificationInterpretedQ
 				.should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
 				.should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))
@@ -203,8 +201,8 @@ public class Occurrences extends Controller {
 	  {
 	    q = q.must(boolQuery()
 				.should(scientificNameQ)
-				.should(classificationInterpretedQ));
-				//.should(genusQ));
+				.should(classificationInterpretedQ)
+				.should(genusQ));
 	  }
 	  if (!search.places.isEmpty() || !search.boundingBoxes.isEmpty())
 	  {
@@ -1243,7 +1241,7 @@ public class Occurrences extends Controller {
 	  return true;
   }
   
-  /*** TODO: envoie de mail, zip, clean du dossier ***/
+  /*** TODO: envoi de mail, zip, clean du dossier ***/
   public static void download(String taxaSearch, String placeSearch,
 	  String datasetSearch, String dateSearch, boolean onlyWithCoordinates,
 	  String mode, String email) throws IOException 
