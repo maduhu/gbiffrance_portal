@@ -341,38 +341,32 @@ public class Taxas extends Controller {
     	for (int i = 0; i < splittedSearch.length; ++i) 
     	{
     	  splittedSearch[i] = splittedSearch[i].replaceAll(" ", "%20");
-    	  HttpResponse ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?datasetKey=d7dddbf4-2cf0-4f39-9b2a-bb099caae36c&rkey=1&count=true&q=" + splittedSearch[i]).get();
-    	  System.out.println("http://api.gbif.org/dev/name_usage/search?datasetKey=d7dddbf4-2cf0-4f39-9b2a-bb099caae36c&rkey=1&count=true&q=" + splittedSearch[i]);
+    	  HttpResponse ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?rkey=1&count=true&q=" + splittedSearch[i]).get();
+    	  //System.out.println("http://api.gbif.org/dev/name_usage/search?rkey=1&count=true&q=" + splittedSearch[i]);
     	  if (ecatResponse.success()) 
     	  {
-    		ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?datasetKey=d7dddbf4-2cf0-4f39-9b2a-bb099caae36c&rkey=1&count=true&q="	+ splittedSearch[i].replaceAll(" ", "%20")).get();
+    		ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?rkey=1&count=true&q="	+ splittedSearch[i].replaceAll(" ", "%20")).get();
     		if (ecatResponse.success()) 
     		{
     		  count += ecatResponse.getJson().getAsJsonObject().get("count").getAsInt();
-    		  ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?datasetKey=d7dddbf4-2cf0-4f39-9b2a-bb099caae36c&rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20")).get();
-    		  System.out.println("http://api.gbif.org/dev/name_usage/search?datasetKey=d7dddbf4-2cf0-4f39-9b2a-bb099caae36c&rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20"));
+    		  ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20")).get();
+    		  System.out.println("http://api.gbif.org/dev/name_usage/search?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20"));
     
     		  int numTaxas = ecatResponse.getJson().getAsJsonObject().get("results")
     			  .getAsJsonArray().size();
     		  for (int j = 0; j < numTaxas; ++j) {
-    			if (ecatResponse.getJson().getAsJsonObject().get("results").getAsJsonArray().get(j).getAsJsonObject().get("taxonomicStatus") != null 
-    				&& ecatResponse.getJson().getAsJsonObject().get("results").getAsJsonArray().get(j).getAsJsonObject().get("taxonomicStatus").getAsString().equals("ACCEPTED")
-    				&& ecatResponse.getJson().getAsJsonObject().get("results").getAsJsonArray().get(j).getAsJsonObject().get("datasetTitle") != null 
-        				&& ecatResponse.getJson().getAsJsonObject().get("results").getAsJsonArray().get(j).getAsJsonObject().get("datasetTitle").getAsString().equals("GBIF Backbone Taxonomy"))
-    			{
-    			  String rank = ecatResponse.getJson().getAsJsonObject().get("results")
+    			String rank = ecatResponse.getJson().getAsJsonObject().get("results")
     				.getAsJsonArray().get(j).getAsJsonObject().get("rank")
     				.getAsString();
-    			  Taxa taxa = new Taxa();
-    			  taxa.rank = rank;
-    			  taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("results")
+    			Taxa taxa = new Taxa();
+    			taxa.rank = rank;
+    			taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("results")
     				.getAsJsonArray().get(j).getAsJsonObject().get("key")
     				.getAsLong();
-    			  taxa.scientificName = ecatResponse.getJson().getAsJsonObject()
+    			taxa.scientificName = ecatResponse.getJson().getAsJsonObject()
     				.get("results").getAsJsonArray().get(j).getAsJsonObject()
     				.get("scientificName").getAsString();
-    			  taxas.add(taxa);
-    			}
+    			taxas.add(taxa);
     		  }
     		}
     	  }
@@ -391,7 +385,7 @@ public class Taxas extends Controller {
 	}
 	catch(Exception e){}
   }
-
+    
 
   public static void show(Long taxonId) {
 
