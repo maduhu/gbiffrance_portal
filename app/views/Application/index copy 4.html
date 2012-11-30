@@ -1,0 +1,116 @@
+#{include 'Application/Search/bar.html' /}
+#{set title:'Home' /}
+
+
+
+<div class="container">
+
+<a id='test_geo' href='#' style='display:none' >Show datasets by count georeferenced occurrences (test)</a>
+<div id="map" class="container" style='width:950px;height:600px'>
+
+</div>
+
+
+</div> 
+<script type="text/javascript">
+
+url='http://a.tiles.mapbox.com/v1/perikut.map-ua7dmxeg.jsonp';
+
+wax.tilejson(url, function(tilejson) {
+          basemap = new wax.leaf.connector(tilejson);
+         
+
+            map.addLayer(basemap)
+              })
+
+
+
+
+map = new L.Map('map',{ 'crs': L.CRS.EPSG900913,
+ center: new L.LatLng( 47.0176,2.3427,2), 
+    zoom: 5,  drawControl: true 
+
+    //layers: [basemap]
+  });
+
+var drawControl = new L.Control.Draw({
+      position: 'topright',
+      polygon: {
+        allowIntersection: false,
+        drawError: {
+          color: '#b00b00',
+          timeout: 1000
+        },
+        shapeOptions: {
+          color: '#bada55'
+        }
+      },
+      circle: {
+        shapeOptions: {
+          color: '#662d91'
+        }
+      }
+    });
+    map.addControl(drawControl);
+    
+    var drawnItems = new L.LayerGroup();
+    map.on('draw:poly-created', function (e) {
+      drawnItems.addLayer(e.poly);
+    });
+    map.on('draw:rectangle-created', function (e) {
+      drawnItems.addLayer(e.rect);
+    });
+    map.on('draw:circle-created', function (e) {
+      drawnItems.addLayer(e.circ);
+    });
+    map.on('draw:marker-created', function (e) {
+      drawnItems.addLayer(e.marker);
+    });
+    map.addLayer(drawnItems);
+
+/*** Dataset Auto-completion ***/ 
+  $("#input-search-dataset").autocomplete().each(function() {
+    var $input = $(this);
+    // Set-up the autocomplete widget.
+    $(this).autocomplete({
+      minLength: 3,
+      source : function(req, resp) {
+        $.getJSON("datasets/autocomplete?search=" + req.term, function(data) {
+          var suggestions = [];
+          $.each(data, function(i, val) {
+            var obj = {};
+            obj.label = val.title;
+            obj.id = val.id;
+            suggestions.push(obj);
+          })
+          resp(suggestions);
+        })
+      }  
+    })
+  });
+  
+  /*** Taxa Auto-completion ***/ 
+  $("#input-search-taxa").autocomplete().each(function() {
+    var $input = $(this);
+    // Set-up the autocomplete widget.
+    $(this).autocomplete({
+      minLength: 4,
+      source : function(req, resp) {
+        $.getJSON("taxas/autocomplete?search=" + req.term, function(data) {
+          var suggestions = [];
+          $.each(data, function(i, val) {
+            var obj = {};
+            obj.label = val.canonicalName;
+            obj.id = val.id;
+            suggestions.push(obj);
+          })
+          resp(suggestions);
+        })
+      }  
+    })
+  })
+</script>
+<!--
+<div class="container">
+  <iframe width="940" height="600" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/?ie=UTF8&amp;ll=46.905246,0.74707&amp;spn=9.939566,23.269043&amp;t=m&amp;z=6&amp;output=embed"></iframe>
+</div> -->

@@ -1,42 +1,37 @@
 #{extends 'main.html' /}
+      <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+      <script src="@{'/public/javascripts/nv.d3.min.js'}"></script>
+      <script src="@{'/public/javascripts/pieChart.js'}"></script>
+      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"></link>
 #{set title:'Home' /}
 <script type="text/javascript">
+var data;
 jQuery(document).ready(function($) {
+
+var url = window.location.search.split("id=");
+var dataset_id=url[1];
+//  console.warn(eval(dataset))
   var interaction;
 var lat=48.856930;
 var lng=2.341200;
 var latlng=new L.LatLng(lat,lng);
 
-// var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-//   var osmAttrib='Map data © OpenStreetMap contributors';
-//   var osm = new L.TileLayer(osmUrl);
-//   osm.basemap=true;
-//   //, {minZoom: 5, maxZoom: 12, attribution: osmAttrib}
-  
 map = new L.Map('map')
 map.addLayer(new L.Marker(latlng)); 
 
-// var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-//   var osmAttrib='Map data © OpenStreetMap contributors';
-//   var osm = new L.TileLayer(osmUrl);
 
- url='http://api.tiles.mapbox.com/v2/worldbank-climate.change-in-ag-yields,worldbank-climate.percent-gdp-added-by-agriculture,worldbank-climate.wbc-borders.jsonp';
-// url='http://lully.snv.jussieu.fr/gbif/mapping/basemap/metadata.jsonp';
+ url='http://a.tiles.mapbox.com/v1/perikut.map-ua7dmxeg.jsonp';
      wax.tilejson(url, function(tilejson) {
           basemap = new wax.leaf.connector(tilejson);
-         map.addLayer(basemap);
+         map.addLayer(basemap,true);
          })
 
  map.setView(latlng, 5);
-
-                          // map.addLayer(osm)
-  // Stuff to do as soon as the DOM is ready. Use $() w/o colliding with other libs;
-  console.warn('${dataPublisher.id}');
-  
+  /*
    $('.dropdown-toggle').dropdown()
 
      layers=[{'name':'occurrences','title':'Occurrences',
-          'url':' http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/simple_spn_mnhn_2/metadata.jsonp'},
+          'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/simple_inpn2_3/metadata.jsonp'},
           {
       'name':'cantons','title':'Cantons France',       
       'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/cantons_spn_mnhn/metadata.jsonp'
@@ -84,7 +79,7 @@ map.addLayer(new L.Marker(latlng));
                              layer_name.title=data.title;
                              layer_name.type='layer';
                              map.addLayer(layer_name);
-                             map.addLayer(basemap);
+                             map.addLayer(basemap,true);
                              layer_name.setOpacity(0.8)                
                              interaction = wax.leaf.interaction(map, tilejson)                
                            });  
@@ -97,9 +92,65 @@ map.addLayer(new L.Marker(latlng));
 
 })
    
- 
+  $('#stats_type a').click(function(event)
+{
+
+          event.preventDefault()
+          
+          var taxa_type=$(this).parent().attr('id');
+console.warn(taxa_type)
+
+$('#stats_div').show().animate({'height':'500px'});
+
+$.ajax(
+    'http://lully.snv.jussieu.fr/gbif/mapping/php/stats_json.php?id='+dataset_id,
+    {
+    jsonpCallback: 'callback',
+    crossDomain:true, 
+    dataType: "jsonp",
+    
+      error:function (xhr, ajaxOptions, thrownError){
+                    console.info(xhr.status);
+                    console.warn(thrownError);
+                }  
+    ,
+    success : function(data){
+      var to_plot=data[0][taxa_type];
+
+      nv.addGraph(function() {
+        var width = 500,
+        height = 500;
+
+    var chart = nv.models.pieChart()
+        .x(function(d) { return d.key })
+        //.y(function(d) { return d.value })
+        .values(function(d) { return d })
+        //.labelThreshold(.08)
+        //.showLabels(false)
+        .color(d3.scale.category10().range())
+        .width(width)
+        .height(height)
+        .donut(true);
 
  
+          width=700,height=500
+          d3.select("#chart")
+          .datum([to_plot])
+          .transition().duration(1800)
+          .attr('width', width)
+          .attr('height', height)
+          .call(chart);
+
+    return chart;
+
+    })
+    
+    } //votre callback
+});
+
+})
+
+ */
 
 });
 
@@ -113,7 +164,7 @@ map.addLayer(new L.Marker(latlng));
     <div id="map" style='width:100%;height:300px;position:relative'></div>
 
 
-   <div class="nav-collapse">
+<!--    <div class="nav-collapse">
    <ul class="nav">
       <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">Show biodiversity by polygon<b class="caret"></b></a>
           <ul id='polygon_type' class="dropdown-menu">
@@ -127,17 +178,38 @@ map.addLayer(new L.Marker(latlng));
 
   
   
-   </div>
+   </div> -->
 
 
-    <ul id='map_occ' style='list-style:none;margin:0 0 0 0'>
+<!--     <ul style='list-style:none;margin:0 0 0 0'>
     <li id='occurrences'><a href="#">Check biodiversity map by occurrences</a></li>
-    </ul>
-   <!-- <iframe width="900" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.fr/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;aq=&amp;sll=46.75984,1.738281&amp;sspn=9.967265,23.269043&amp;ie=UTF8&amp;hq=Mus%C3%A9um+national+d'Histoire+naturelle+61+rue+Buffon&amp;hnear=&amp;ll=48.841808,2.357741&amp;spn=0.074784,0.181789&amp;t=m&amp;z=10&amp;iwloc=${dataPublisher.name}&amp;cid=2299256314626690090&amp;output=embed"></iframe><br /></small>-->
+
+    <div class="nav-collapse">
+    <div class="nav">
+      <li class="dropdown">
+        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Check 5 most abundant taxa statistics by<b class="caret"></b></a>
+          <ul id='stats_type' class="dropdown-menu">
+            <li id='kingdom'><a  href="#">kingdom</a></li>
+             <li id='phylum'><a  href="#">phylum</a></li>
+             <li id='family'><a  href="#">family</a></li>
+             <li id='order'><a  href="#">order</a></li>
+             <li id='class'><a  href="#">class</a></li>
+             <li id='genus'><a  href="#">genus</a></li>
+             <li id='scientificname'><a  href="#">scientificname</a></li>             
+          </ul>  
+      </li>
+    </div>  
+    </div>
+  
+    </ul> -->
+
   
  <!--    <div class="btn btn-small"></div>  -->
- 
+    <div id='stats_div' style='display:hidden;width:500px;height:10px'>
+      <svg id='chart'></svg>
+    </div>
     <div class="page-header well">
+
       <h3>Datasets</h3>
       <div class="btn-group">
       #{list items:datasets, as:'dataset'}

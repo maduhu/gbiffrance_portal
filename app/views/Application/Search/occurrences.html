@@ -115,8 +115,8 @@ function show_hide (elem,graph_name,list_name)
           </div> 
           <div style="float:right;">  
           <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}
-              #{if occurrence.catalogNumber && occurrence.catalogNumber.size() < 40}${occurrence.catalogNumber}#{/if}
-              #{elseif occurrence.catalogNumber}${occurrence.catalogNumber[0..39]}[...]#{/elseif}
+              #{if occurrence.catalogNumber && occurrence.catalogNumber.size() < 20}${occurrence.catalogNumber}#{/if}
+              #{elseif occurrence.catalogNumber}${occurrence.catalogNumber[0..18]}[...]#{/elseif}
           </h6>
           </div>  
           <div style="clear:both;" class="well occurrence_info">
