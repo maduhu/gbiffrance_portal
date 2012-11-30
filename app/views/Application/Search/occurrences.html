@@ -1,4 +1,29 @@
 
+<script type="text/javascript">
+//QUICK AND DIRTY CODE
+function show_hide (elem,graph_name,list_name)
+{
+
+
+  $this=$(elem);
+
+  if ($this.hasClass('graphic'))
+  {    
+    $('#'+graph_name).hide()
+    $('#'+list_name).show()    
+    $this.html('Show as graphic')
+  }
+  else
+  {
+    $('#'+list_name).hide()
+    $('#'+graph_name).show() 
+    $this.html('Show as list')
+  }
+  $this.toggleClass('graphic')
+    return false;
+
+}
+</script>
   #{if nbHits}
     <div class="span6">
     <h6><ul class="breadcrumb"> Your search:<br/>
@@ -17,37 +42,37 @@
     <br/>
     #{if occurrencesTotalPages > 10}
       #{if current >= 10 && current+10 < occurrencesTotalPages}        
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">1 </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">1 </a>
         ...
         #{list items:current-5..current+5, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
         ...
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
       #{/if} 
       #{elseif current >= 10 && current+10 >= occurrencesTotalPages}        
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
         ...
         #{list items:current-10..occurrencesTotalPages, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
       #{/elseif}
       #{elseif current == occurrencesTotalPages}
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${1} </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${1} </a>
         ...
         #{list items:current-10..current, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
       #{/elseif}  
       #{elseif current == 0 || current < 10}
         #{list items:1..10, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
         ...
-        <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
       #{/elseif}  
       #{if current < occurrencesTotalPages}    
-        <a style="float:right;" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${current*pagesize}');">Next >></a>
+        <a class='pager_class' style="float:right;" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${current*pagesize}');">Next >></a>
       #{/if}
     #{/if}
     #{else}  
@@ -163,51 +188,24 @@
   <script type="text/javascript">
  
 $(document).ready(function() {
-    $("#ajax_image").ajaxStart(function(){
-      $(this).show();
 
-      $('#occurrences_table').fadeOut(3000)
-    })
-    .ajaxComplete(function(){
-      $('#occurrences_table').fadeIn(2000)
-      $(this).hide();
-    });
+$('.span6').click(function (event)
+{
+if ($(event.target).hasClass('pager_class'))
+{
+$("#ajax_image").show()
+$('#occurrences_table,.span3,#sidebar').fadeOut(1000)
+}
+})
+
+
   $("#occurrences_table .hoverable").hover( function () {
 	    $(this).find('.occurrence_info').show();
 	  }, 
 	  function () {
 	        $(this).find('.occurrence_info').hide();
 	  });
- 
 
-  $("#ajax_image").hide();
-
-	 $("div.occurrence_info").hide(); 
-
-
-//QUICK AND DIRTY CODE
-function show_hide (elem,graph_name,list_name)
-{
-
-
-  $this=$(elem);
-
-  if ($this.hasClass('graphic'))
-  {    
-    $('#'+graph_name).hide()
-    $('#'+list_name).show()    
-    $this.html('Show as graphic')
-  }
-  else
-  {
-    $('#'+list_name).hide()
-    $('#'+graph_name).show() 
-    $this.html('Show as list')
-  }
-  $this.toggleClass('graphic')
-    return false;
-
-}
 var taxes=[];
 var datasets=[];
 var dates=[];
@@ -255,7 +253,7 @@ if (i<10)
 //Piecharts 
 function render_chart (data,container)
 {
-
+console.warn('rendering chart')
   nv.addGraph(function() {
         var width = 230,
         height = 230;      
@@ -299,7 +297,8 @@ nv.addGraph(function() {
       .call(chart);
   return chart;
 });
-
+$("#ajax_image").hide()
+$('#occurrences_table,.span3,#sidebar').fadeIn(500)
 });
   </script>
 
