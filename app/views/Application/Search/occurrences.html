@@ -77,7 +77,7 @@ function show_hide (elem,graph_name,list_name)
     #{/if}
     #{else}  
         #{list items:1..occurrencesTotalPages, as:'i'}
-          <a onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
         #{/list}
     #{/else}
     
@@ -188,13 +188,14 @@ function show_hide (elem,graph_name,list_name)
   <script type="text/javascript">
  
 $(document).ready(function() {
-
+$('.occurrence_info').hide()
 $('.span6').click(function (event)
 {
 if ($(event.target).hasClass('pager_class'))
 {
 $("#ajax_image").show()
 $('#occurrences_table,.span3,#sidebar').fadeOut(1000)
+$(this).css('color','red')
 }
 })
 
