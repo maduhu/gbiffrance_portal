@@ -120,7 +120,7 @@ public class Search
 		if (splittedEnrichedSearch[i].startsWith("[") && splittedEnrichedSearch[i].endsWith("]"))
 		{
 		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("[\\[,\\]]", " ").trim();
-		  //System.out.println(splittedEnrichedSearch[i]);
+		  System.out.println(splittedEnrichedSearch[i]);
 		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("  ", " ");
 		  String[] boundingBox = splittedEnrichedSearch[i].split(" ");
 		  //System.out.println(boundingBox[0] + " " +  boundingBox[1] + " " +boundingBox[2] + " " + boundingBox[3]);

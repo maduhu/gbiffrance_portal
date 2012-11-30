@@ -14,3 +14,4 @@ name=Name
 type=Type
 country=Country
 noResults=No results
+info_bar=Click a button to add a filter, double-click a filter to remove it

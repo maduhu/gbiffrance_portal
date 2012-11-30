@@ -94,11 +94,10 @@ public class Occurrences extends Controller {
   {
 	/*** ElasticSearch configuration ***/
 	Settings settings = ImmutableSettings.settingsBuilder()
-		.put("cluster.name", "elasticsearch").put("client.transport.sniff", false).build();
+		.put("cluster.name", "elasticsearch_index").put("client.transport.sniff", false).build();
 
 	Client client = new TransportClient(settings)
-		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))))
-		.addTransportAddress(new InetSocketTransportAddress("134.157.190.215", 9300));
+		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))));
 	System.out.println(client.toString());
 	return client;
   }
@@ -139,8 +138,8 @@ public class Occurrences extends Controller {
 	  }
 	  else
 	  {
-		//genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
-		//scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
+		genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
+		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
 		classificationInterpretedQ = classificationInterpretedQ
 				.should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
 				.should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))
@@ -203,8 +202,8 @@ public class Occurrences extends Controller {
 	  {
 	    q = q.must(boolQuery()
 				.should(scientificNameQ)
-				.should(classificationInterpretedQ));
-				//.should(genusQ));
+				.should(classificationInterpretedQ)
+				.should(genusQ));
 	  }
 	  if (!search.places.isEmpty() || !search.boundingBoxes.isEmpty())
 	  {
@@ -278,17 +277,21 @@ public class Occurrences extends Controller {
 	  yearFacetBuilder.facetFilter(f);
 	}
 	
-	
-	SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
-	if (withFacets) searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
-	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	if (q != null || search.datasetsIds.size() > 0)
 	{
-	  searchRequest = searchRequest.setFilter(f);
+	  SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
+	  if (withFacets) searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
+	  if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	  {
+	    searchRequest = searchRequest.setFilter(f);
+	  }
+		
+		
+	  System.out.println(searchRequest);
+	  return searchRequest;
 	}
+	else return null;
 	
-	
-	System.out.println(searchRequest);
-	return searchRequest;
   }
 
   public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) 
@@ -302,140 +305,146 @@ public class Occurrences extends Controller {
 	
 	SearchResponse response;
 	
-	response = searchRequest.execute().actionGet();
-	List<Occurrence> occurrences = new ArrayList<Occurrence>();
-	Long nbHits = response.getHits().getTotalHits();
-	NameParser nameParser = new NameParser();
-	
-	for (SearchHit hit : response.getHits()) {   
-	  Occurrence occurrence = new Occurrence();	
-	  occurrence.id = (Integer) hit.getSource().get("_id");
-	  occurrence.scientificName = (String) hit.getSource().get("scientificName");
-	  occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
-	  
-	  occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
-	  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");	
-	  
-	  ParsedName<String> parsedNameOriginal = nameParser.parse(occurrence.scientificName);
-	  ParsedName<String> parsedNameInterpreted = nameParser.parse((String) hit.getSource().get("specificEpithet_interpreted"));
-	  try
-	  {
-		if (!(parsedNameOriginal.genusOrAbove.equals(parsedNameInterpreted.genusOrAbove)) || !(parsedNameOriginal.specificEpithet.equals(parsedNameInterpreted.specificEpithet)))
-		{
-		  occurrence.specificEpithet_interpreted = (String) hit.getSource().get("specificEpithet_interpreted");
-		}
-	  }
-	  catch (Exception e) {}
-	  DBRef dbRef = (DBRef) JSON.parse((String) hit.getSource().get("dataset"));
-	  String dataset_id = (String) dbRef.getId();
-	  Dataset dataset = Dataset.findById(dataset_id);
-	  occurrence.dataset = dataset;
-	  occurrence.score = hit.getScore();
-	  occurrences.add(occurrence);
-	  if (occurrences.size() >= pagesize) break;        
-	}
-	
-	/***
-	 * ecat facet
-	 */
-	TermsFacet facet = response.getFacets().facet("ecatConceptId");
-	List<Map<String,Object>> frequentTaxas = new ArrayList<Map<String,Object>>();
-	/***
-	 * Renders (max 10) taxas and their occurrences count that are matching with the request
-	 */
-	
-	for (Entry entry : facet.entries())
+	if (searchRequest != null)
 	{
-	  Map<String, Object> frequentTaxa = new HashMap<String, Object>();
-	  Taxa taxa = new Taxa();
-	  Taxas.ecatInformation(Long.parseLong(entry.getTerm()), taxa);
-	  if (taxa.scientificName != null) 
-	  {
-		frequentTaxa.put("taxonId", Long.parseLong(entry.getTerm()));
-		frequentTaxa.put("scientificName", taxa.scientificName);
-		frequentTaxa.put("canonicalName", taxa.canonicalName);
-		frequentTaxa.put("count", entry.getCount());
-		frequentTaxas.add(frequentTaxa);
-	  }
-	}
-	
-	/***
-	 * dataset facet
-	 */
-	facet = response.getFacets().facet("dataset");
-	List<Map<String, Object>> frequentDatasets = new ArrayList<Map<String, Object>>();
-	/***
-	 * Renders datasets and their occurrences count that are matching with the request
-	 */
-	Long id;
-	for (Entry entry : facet.entries())
-	{
-	  if (entry.count() > 0)
-	  {
-	    try 
-	    {
-		  id = Long.parseLong(entry.getTerm());
-	    }
-	    catch (NumberFormatException e)
-	    {
-		  continue;
-	    }
-	    Dataset dataset = Dataset.findById(id); 
-	    Map<String, Object> frequentDataset = new HashMap<String, Object>();
-	    frequentDataset.put("id", dataset.id);
-	    frequentDataset.put("name", dataset.name);
-	    frequentDataset.put("title",dataset.title);
-	    frequentDataset.put("count", entry.count());
-	    frequentDatasets.add(frequentDataset);
-	  }
-	}
-	
-	/***
-	 * year facet
-	 */
-	facet = response.getFacets().facet("year");
-	List<Map<String, Object>> frequentYears = new ArrayList<Map<String, Object>>();
-	
-	for (Entry entry : facet.entries())
-	{
-	  Map<String, Object> frequentYear = new HashMap<String, Object>();
-	  frequentYear.put("year", entry.getTerm());
-	  frequentYear.put("count", entry.count());
-	  frequentYears.add(frequentYear);
-	}
+	  response = searchRequest.execute().actionGet();
+	  List<Occurrence> occurrences = new ArrayList<Occurrence>();
+		Long nbHits = response.getHits().getTotalHits();
+		NameParser nameParser = new NameParser();
 		
-	int occurrencesTotalPages;
-	int current = from/pagesize + 1;
-	from += pagesize;
+		for (SearchHit hit : response.getHits()) {   
+		  Occurrence occurrence = new Occurrence();	
+		  occurrence.id = (Integer) hit.getSource().get("_id");
+		  occurrence.scientificName = (String) hit.getSource().get("scientificName");
+		  occurrence.catalogNumber = (String) hit.getSource().get("catalogNumber");
+		  
+		  occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
+		  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");	
+		  
+		  ParsedName<String> parsedNameOriginal = nameParser.parse(occurrence.scientificName);
+		  ParsedName<String> parsedNameInterpreted = nameParser.parse((String) hit.getSource().get("specificEpithet_interpreted"));
+		  try
+		  {
+			if (!(parsedNameOriginal.genusOrAbove.equals(parsedNameInterpreted.genusOrAbove)) || !(parsedNameOriginal.specificEpithet.equals(parsedNameInterpreted.specificEpithet)))
+			{
+			  occurrence.specificEpithet_interpreted = (String) hit.getSource().get("specificEpithet_interpreted");
+			}
+		  }
+		  catch (Exception e) {}
+		  DBRef dbRef = (DBRef) JSON.parse((String) hit.getSource().get("dataset"));
+		  String dataset_id = (String) dbRef.getId();
+		  Dataset dataset = Dataset.findById(dataset_id);
+		  occurrence.dataset = dataset;
+		  occurrence.score = hit.getScore();
+		  occurrences.add(occurrence);
+		  if (occurrences.size() >= pagesize) break;        
+		}
+		
+		/***
+		 * ecat facet
+		 */
+		TermsFacet facet = response.getFacets().facet("ecatConceptId");
+		List<Map<String,Object>> frequentTaxas = new ArrayList<Map<String,Object>>();
+		/***
+		 * Renders (max 10) taxas and their occurrences count that are matching with the request
+		 */
+		
+		for (Entry entry : facet.entries())
+		{
+		  Map<String, Object> frequentTaxa = new HashMap<String, Object>();
+		  Taxa taxa = new Taxa();
+		  Taxas.ecatInformation(Long.parseLong(entry.getTerm()), taxa);
+		  if (taxa.scientificName != null) 
+		  {
+			frequentTaxa.put("taxonId", Long.parseLong(entry.getTerm()));
+			frequentTaxa.put("scientificName", taxa.scientificName);
+			frequentTaxa.put("canonicalName", taxa.canonicalName);
+			frequentTaxa.put("count", entry.getCount());
+			frequentTaxas.add(frequentTaxa);
+		  }
+		}
+		
+		/***
+		 * dataset facet
+		 */
+		facet = response.getFacets().facet("dataset");
+		List<Map<String, Object>> frequentDatasets = new ArrayList<Map<String, Object>>();
+		/***
+		 * Renders datasets and their occurrences count that are matching with the request
+		 */
+		Long id;
+		for (Entry entry : facet.entries())
+		{
+		  if (entry.count() > 0)
+		  {
+		    try 
+		    {
+			  id = Long.parseLong(entry.getTerm());
+		    }
+		    catch (NumberFormatException e)
+		    {
+			  continue;
+		    }
+		    Dataset dataset = Dataset.findById(id); 
+		    Map<String, Object> frequentDataset = new HashMap<String, Object>();
+		    frequentDataset.put("id", dataset.id);
+		    frequentDataset.put("name", dataset.name);
+		    frequentDataset.put("title",dataset.title);
+		    frequentDataset.put("count", entry.count());
+		    frequentDatasets.add(frequentDataset);
+		  }
+		}
+		
+		/***
+		 * year facet
+		 */
+		facet = response.getFacets().facet("year");
+		List<Map<String, Object>> frequentYears = new ArrayList<Map<String, Object>>();
+		
+		for (Entry entry : facet.entries())
+		{
+		  Map<String, Object> frequentYear = new HashMap<String, Object>();
+		  frequentYear.put("year", entry.getTerm());
+		  frequentYear.put("count", entry.count());
+		  frequentYears.add(frequentYear);
+		}
+			
+		int occurrencesTotalPages;
+		int current = from/pagesize + 1;
+		from += pagesize;
+		
+		/***
+		 * Close the ElasticSearch Client
+		 */
+		client.close();
+
+		if (nbHits < pagesize) {
+		  pagesize = nbHits.intValue();
+		  occurrencesTotalPages =  1;
+		} else if (nbHits / pagesize < pagesize)
+		{
+		  occurrencesTotalPages = (int) Math.ceil((double) nbHits / pagesize);
+		}
+		else
+		  occurrencesTotalPages = pagesize;
+		
+		if (request.format.equals("json")) {
+		  JsonObject jsonObject = new JsonObject();
+		  Gson gson = new Gson();
+		  jsonObject.addProperty("Occurrences", gson.toJson(frequentTaxas));
+		  jsonObject.addProperty("frequentTaxas", gson.toJson(frequentTaxas));
+		  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
+		  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
+		  renderJSON(jsonObject);
+		} 
+		else
+		{
+		  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears);
+		}
+
+	}
+	else render("Application/Search/occurrences.html", null, search, null, from, null, pagesize, null, null, null, null);
 	
-	/***
-	 * Close the ElasticSearch Client
-	 */
-	client.close();
-
-	if (nbHits < pagesize) {
-	  pagesize = nbHits.intValue();
-	  occurrencesTotalPages =  1;
-	} else if (nbHits / pagesize < pagesize)
-	{
-	  occurrencesTotalPages = (int) Math.ceil((double) nbHits / pagesize);
-	}
-	else
-	  occurrencesTotalPages = pagesize;
-
-	if (request.format.equals("json")) {
-	  JsonObject jsonObject = new JsonObject();
-	  Gson gson = new Gson();
-	  jsonObject.addProperty("Occurrences", gson.toJson(frequentTaxas));
-	  jsonObject.addProperty("frequentTaxas", gson.toJson(frequentTaxas));
-	  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
-	  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
-	  renderJSON(jsonObject);
-	} 
-	else
-	{
-	  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears);
-	}
   }
   
   public static void show(Integer id) {
