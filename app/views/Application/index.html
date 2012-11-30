@@ -15,7 +15,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
   
-  
+ var show_ajax 
 
 
 $("#ajax_image").hide();
@@ -112,6 +112,7 @@ $(this).addClass('selected')
   //*** Dataset Auto-completion ***/  
   $("#input-search-dataset").autocomplete().each(function() {
     var $input = $(this);
+    console.info('autocomplete from index.html')
     //Set-up the autocomplete widget.
     $(this).autocomplete({
       minLength: 3,
@@ -132,6 +133,7 @@ $(this).addClass('selected')
   
   //** Taxa Auto-completion ** 
   $("#input-search-taxa").autocomplete().each(function() {
+    console.info('autocomplete from index.html')
     var $input = $(this);
     //Set-up the autocomplete widget.
     $(this).autocomplete({
@@ -151,10 +153,6 @@ $(this).addClass('selected')
     })
   })
 
-
-
-             
-
 });
 </script>
 <div class="container">
@@ -164,10 +162,5 @@ $(this).addClass('selected')
 
 </div>
 
-
 </div> 
 
-<!--
-<div class="container">
-  <iframe width="940" height="600" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/?ie=UTF8&amp;ll=46.905246,0.74707&amp;spn=9.939566,23.269043&amp;t=m&amp;z=6&amp;output=embed"></iframe>
-</div> -->
