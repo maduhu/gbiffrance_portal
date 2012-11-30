@@ -189,13 +189,15 @@ function show_hide (elem,graph_name,list_name)
  
 $(document).ready(function() {
 $('.occurrence_info').hide()
+$('.pager_class').eq(0).addClass('red')
 $('.span6').click(function (event)
 {
 if ($(event.target).hasClass('pager_class'))
 {
 $("#ajax_image").show()
 $('#occurrences_table,.span3,#sidebar').fadeOut(1000)
-$(this).css('color','red')
+$('.red, .span6 ').removeClass('red')
+$(event.target).addClass('red')
 }
 })
 
