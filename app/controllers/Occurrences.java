@@ -120,7 +120,7 @@ public class Occurrences extends Controller {
 	  {
 	    boundingBoxLatitudeQ = rangeQuery("decimalLatitude_interpreted").from(search.boundingBoxes.get(i)[0]).to(search.boundingBoxes.get(i)[2]);
 		boundingBoxLongitudeQ = rangeQuery("decimalLongitude_interpreted").from(search.boundingBoxes.get(i)[1]).to(search.boundingBoxes.get(i)[3]);
-		boundingBoxQ = boundingBoxQ.must(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
+		boundingBoxQ = boundingBoxQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
 	  }
 	}
 	
