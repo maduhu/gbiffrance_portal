@@ -341,30 +341,30 @@ public class Taxas extends Controller {
     	for (int i = 0; i < splittedSearch.length; ++i) 
     	{
     	  splittedSearch[i] = splittedSearch[i].replaceAll(" ", "%20");
-    	  HttpResponse ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?rkey=1&count=true&q=" + splittedSearch[i]).get();
-    	  //System.out.println("http://api.gbif.org/dev/name_usage/search?rkey=1&count=true&q=" + splittedSearch[i]);
+    	  HttpResponse ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q=" + splittedSearch[i]).get();
+    
     	  if (ecatResponse.success()) 
     	  {
-    		ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?rkey=1&count=true&q="	+ splittedSearch[i].replaceAll(" ", "%20")).get();
+    		ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&count=true&q="	+ splittedSearch[i].replaceAll(" ", "%20")).get();
     		if (ecatResponse.success()) 
     		{
-    		  count += ecatResponse.getJson().getAsJsonObject().get("count").getAsInt();
-    		  ecatResponse = WS.url("http://api.gbif.org/dev/name_usage/search?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20")).get();
-    		  System.out.println("http://api.gbif.org/dev/name_usage/search?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20"));
+    		  count += ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt();
+    		  ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20")).get();
+    		  System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=" + 10 + "&page=" + page + "&q=" + splittedSearch[i].replaceAll(" ", "%20"));
     
-    		  int numTaxas = ecatResponse.getJson().getAsJsonObject().get("results")
+    		  int numTaxas = ecatResponse.getJson().getAsJsonObject().get("data")
     			  .getAsJsonArray().size();
     		  for (int j = 0; j < numTaxas; ++j) {
-    			String rank = ecatResponse.getJson().getAsJsonObject().get("results")
+    			String rank = ecatResponse.getJson().getAsJsonObject().get("data")
     				.getAsJsonArray().get(j).getAsJsonObject().get("rank")
     				.getAsString();
     			Taxa taxa = new Taxa();
     			taxa.rank = rank;
-    			taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("results")
-    				.getAsJsonArray().get(j).getAsJsonObject().get("key")
+    			taxa.taxonId = ecatResponse.getJson().getAsJsonObject().get("data")
+    				.getAsJsonArray().get(j).getAsJsonObject().get("taxonID")
     				.getAsLong();
     			taxa.scientificName = ecatResponse.getJson().getAsJsonObject()
-    				.get("results").getAsJsonArray().get(j).getAsJsonObject()
+    				.get("data").getAsJsonArray().get(j).getAsJsonObject()
     				.get("scientificName").getAsString();
     			taxas.add(taxa);
     		  }
