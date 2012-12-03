@@ -42,42 +42,42 @@ function show_hide (elem,graph_name,list_name)
     <br/>
     #{if occurrencesTotalPages > 10}
       #{if current >= 10 && current+10 < occurrencesTotalPages}        
-        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">1 </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0',1);">1 </a>
         ...
         #{list items:current-5..current+5, as:'i'}
-          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}',${i});">${i} </a>
         #{/list}
         ...
-        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}',${i});">${occurrencesTotalPages} </a>
       #{/if} 
       #{elseif current >= 10 && current+10 >= occurrencesTotalPages}        
-        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}');">1 </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${1*pagesize}',1);">1 </a>
         ...
         #{list items:current-10..occurrencesTotalPages, as:'i'}
-          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}',${i});">${i} </a>
         #{/list}
       #{/elseif}
       #{elseif current == occurrencesTotalPages}
-        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${1} </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0',${i});">${1} </a>
         ...
         #{list items:current-10..current, as:'i'}
-          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}',${i});">${i} </a>
         #{/list}
       #{/elseif}  
       #{elseif current == 0 || current < 10}
         #{list items:1..10, as:'i'}
-          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}',${i});">${i} </a>
         #{/list}
         ...
-        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}');">${occurrencesTotalPages} </a>
+        <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${occurrencesTotalPages*pagesize - pagesize}',${i});">${occurrencesTotalPages} </a>
       #{/elseif}  
       #{if current < occurrencesTotalPages}    
-        <a class='pager_class' style="float:right;" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${current*pagesize}');">Next >></a>
+        <a class='pager_class' style="float:right;" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${current*pagesize}',${i});">Next >></a>
       #{/if}
     #{/if}
     #{else}  
         #{list items:1..occurrencesTotalPages, as:'i'}
-          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}');">${i} </a>
+          <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}',${i});">${i} </a>
         #{/list}
     #{/else}
     
@@ -189,7 +189,7 @@ function show_hide (elem,graph_name,list_name)
  
 $(document).ready(function() {
 $('.occurrence_info').hide()
-$('.pager_class').eq(0).addClass('red')
+
 $('.span6').click(function (event)
 {
 if ($(event.target).hasClass('pager_class'))
