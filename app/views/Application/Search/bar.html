@@ -17,6 +17,18 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
+
+  $('.span6').live('click',function (event)
+{
+if ($(event.target).hasClass('pager_class'))
+{
+$("#ajax_image").show()
+$('#occurrences_table,.span3,#sidebar').fadeOut(1000)
+$('.red, .span6 ').removeClass('red')
+$(event.target).addClass('red')
+
+}
+})
 //THIS HTML IS LOADED AT EVERY USER REQUEST. IT SHOULD BE IMPROVED USING AJAX 
   if ($('#occurrences div').length==0)
     {
