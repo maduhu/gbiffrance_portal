@@ -148,7 +148,7 @@ public class Taxas extends Controller {
 			taxa.familyID = ecatResponse.getJson().getAsJsonObject().get("familyKey").getAsInt();
 		  if (ecatResponse.getJson().getAsJsonObject().get("genusKey") != null)
 			taxa.genusID = ecatResponse.getJson().getAsJsonObject().get("genusKey").getAsInt();
-		  if (ecatResponse.getJson().getAsJsonObject().get("nubKey") != null)
+		  if (ecatResponse.getJson().getAsJsonObject().get("speciesKey") != null)
 			taxa.speciesID = ecatResponse.getJson().getAsJsonObject().get("speciesKey").getAsInt();
 
 		  if (ecatResponse.getJson().getAsJsonObject().get("numPhylum") != null)
