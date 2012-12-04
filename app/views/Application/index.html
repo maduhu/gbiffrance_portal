@@ -86,7 +86,7 @@ var drawControl = new L.Control.Draw({
       var rect_id=e.rect._leaflet_id;
       e.rect.type='rect';
   
-        rect_bbox[rect_id]='['+e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng+']'.toString();    
+        rect_bbox[rect_id]='['+e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng+'];'; 
       
       var bbox = $('#input-search-place').val() + '[' + e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng + '];';
 
@@ -143,7 +143,7 @@ if (this_id==index)
      var bbox_string=''
      for (index in rect_bbox)
      {
-      bbox_string+=rect_bbox[index];
+      bbox_string+=rect_bbox[index].toString();
 
      }
     var current_text=$('#input-search-place').val().split(';')
@@ -151,7 +151,7 @@ if (this_id==index)
     var new_text=''
       for (index in current_text)
       {
-
+console.info(current_text[index])
       if (!current_text[index]=='') //dealing with possible ; at the end of string
       {
       var this_indexof=current_text[index].indexOf('[')
