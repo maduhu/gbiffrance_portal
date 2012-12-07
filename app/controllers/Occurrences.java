@@ -53,6 +53,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TextQueryBuilder;
 import org.elasticsearch.index.query.TextQueryBuilder.Operator;
+import org.elasticsearch.index.query.TextQueryBuilder.Type;
 import org.elasticsearch.index.search.geo.GeoDistanceFilter;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
@@ -123,15 +124,15 @@ public class Occurrences extends Controller {
 		boundingBoxQ = boundingBoxQ.should(boolQuery().must(boundingBoxLatitudeQ).must(boundingBoxLongitudeQ));
 	  }
 	}
-	
 	/***
 	 * Taxas Query
 	 */
 	for (int i = 0; i < search.taxas.size(); ++i)
 	{ 
+	  // The user is searching a specific taxa	
 	  if (search.taxas.get(i).split(" ").length > 1)
 	  {
-		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	
+		scientificNameQ = scientificNameQ.must(textQuery("scientificName_not_analyzed", search.taxas.get(i)).type(Type.PHRASE_PREFIX));	
 		classificationInterpretedQ = classificationInterpretedQ
 				.should(textQuery("specificEpithet_interpreted", search.taxas.get(i)).operator(Operator.AND))
 				.should(textQuery("ecatConceptId", search.taxas.get(i)).operator(Operator.AND));
@@ -139,7 +140,7 @@ public class Occurrences extends Controller {
 	  else
 	  {
 		genusQ = genusQ.should(textQuery("genus", search.taxas.get(i)).operator(Operator.AND));
-		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
+		//scientificNameQ = scientificNameQ.must(textQuery("scientificName", search.taxas.get(i)).operator(Operator.AND));	 
 		classificationInterpretedQ = classificationInterpretedQ
 				.should(textQuery("kingdom_interpreted", search.taxas.get(i)).operator(Operator.AND))
 				.should(textQuery("phylum_interpreted", search.taxas.get(i)).operator(Operator.AND))

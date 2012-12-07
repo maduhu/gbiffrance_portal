@@ -23,67 +23,30 @@
       #{get 'moreScripts' /}
     </head>
     <body>
-      <div id="feedback-button"><a href="https://github.com/michaelakbaraly/gbiffrance-portal/issues" ></a></div>
-      <div class="container">
-	<div class="alert navbar" id="header">
-	  <div id="header-holder">
-	    <div id="contact-button">
-	      <a href="http://www.gbif.fr/?page_id=158" id="contact-link">Nous contacter</a>
-	    </div>
-	    <div class="" id="banner">
-	      <div id="logo">
-		<h1>
-		  <a href="http://www.gbif.fr:8080/portal" accesskey="1" title="GBIF France">
-		    <img id="img-logo" alt="gbif.fr" src="http://www.gbif.fr/wp-content/themes/gbif/img/gbif-logo3.gif">
+    <div id="feedback-button"><a href="https://github.com/michaelakbaraly/gbiffrance-portal/issues" ></a></div>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+      	<div class="container">
+          <a class="brand" href="http://www.gbif.fr" accesskey="1">
+			GBIF France
 		  </a>
-		</h1>
-	    </div>
-	    <div class="brand" id="slogan">
-	      <p id="slogan-title">
-		GBIF France
-	      </p>
-	      <p id="slogan-description">						
-		Système mondial d'information sur la biodiversité					</p>
-	    </div>
-	    <!-- nav.php: barre de navigation (menu, sous-menu, recherche) -->
-	    <div class="navbar" id="nav">
-	      <div id="menu">
-	        <div class="menu-header-container">
-                  <ul id="menu-header" class="menu">
-                    <li id="menu-item-326" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-326">
-                      <a href="http://www.gbif.fr/?page_id=324">GBIF</a>
-                    </li>
-                    <li id="menu-item-149" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-149">
-                      <a href="http://www.gbif.fr/?category_name=actualites">Actualités</a>
-                    </li>
-                    <li id="menu-item-515" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-515">
-                      <a href="http://www.gbif.fr/?page_id=121">Participer</a>
-                    </li>
-                    <li id="menu-item-282" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-282">
-                      <a href="http://www.gbif.fr/?page_id=274">Ressources</a>
-                    </li>
-                    <li id="menu-item-608" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-608">
-                      <a href="http://www.gbif.fr/?page_id=225">Documentation</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div class="search" id="search">
-	        <form method="get" id="searchform" action="http://www.gbif.fr/">
-                  <div id="search">
-                    <input type="text" value="" name="s" id="s">
-                    <input type="submit" id="searchsubmit" value="Chercher">
-                  </div>
-                </form>
-              </div>
-              <div id="sub-menu">
-	      </div>
-	    </div>
-	  </div>	
-	</div>
-      </div>        
+		  <div id="navbar-menu">
+		    <ul id="menu-header" class="nav"><li id="menu-item-1480" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1480"><a href="http://www.gbif.fr:8080/portal" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','']);">Portail</a></li>
+			  <li id="menu-item-326" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-326"><a href="http://www.gbif.fr/?page_id=324" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">GBIF</a></li>
+			  <li id="menu-item-149" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-149"><a href="http://www.gbif.fr/?category_name=actualites" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">Actualités</a></li>
+			  <li id="menu-item-515" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-515"><a href="http://www.gbif.fr/?page_id=121" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">Participer</a></li>
+			  <li id="menu-item-608" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-608"><a href="http://www.gbif.fr/?page_id=225" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">Documentation</a></li>
+			  <li id="menu-item-1483" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1483"><a href="http://www.gbif.fr/metadata/index.php/metadata" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">Métadonnées</a></li>
+			</ul>
+			<div style="float:right;"><img height="70" width="70" style="margin:10px;" src="http://www.gbif.fr/wp-content/themes/gbif/img/paint-simple-gbif-logo-120px.png"></div>
+			</div>
+			<div id="sub-menu" style="float:left;"></div>
+		  </div>
+  	  </div>
+  	</div>  
+  <div class="content">
+      #{doLayout /}
     </div>
-    #{doLayout /}
     <footer class="footer">
         <div class="container">
           <p class="pull-right">
@@ -92,7 +55,7 @@
           <p>
             <a href="http://www.gbif.fr">About GBIF France </a>
              | 
-            <a href="mailto:gbif@gbif.fr">Contact us</a>
+            <a href="mailto:gbif@gbif.fr">Contact</a>
           </p>
         </div>
       </footer>

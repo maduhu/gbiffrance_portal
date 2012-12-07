@@ -1,3 +1,41 @@
+.navbar .brand
+{
+	font-size: 30px;
+}
+
+.navbar a
+{
+	font-size: 16px;
+}
+
+.navbar-search form
+{
+	margin: 0;
+}
+
+.navbar .nav
+{
+	margin-top : 10px;
+}
+#sub-menu .menu-item a
+{
+	padding: 0 0 0 20px;
+	margin-bottom: 20px;
+	font-style: italic;
+	font-size: 14px;
+}
+
+#sub-menu ul
+{
+	margin:0;
+}
+
+
+div.content
+{
+	margin-top: 100px;
+}
+
 hr {
   margin: 5px 0;
 }
@@ -88,6 +126,11 @@ th {
 }
 
 
+.navbar-search form
+{
+	margin: 0;
+}
+
 
 
 
@@ -120,12 +163,18 @@ th {
 
 /*** Footer ***/
 .footer {
-padding: 70px 0;
-margin-top: 70px;
+//padding: 70px 0;
+position:absolute;
+margin-top: 50px;
+width: 100%;
 border-top: 1px solid #E5E5E5;
 background-color: whiteSmoke;
 }
 
+.hero-unit
+{
+	padding: 20px;
+}
 
 
 
