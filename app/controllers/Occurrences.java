@@ -60,6 +60,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
+import org.elasticsearch.search.facet.terms.TermsFacet.ComparatorType;
 import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
 import org.gbif.ecat.model.ParsedName;
@@ -132,9 +133,9 @@ public class Occurrences extends Controller {
 	  // The user is searching a specific taxa	
 	  if (search.taxas.get(i).split(" ").length > 1)
 	  {
-		scientificNameQ = scientificNameQ.must(textQuery("scientificName_not_analyzed", search.taxas.get(i)).type(Type.PHRASE_PREFIX));	
+		scientificNameQ = scientificNameQ.should(textQuery("scientificName", search.taxas.get(i)).type(Type.PHRASE_PREFIX).analyzer("simple"));	
 		classificationInterpretedQ = classificationInterpretedQ
-				.should(textQuery("specificEpithet_interpreted", search.taxas.get(i)).operator(Operator.AND))
+				.should(textQuery("specificEpithet_interpreted", search.taxas.get(i)).type(Type.PHRASE_PREFIX).analyzer("simple"))
 				.should(textQuery("ecatConceptId", search.taxas.get(i)).operator(Operator.AND));
 	  }
 	  else
@@ -272,7 +273,7 @@ public class Occurrences extends Controller {
 	 * This facet is working as a SQL "group by year"
 	 */
 	TermsFacetBuilder yearFacetBuilder = new TermsFacetBuilder("year");
-	yearFacetBuilder.field("year_interpreted");
+	yearFacetBuilder.field("year_interpreted").order(ComparatorType.TERM);
 	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
 	{
 	  yearFacetBuilder.facetFilter(f);
