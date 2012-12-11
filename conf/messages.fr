@@ -15,6 +15,10 @@ onlyWithCoordinates=Avec géolocalisation
 info_bar=Cliquez sur un bouton pour ajouter un filtre, double-cliquez sur le filtre pour le supprimer
 
 
+#*********************************Search/search.html*************************************
+dateError=La date saisie est invalide, la recherche n'a pas pris en compte ce filtre
+
+
 #*********************************Search/occurrences.html*************************************
 firstResults=premiers résultats pour un total de 
 for=pour

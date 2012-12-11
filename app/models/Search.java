@@ -7,6 +7,8 @@ import java.util.List;
 import org.gbif.ecat.model.ParsedName;
 import org.gbif.ecat.parser.NameParser;
 
+import play.data.validation.Match;
+
 import controllers.Places;
 
 public class Search
