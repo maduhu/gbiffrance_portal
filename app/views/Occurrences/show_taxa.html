@@ -1,0 +1,81 @@
+  #{if occurrence.taxonID		 || 
+	   occurrence.scientificNameID || 
+	   occurrence.acceptedNameUsageID || 
+	   occurrence.parentNameUsageID || 
+	   occurrence.originalNameUsageID || 
+	   occurrence.nameAccordingToID || 
+	   occurrence.namePublishedInID || 
+	   occurrence.taxonConceptID || 
+	   occurrence.scientificName || 
+	   occurrence.acceptedNameUsage || 
+	   occurrence.parentNameUsage || 
+	   occurrence.originalNameUsage || 
+	   occurrence.nameAccordingTo || 
+	   occurrence.namePublishedIn || 
+	   occurrence.namePublishedInYear || 
+	   occurrence.higherClassification || 
+	   occurrence.kingdom || 
+	   occurrence.phylum || 
+	   occurrence.classs || 
+	   occurrence.orderr || 
+	   occurrence.family || 
+	   occurrence.genus || 
+	   occurrence.subgenus || 
+	   occurrence.specificEpithet || 
+	   occurrence.infraSpecificEpithet || 
+	   occurrence.taxonRank || 
+	   occurrence.verbatimTaxonRank || 
+	   occurrence.scientificNameAuthorship || 
+	   occurrence.vernacularName || 
+	   occurrence.nomenclaturalCode || 
+	   occurrence.taxonomicStatus || 
+	   occurrence.nomenclaturalStatus || 
+	   occurrence.taxonRemarks || 
+	   occurrence.taxonStatus  ||
+	   occurrence.ecatConceptId ||
+	   occurrence.ecatParentId 
+  }
+  <div class="taxon-info">
+    <h3>Taxon</h3>
+    <table class="table table-condensed table-striped">
+      <tbody>
+	#{if occurrence.taxonID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#taxonID">&{'taxonID'}</a></th><td> ${occurrence.taxonID}</td></tr>#{/if}
+    #{if occurrence.scientificNameID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#scientificNameID">&{'scientificNameID'}</a></th><td>${occurrence.scientificNameID}</td></tr>#{/if}
+	#{if occurrence.acceptedNameUsageID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#acceptedNameUsageID">&{'acceptedNameUsageID'}</a></th><td>${occurrence.acceptedNameUsageID}</td></tr>#{/if}
+	#{if occurrence.parentNameUsageID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#parentNameUsageID">&{'parentNameUsageID'}</a></th><td>${occurrence.parentNameUsageID}</td></tr>#{/if}
+	#{if occurrence.originalNameUsageID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#"originalNameUsageID>&{'originalNameUsageID'}</a></th><td>${occurrence.originalNameUsageID}</td></tr>#{/if}
+	#{if occurrence.nameAccordingToID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#nameAccordingToID">&{'nameAccordingToID'}</a></th><td>${occurrence.nameAccordingToID}</td></tr>#{/if}
+	#{if occurrence.namePublishedInID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#namePublishedInID">&{'namePublishedInID'}</a></th><td>${occurrence.namePublishedInID}</td></tr>#{/if}
+	#{if occurrence.taxonConceptID}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#taxonConceptID">&{'taxonConceptID'}</a></th><td>${occurrence.taxonConceptID}</td></tr>#{/if}
+	#{if occurrence.scientificName}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#scientificName">&{'scientificName'}</a></th><td>${occurrence.scientificName}</td></tr>#{/if}
+	#{if occurrence.acceptedNameUsage}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#acceptedNameUsage">&{'acceptedNameUsage'}</a></th><td>${occurrence.acceptedNameUsage}</td></tr>#{/if}
+	#{if occurrence.parentNameUsage}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#parentNameUsage">&{'parentNameUsage'}</a></th><td>${occurrence.parentNameUsage}</td></tr>#{/if}
+	#{if occurrence.originalNameUsage}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#originalNameUsage">&{'originalNameUsage'}</a></th><td>${occurrence.originalNameUsage}</td></tr>#{/if}
+	#{if occurrence.nameAccordingTo}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#nameAccordingTo">&{'nameAccordingTo'}</a></th><td>${occurrence.nameAccordingTo}</td></tr>#{/if}
+	#{if occurrence.namePublishedIn}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#namePublishedIn">&{'namePublishedIn'}</a></th><td>${occurrence.namePublishedIn}</td></tr>#{/if}
+	#{if occurrence.namePublishedInYear}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#namePublishedInYear">&{'namePublishedInYear'}</a></th><td>${occurrence.namePubfhedInYear}</td></tr>#{/if}
+	#{if occurrence.higherClassification}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#higherClassification">&{'higherClassification'}</a></th><td>${occurrence.higherClassification}</td></tr>#{/if}
+	#{if occurrence.kingdom}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#kingdom">&{'kingdom'}</a></th><td>${occurrence.kingdom}</td></tr>#{/if}
+	#{if occurrence.phylum}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#phylum">&{'phylum'}</a></th><td>${occurrence.phylum}</td></tr>#{/if}
+	#{if occurrence.classs}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#class">&{'class'}</a></th><td>${occurrence.classs}</td></tr>#{/if}
+	#{if occurrence.orderr}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#order">&{'order'}</a></th><td>${occurrence.orderr}</td></tr>#{/if}
+	#{if occurrence.family}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#family">&{'family'}</a></th><td>${occurrence.family}</td></tr>#{/if}
+	#{if occurrence.genus}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#genus">&{'genus'}</a></th><td>${occurrence.genus}</td></tr>#{/if}
+	#{if occurrence.subgenus}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#subgenus">&{'subgenus'}</a></th><td>${occurrence.subgenus}</td></tr>#{/if}
+	#{if occurrence.specificEpithet}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#specificEpithet">&{'specificEpithet'}</a></th><td>${occurrence.specificEpithet}</td></tr>#{/if}
+	#{if occurrence.infraSpecificEpithet}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#infraSpecificEpithet">&{'infraSpecificEpithet'}</a></th><td>${occurrence.infraSpecificEpithet}</td></tr>#{/if}
+	#{if occurrence.taxonRank}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#taxonRank">&{'taxonRank'}</a></th><td>${occurrence.taxonRank}</td></tr>#{/if}
+	#{if occurrence.verbatimTaxonRank}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#verbatimTaxonRank">&{'verbatimTaxonRank'}</a></th><td>${occurrence.verbatimTaxonRank}</td></tr>#{/if}
+	#{if occurrence.scientificNameAuthorship}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#scientificNameAuthorship">&{'scientificNameAuthorship'}</a></th><td>${occurrence.scientificNameAuthorship}</td></tr>#{/if}
+	#{if occurrence.vernacularName}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#vernacularName">&{'vernacularName'}</a></th><td>${occurrence.vernacularName}</td></tr>#{/if}
+	#{if occurrence.nomenclaturalCode}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#nomenclaturalCode">&{'nomenclaturalCode'}</a></th><td>${occurrence.nomenclaturalCode}</td></tr>#{/if}
+	#{if occurrence.taxonomicStatus}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#taxonomicStatus">&{'taxonomicStatus'}</a></th><td>${occurrence.taxonomicStatus}</td></tr>#{/if}
+	#{if occurrence.taxonRemarks}<tr><th><a href="http://darwincore.googlecode.com/svn/trunk/terms/index.htm#taxonRemarks">&{'taxonRemarks'}</a></th><td>${occurrence.taxonRemarks}</td></tr>#{/if}
+	#{if occurrence.taxonStatus}<tr><th>&{'taxonStatus'}</th><td>${occurrence.taxonStatus}</td></tr>#{/if}
+    #{if occurrence.ecatConceptId}<tr><th>&{'ecatConceptId'}</a></th><td> ${occurrence.ecatConceptId}</td></tr>#{/if}  
+    #{if occurrence.ecatParentId}<tr><th>&{'ecatParentId'}</a></th><td> ${occurrence.ecatParentId}</td></tr>#{/if}
+          
+    </tbody>
+    </table>  
+  </div>
+  #{/if}

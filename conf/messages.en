@@ -1,5 +1,5 @@
-# You can specialize this file for each language.
-# For example, for French create a messages.fr file
+#You canspecialize this file for each language.
+#For example,for French create a messages.fr file
 #
 taxon=Taxon
 taxa=Taxa
@@ -13,5 +13,200 @@ rank=Rank
 name=Name
 type=Type
 country=Country
-noResults=No results
+noResults=Noresults
 info_bar=Click a button to add a filter, double-click a filter to remove it
+
+
+#*********************************main.html*************************************
+backToTop=Back to top
+aboutGBIF=About GBIF France
+
+#*********************************Taxas/show.html*************************************
+eolInformation=Encyclopedia Of Life Information
+fullentry=View full entry
+
+#*********************************Search/occurrences.html*************************************
+firstResults=first results for a total of 
+for=for
+results=results
+frequentDates=Most frequent dates
+frequentDatasets=Most frequent datasets
+frequentTaxa=Most frequent taxa
+download=Download it!
+showlist=Show as list
+next=Next
+yourSearch=Your search
+
+
+#*********************************Occurrences/show.html*************************************
+occurrenceID=Occurrence ID
+catalogNumber=Catalog number
+occurrenceRemarks=Occurrence remarks
+recordNumber=Record number
+recordedBy=Recorded by
+individualID=Individual ID
+individualCount=Individual Count
+sex=Sex
+lifeStage=Life stage
+reproductiveCondition=Reproductive condition
+behavior=Behavior
+establishmentMeans=Establishment means
+occurrenceStatus=Occurrence status
+preparations=Preparations
+disposition=Disposition
+otherCatalogNumbers=Other catalog numbers
+previousIdentifications=Previous identifications
+associatedMedia=Associated media
+associatedReferences=Associated references
+associatedOccurrences=Associated occurrences
+associatedSequences=Associated sequences
+associatedTaxa=Associated taxa
+
+typee=Basis of record
+modified=Modified
+language=Language
+rights=Rights
+rightsHolder=Rights holder
+accessRights=Access rights
+bibliographicCitation=Bibliographic citation
+referencess=References
+institutionID=Institution ID
+collectionID=Collection ID
+datasetID=Dataset ID
+institutionCode=Institution code
+collectionCode=Collection code
+datasetName=Dataset name
+ownerInstitutionCode=Owner institution code
+informationWithheld=Information with held
+dataGeneralizations=Data generalizations
+dynamicProperties=Dynamic properties
+
+taxonID=Taxon ID
+scientificNameID=Scientific name ID
+acceptedNameUsageID=Accepted name usage ID
+parentNameUsageID=Parent name usageID
+originalNameUsageID=Original name usage ID
+nameAccordingToID=Name according to ID
+namePublishedInID=Name published in ID
+taxonConceptID=Taxon concept ID
+scientificName=Scientific name
+acceptedNameUsage=Accepted name usage
+parentNameUsage=Parent name usage
+originalNameUsage=Original name usage
+nameAccordingTo=Name according to
+namePublishedIn=Name published in
+namePublishedInYear=Name published in year
+higherClassification=Higher classification
+kingdom=Kingdom
+phylum=Phylum
+class=Class
+order=Order
+family=Family
+genus=Genus
+subgenus=Sub genus
+specificEpithet=Specific epithet
+infraSpecificEpithet=Infra specific epithet
+taxonRank=Taxon rank
+verbatimTaxonRank=Verbatim taxon rank
+scientificNameAuthorship=Scientific name authorship
+vernacularName=Vernacular name
+nomenclaturalCode=Nomenclatural code
+taxonomicStatus=Taxonomic status
+nomenclaturalStatus=Nomenclatural status
+taxonRemarks=Taxon remarks
+taxonStatus=Taxon status
+ecatConceptId=Ecat concept ID
+ecatParentId=Ecat parent ID
+
+identificationID=Identification ID
+identifiedBy=Identified by
+dateIdentified=Date identified
+identificationVerificationStatus=Identification verification status
+identificationRemarks=Identification remarks
+identificationQualifier=Identification qualifier
+
+eventID=Event ID
+samplingProtocol=Sampling protocol
+samplingEffort=Sampling effort
+eventDate=Event date
+eventTime=Event time
+startDayOfYear=Start day of year
+endDayOfYear=End day of year
+year=Year
+month=Month
+day=Day
+verbatimEventDate=Verbatim event date
+habitat=Habitat
+fieldNumber=Field number
+fieldsNotes=Fields notes
+eventRemarks=Event remarks
+typeStatus=Type Status
+
+locationID=Location ID
+higherGeographyID=Higher geography ID
+higherGeography=Higher geography
+continent=Continent
+waterBody=Water body
+islandGroup=Island group
+island=Island
+country=Country
+countryCode=Country code
+stateProvince=State province
+county=County
+municipality=Municipality
+locality=Locality
+verbatimLocality=Verbatim locality
+verbatimElevation=Verbatim elevation
+minimumElevationInMeters=Minimum elevation in meters
+maximumElevationInMeters=Maximum elevation in meters
+verbatimDepth=Verbatim depth
+minimumDepthInMeters=Minimum depth in meters
+maximumDepthInMeters=Maximum depth in meters
+minimumDistanceAboveSurfaceInMeters=Minimum distance above surface in meters
+maximumDistanceAboveSurfaceInMeters=Maximum distance above surface in meters
+locationAccordingTo=Location according to
+locationRemarks=Location remarks
+verbatimCoordinates=Verbatim coordinates
+verbatimLatitude=Verbatim latitude
+verbatimLongitude=Verbatim longitude
+verbatimCoordinateSystem=Verbatim coordinate system
+verbatimSRS=Verbatim SRS
+decimalLatitude=Decimal latitude
+decimalLongitude=Decimal longitude
+geodeticDatum=Geodetic datum
+coordinateUncertaintyInMeters=Coordinate uncertainty in meters
+coordinatePrecision=Coordinate precision
+pointRadiusSpatialFit=Point radius spatial fit
+footprintWKT=Footprint WKT
+footprintSRS=Footprint SRS
+footprintSpatialFit=Footprint spatial fit
+georeferencedBy=Georeferenced by
+georeferencedDate=Georeferenced date
+georeferenceProtocol=Georeference protocol
+georeferenceSources=Georeference sources
+georeferenceVerificationStatus=Georeference verification status
+georeferenceRemarks=Georeference remarks
+
+geologicalContextID=Geological context ID
+earliestEonOrLowestEonothem=Earliest eon Or lowest eonothem
+latestEonOrHighestEonothem=Latest eon or highest eonothem
+earliestEraOrLowestErathem=Earliest era or lowest erathem
+latestEraOrHighestErathem=Latest era or highest erathem
+earliestPeriodOrLowestSystem=Earliest period or lowest system
+latestPeriodOrHighestSystem=Latest period or highest system
+earliestEpochOrLowestSeries=Earliest epoch or lowest series
+latestEpochOrHighestSeries=Latest epoch or highest series
+earliestAgeOrLowestStage=Earliest age or lowest stage
+latestAgeOrHighestStage=Latest age or highest stage
+lowestBiostratigraphicZone=Lowest biostratigraphic zone
+highestBiostratigraphicZone=Highest biostratigraphic zone
+lithostratigraphicTerms=Lithostratigraphic terms
+group=Group
+formation=Formation
+member=Member
+bed=Bed
+
+
+interpretedAs=interpreted as
+
+
