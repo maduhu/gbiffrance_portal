@@ -1,5 +1,6 @@
 package controllers;
 
+import play.data.validation.Match;
 import play.libs.WS;
 import play.libs.WS.HttpResponse;
 import play.mvc.*;
@@ -34,17 +35,27 @@ import models.Util;
 public class Application extends Controller {
 
   public static void search(String searchTaxa, String searchPlace, String searchCoordinates, 
-	  						String searchDataset, String searchDate)
+	  						String searchDataset, 
+	  						@Match("^([0-9][0-9][0-9][0-9])(-[0-9][0-9][0-9][0-9])?") String searchDate)
   {
 	searchTaxa = Util.normalize(searchTaxa);
 	searchPlace = Util.normalize(searchPlace);
 	searchDataset = Util.normalize(searchDataset);
 	searchDate = Util.normalize(searchDate);
+	
 	Search search = new Search();
 	search.placeText = searchPlace;
 	search.taxaText = searchTaxa;
 	search.dataset = searchDataset;
-	search.dateText = searchDate;
+	if (validation.hasError("searchDate")) 
+	{
+		flash("errorDate", null);
+		search.dateText = "";
+	}
+	else 
+	{
+		search.dateText = searchDate;
+	}
 	search.onlyWithCoordinates = Boolean.parseBoolean(searchCoordinates);
 	render("Application/Search/search.html", search);
   }

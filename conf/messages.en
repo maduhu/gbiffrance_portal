@@ -21,9 +21,17 @@ info_bar=Click a button to add a filter, double-click a filter to remove it
 backToTop=Back to top
 aboutGBIF=About GBIF France
 
+
+
+
 #*********************************Taxas/show.html*************************************
 eolInformation=Encyclopedia Of Life Information
 fullentry=View full entry
+
+
+#*********************************Search/search.html*************************************
+dateError=Date is invalid, the search will not take into account the filter
+
 
 #*********************************Search/occurrences.html*************************************
 firstResults=first results for a total of 
