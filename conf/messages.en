@@ -17,10 +17,6 @@ noResults=Noresults
 info_bar=Click a button to add a filter, double-click a filter to remove it
 
 
-
-
-
-
 #*********************************main.html*************************************
 backToTop=Back to top
 aboutGBIF=About GBIF France
@@ -28,12 +24,6 @@ aboutGBIF=About GBIF France
 #*********************************Taxas/show.html*************************************
 eolInformation=Encyclopedia Of Life Information
 fullentry=View full entry
-
-
-#*********************************Search/search.html*************************************
-dateError=Invalid date format, the filter is not taken into account in your search
-
-
 
 #*********************************Search/occurrences.html*************************************
 firstResults=first results for a total of 

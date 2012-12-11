@@ -36,7 +36,7 @@ function show_hide (elem,graph_name,list_name)
     <h3>Occurrences</h3>
     <!-- Pagination -->
     #{if occurrencesTotalPages == 100}<i>${pagesize*occurrencesTotalPages} &{'firstResults'} ${nbHits} occurrences</i>#{/if}
-    #{else}Page ${current} &{'for'} ${nbHits} &{'results'}#{/else}
+    #{else}Page ${current} &{'for'} ${nbHits} {'results'}#{/else}
     #{if nbHits <= 5000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates, 'DIRECT')}">&{'download'}</a>#{/if}
     #{elseif nbHits <= 300000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates)}">&{'download'}</a>#{/elseif}
     <br/>
