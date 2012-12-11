@@ -1,14 +1,47 @@
 #{extends 'main.html' /}
 #{set title:'Home' /}
-<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}">
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}"/>
       
       <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
+ <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+ <script src="@{'/public/javascripts/bootstrap-notify.js'}"></script>
+<script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
+<script src="@{'/public/javascripts/jquery.xcolor-1.js'}"></script>
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/tipsy.css'}"></link>
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/bootstrap-notify.css'}"></link>
+  <script src="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/wax/dist/wax.leaf.min.js"></script>
+<style type="text/css">
+.selected
+{
+  color: #C60F0F;
+  font-weight: bold;
+}
+        path  {
+            
+             stroke-width: 1px;
+            stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
 
-  <script src="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/wax/dist/wax.leaf.min.js">
-  </script>
+  #map_tooltip
+  {
+width:auto;position:relative;z-index:50;background:#DDDDDD; color:#6053;font-size: 1.1em;  
+max-height:50px;
+ -webkit-transition:opacity .5s;
+  -moz-transition:opacity .5s;
+  box-shadow:0px 0px 10px #5CACEE;
+  -moz-box-shadow:0px 0px 10px #5CACEE;
+  -webkit-box-shadow:0px 0px 10px #5CACEE; border:2px solid #5CACEE;
+  border-radius:2px;
+
+}
+</style>
+
 <script type="text/javascript">
  
 $(document).ready(function() {
+
+
 
 dataset='${occurrence.dataset.id}';
 
@@ -16,14 +49,20 @@ dataset_name='${occurrence.datasetName}';
 
 lat=${occurrence.decimalLatitude};
 lng=${occurrence.decimalLongitude};
+
+
+
 taxa='${occurrence.scientificName}';
 
-var kingdom='${occurrence.kingdom_interpreted}'
-var phylum='${occurrence.phylum_interpreted}' 
-var classs='${occurrence.classs_interpreted}'
-var order='${occurrence.orderr_interpreted}'
-var family='${occurrence.family_interpreted}' 
-genus='${occurrence.genus_interpreted}' 
+var datapublisher_name='${occurrence.dataset.dataPublisher.name}'
+
+var scientificname_taxa='${taxa.canonicalSpecies}';
+var kingdom_taxa='${taxa.canonicalKingdom}'
+var phylum_taxa='${taxa.canonicalPhylum}' 
+var classs_taxa='${taxa.canonicalClass}'
+var order_taxa='${taxa.canonicalOrder}'
+var family_taxa='${taxa.canonicalFamily}' 
+genus_taxa='${taxa.canonicalGenus}' 
 
 var specificEpithet='${specificEpithet_interpreted}'
 
@@ -43,6 +82,219 @@ var to_plot='scientificname';
 
 map.setView(latlng, 6); 
 map.addLayer(new L.Marker(latlng)); 
+
+function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+    return [point.x, point.y];
+  }
+
+var path = d3.geo.path().projection(function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+
+    return [point.x, point.y];
+  });
+
+window.pol_degree==5 
+  zoom_level='five_degrees'; 
+var o_colors=['gold','lime','orange','orangered','royalblue','blue','gold','lightseagreen','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue',]
+var ramp_colors=new Array();
+var colors=['blue','gold','lightseagreen','lime','orange','orangered','royalblue','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue','red']
+var taxa,datapublisher;
+for (i=0;i<o_colors.length-1;i++)
+{
+var new_colors=$.xcolor.analogous(o_colors[i],6,20);
+
+colors[i]=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors[i].push(this_color)
+}
+
+ramp_colors.push(colors[i])
+}
+var num_plotted_taxa=0;
+var plotted_taxa=[]
+
+ map._initPathRoot() 
+
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
+
+paths_taxa={};
+var paths={};
+
+function reset() {
+    
+
+   
+  for (zoom_level in paths)
+{
+paths[zoom_level].forEach(function (d)
+      {        
+        d.attr("d",path)      
+      })
+
+  
+
+    }
+    } 
+  map.on("viewreset", reset)
+
+
+function generate_paths (features,zoom_level,options)
+   {
+
+   
+   if (typeof paths_taxa[zoom_level]=='undefined') paths_taxa[zoom_level]=[]
+ else
+   $('path').remove()
+  bounds = d3.geo.bounds(features)
+  var opacityScale = d3.scale.linear()
+                     .domain([d3.min(features, function(d) { return d.properties.count; }), d3.max(features, function(d) { return d.properties.count; })])
+                     .range([0.4, 1]);  
+  var count_extent = d3.extent(features, function(d){return d.properties.count});
+
+  var ramp =d3.scale.linear().domain(count_extent).range(ramp_colors[num_plotted_taxa]);
+  var this_path='path.'+zoom_level
+  
+   var  path_feature = g.selectAll(this_path).attr('centroid',function (d) {return d.centroid})
+    .data(features,function (d)
+    {
+      var centroid=d.centroid;
+      return d.centroid;
+    })
+  path_feature.enter().append("path").attr("d", path).attr('class',zoom_level).attr('opacity',0.7).attr('fill',function (d)
+  {
+    return ramp(d.properties.count);
+  })
+
+  if (typeof paths[zoom_level]=='undefined') paths[zoom_level]=[]
+
+//if (typeof paths[zoom_level][taxa]=='undefined') paths[zoom_level][taxa]=[]
+    paths[zoom_level].push(path_feature); 
+
+    $('path').tipsy({ 
+                              delayIn: 500, 
+                              fade: true, 
+                           
+                              gravity: 'w', 
+                               offset: 0, 
+                               opacity:1,
+                              html: true, 
+                              title: function() {
+                                 var d = this.__data__;
+                                // alert(d)
+                                 var text=d.properties.count+' occurrences of taxa <b>'+options.taxa+'</b> in this area'
+                                return text;
+                              }
+                              })
+  }
+
+function get_polygons(options)
+{
+
+$.ajax({
+  url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_cluster_simple6.php',
+  data: options,
+
+  type: 'GET',
+    dataType: "jsonp", 
+    crossDomain : true,
+  success: function(data, textStatus, xhr) {
+     features=data.features;
+     zoom_level='five_degrees'; 
+   generate_paths(features, zoom_level,options)  
+   var current_zoom=map.getZoom()
+
+   $('#map_tooltip').html('<b>'+data.total+'</b> occurrences of taxa <b>'+data.taxa+'</b> in '+datapublisher_name+' distributed in <b>'+data.num_clusters+'</b> polygons<br> <span style="color:#D1CB43;font-weight:bold">Minimum</span> '+data.min+'   <span style="color:#E66741;font-weight:bold">Maximum</span> '+data.max).fadeIn('slow')
+
+},
+ error: function (request, status, error) {
+  alert(error)
+    }
+});
+
+} 
+
+      $('#map_it div').click(function ()
+      {
+
+        var cell=$('#degree_cell option:selected').val();
+      switch (this.id)
+        {
+
+          case 'polygon_specie':
+      
+      var options={'taxa':scientificname_taxa,'type':'scientificname','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell};
+      
+           break;
+      case 'polygon_genus':
+      
+      var options={'taxa':genus_taxa,'type':'genus','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell};
+      break;
+       case 'polygon_phylum':
+      
+      var options={'taxa':phylum_taxa,'type':'phylum','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
+
+      case 'polygon_classs':
+      
+      var options={'taxa':classs_taxa,'type':'classs','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
+
+      case 'polygon_kingdom':
+      
+      var options={'taxa':kingdom_taxa,'type':'kingdom','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
+
+      
+    
+      
+      }
+
+      get_polygons(options)
+
+      $('#map_it div.selected').removeClass('selected')
+
+      $(this).addClass('selected');
+    })
+$('#map_it div').tipsy({
+  delayIn: 500, 
+                              fade: true, 
+                           
+                              gravity: 'n', 
+                               offset: 0, 
+                               opacity:0.7,
+                              html: true, 
+                              
+
+  title: function ()
+  {
+  var text='Visualize spatial distribution of '
+   switch (this.id)
+   {
+   case 'polygon_specie': 
+   text+=' Specie <b>'+scientificname_taxa+'</b>'
+   break;
+
+   case 'polygon_genus': 
+   text+=' Genus <b>'+genus_taxa+'</b>'
+   break;
+
+      case 'polygon_phylum': 
+   text+=' Phylum <b>'+phylum_taxa+'</b>'
+   break;
+
+         case 'polygon_class': 
+   text+=' Class <b>'+classs_taxa+'</b>'
+   break;
+
+            case 'polygon_kingdom': 
+   text+=' Kingdom <b>'+kingdom_taxa+'</b>'
+   break;
+ }
+ return text+' in '+datapublisher_name
+  }
+})
 
 });
 </script>
@@ -85,13 +337,37 @@ map.addLayer(new L.Marker(latlng));
   #{/else}
   </div> 
   #{if occurrence.decimalLatitude && occurrence.decimalLongitude}
-    <div id='map' style='display:none;width:70%px;height:300px'></div> 
+   <div id='map_container'>
+    <div id='map' style='display:none;width:70%px;height:300px'>
+      
+    
+    </div> 
+     <div id='map_tooltip' style='display:none'></div>
+
+   
+    </div> 
+
+
       <!-- to extend to all taxa levels, this is just for testing   -->
-   <!-- <div style="margin:10px;">
-      <button id='geo_genus'>All occurrences for Specie</button>
-      <button id='polygon_genus'>All polygon for Specie</button>
-    </div>  
-    -->
+
+<div class="btn-group" id="map_it">   
+          <div class="btn btn-new btn-tiny" id='polygon_specie'>Specie distribution</div>
+            <div class="btn btn-new btn-tiny" id='polygon_genus'>Genus distribution</div>
+            <div class="btn btn-new btn-tiny" id='polygon_phylum'>Phylum distribution</div>
+            <div class="btn btn-new btn-tiny" id='polygon_class'>Classs distribution</div>
+            <div class="btn btn-new btn-tiny" id='polygon_kingdom'>Kingdom distribution</div>
+
+<label for="degree_cell" style='width:450px;padding-top:40px'>Select degree cell size to calculate spatial distribution</label>            
+<select  id="degree_cell">
+  <option value="0.2">0.2</option>
+  <option default value="0.5">0.5</option>
+  <option value="1">1</option>
+  <option value="3">3</option>
+  <option value="5">5</option>
+</select>
+
+   </div>  
+ 
   #{/if}
   #{if occurrence.occurrenceID || 
 	   occurrence.catalogNumber || 
