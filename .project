@@ -15,16 +15,7 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.playframework.playclipse.playNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>morphia-1.2.6a</name>
-			<type>2</type>
-			<location>/opt/play/modules/morphia-1.2.6a/app</location>
-		</link>
-		<link>
-			<name>conf/morphia-1.2.6a</name>
-			<type>2</type>
-			<location>/opt/play/modules/morphia-1.2.6a/conf</location>
-		</link>
-	</linkedResources>
+	<linkedResources><link><name>morphia-1.2.6a</name><type>2</type><location>/home/michael/Dropbox/gbif-workspace/git/gbiffrance-portal/modules/morphia-1.2.6a/app</location></link>
+<link><name>conf/morphia-1.2.6a</name><type>2</type><location>/home/michael/Dropbox/gbif-workspace/git/gbiffrance-portal/modules/morphia-1.2.6a/conf</location></link>
+</linkedResources>
 </projectDescription>

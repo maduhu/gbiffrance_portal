@@ -63,11 +63,14 @@ var drawControl = new L.Control.Draw({
       }
     });
     map.addControl(drawControl);
+
+    $input_place=$('#input-search-place')
     $('.leaflet-control-draw-circle,.leaflet-control-draw-polygon,.leaflet-control-draw-marker,.leaflet-control-draw-polyline').hide()
 
     $('.leaflet-control-draw-rectangle').tipsy({ 
                               delayIn: 500, 
                               fade: true, 
+                              live:true,
                               gravity: 'w', 
                               opacity:1,
                                offset: 0, 
@@ -82,13 +85,43 @@ var drawControl = new L.Control.Draw({
     map.on('draw:poly-created', function (e) {
       drawnItems.addLayer(e.poly);
     });
+
+        window.rect_bbox={};
+
     map.on('draw:rectangle-created', function (e) {
       drawnItems.addLayer(e.rect);
+      var rect_id=e.rect._leaflet_id;
       e.rect.type='rect';
-      window.rect_bbox={};
-      var bbox = $('#input-search-place').val() + '[' + e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng + '];';
-      $('#input-search-place').val(bbox);
+  
+        rect_bbox[rect_id]='['+e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng+'];'; 
       
+      var bbox = $('#input-search-place').val() + '[' + e.rect._latlngs[0].lat + ',' + e.rect._latlngs[0].lng + ',' + e.rect._latlngs[2].lat + ',' + e.rect._latlngs[2].lng + '];';
+
+      if (!$('#search-place').is(':visible')) 
+      {
+      $('#search-place').show();
+
+    }
+
+      $input_place.val(bbox.toString()); //to add final ";" 
+
+      var rect=e.rect
+
+      $(rect._path).tipsy({ 
+                              delayIn: 500, 
+                              
+                              fade: true, 
+                              gravity: 'w', 
+                              opacity:1,
+                               offset: 0, 
+                               delayOut: 3000,
+                              html: true, 
+                              title: function() {
+                              var text='<div id="'+rect_id+'_bbox" class="remove_bbox">Remove it</div>';
+                              return text;                                                              
+                            }
+                          })
+      //$(e.rect._path).fadeOut('slow')
     
 
     });
@@ -99,6 +132,49 @@ var drawControl = new L.Control.Draw({
       drawnItems.addLayer(e.marker);
     });
     map.addLayer(drawnItems);
+
+    $('.remove_bbox').live('click',function()
+{
+  var this_id=this.id.split('_')[0]
+
+for(index in map._layers)
+{
+if (this_id==index)
+{
+  var the_layer=map._layers[this_id]
+  map.removeLayer(the_layer)
+}
+  
+}
+     delete(rect_bbox[this_id])
+     var bbox_string=''
+     for (index in rect_bbox)
+     {
+      bbox_string+=rect_bbox[index].toString();
+
+     }
+    var current_text=$('#input-search-place').val().split(';')
+
+    var new_text=''
+      for (index in current_text)
+      {
+console.info(current_text[index])
+      if (!current_text[index]=='') //dealing with possible ; at the end of string
+      {
+      var this_indexof=current_text[index].indexOf('[')
+        if (this_indexof==-1)  //dealing with place names
+        {
+         new_text+=current_text[index]+';';
+        }
+        }
+      }
+ 
+     $('#input-search-place').val(new_text+bbox_string);
+
+     
+})
+
+ 
 
 map.setView(new L.LatLng(47.0701,2.6147),5);
 
