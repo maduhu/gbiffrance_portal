@@ -54,7 +54,13 @@ lng=${occurrence.decimalLongitude};
 
 taxa='${occurrence.scientificName}';
 
-var datapublisher_name="${occurrence.dataset.dataPublisher.name}"
+var datapublisher_id='${occurrence.dataset.dataPublisher.id}'
+var dataset_id='${occurrence.dataset.id}'
+
+var datapublisher_name='${occurrence.dataset.dataPublisher.name}'
+
+var datapublisher_code='${occurrence.ownerInstitutionCode}'
+
 
 var scientificname_taxa='${taxa.canonicalSpecies}';
 var kingdom_taxa='${taxa.canonicalKingdom}'
@@ -62,6 +68,8 @@ var phylum_taxa='${taxa.canonicalPhylum}'
 var classs_taxa='${taxa.canonicalClass}'
 var order_taxa='${taxa.canonicalOrder}'
 var family_taxa='${taxa.canonicalFamily}' 
+
+
 genus_taxa='${taxa.canonicalGenus}' 
 
 var specificEpithet='${specificEpithet_interpreted}'
@@ -194,7 +202,7 @@ function generate_paths (features,zoom_level,options)
 
 function get_polygons(options)
 {
-
+$('#ajax_image').show()
 $.ajax({
   url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_cluster_simple6.php',
   data: options,
@@ -209,6 +217,8 @@ $.ajax({
    var current_zoom=map.getZoom()
 
    $('#map_tooltip').html('<b>'+data.total+'</b> occurrences of taxa <b>'+data.taxa+'</b> in '+datapublisher_name+' distributed in <b>'+data.num_clusters+'</b> polygons<br> <span style="color:#D1CB43;font-weight:bold">Minimum</span> '+data.min+'   <span style="color:#E66741;font-weight:bold">Maximum</span> '+data.max).fadeIn('slow')
+
+   $('#ajax_image').hide()
 
 },
  error: function (request, status, error) {
@@ -227,24 +237,24 @@ $.ajax({
 
           case 'polygon_specie':
       
-      var options={'taxa':scientificname_taxa,'type':'scientificname','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell};
+      var options={'taxa':scientificname_taxa,'type':'scientificname','data_id':datapublisher_id,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell};
       
            break;
       case 'polygon_genus':
       
-      var options={'taxa':genus_taxa,'type':'genus','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell};
+      var options={'taxa':genus_taxa,'type':'genus','data_id':datapublisher_id,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell};
       break;
        case 'polygon_phylum':
       
-      var options={'taxa':phylum_taxa,'type':'phylum','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
+      var options={'taxa':phylum_taxa,'type':'phylum','data_id':datapublisher_id,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
 
       case 'polygon_class':
       
-      var options={'taxa':classs_taxa,'type':'class','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
+      var options={'taxa':classs_taxa,'type':'class','data_id':datapublisher_id,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
 
       case 'polygon_kingdom':
       
-      var options={'taxa':kingdom_taxa,'type':'kingdom','data_id':2,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
+      var options={'taxa':kingdom_taxa,'type':'kingdom','data_id':datapublisher_id,'req_type':'polygon','zoom':5,'data_type':'datapublisher','degree':cell}; break;
 
       
       }
@@ -294,6 +304,12 @@ $('#map_it div').tipsy({
   }
 })
 
+
+var ajax_x=$('#map').width()/2
+var ajax_y=$('#map').height()/2
+
+$('#map_container').append('<img id="ajax_image" style="display:none;position:relative;width:50px;height:50px;left:'+ajax_x+'px;top:-'+ajax_y+'px" src="../../../public/images/spinner3-greenie.gif"/>')
+//.css({'margin-left':ajax_x,'margin-top':ajax_y})
 });
 </script>
 <div class="container">
