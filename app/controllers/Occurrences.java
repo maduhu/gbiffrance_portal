@@ -90,8 +90,10 @@ import models.*;
 public class Occurrences extends Controller {
 
   
-  //public static int pagesize = 50;
-  
+  /**
+   * Set up the connection to the ElasticSearch cluster	
+   * @return ElasticSearch client connection
+   */
   public static Client setESClient()
   {
 	/*** ElasticSearch configuration ***/
@@ -100,10 +102,19 @@ public class Occurrences extends Controller {
 
 	Client client = new TransportClient(settings)
 		.addTransportAddress(new InetSocketTransportAddress(Play.configuration.getProperty("elasticsearch.server"), Integer.parseInt(Play.configuration.getProperty("elasticsearch.server.port"))));
-	System.out.println(client.toString());
+	Logger.info("Elasticsearch connection: "+ client.toString());
 	return client;
   }
 
+  /**
+   * Builds a request from a given search
+   * @param client
+   * @param search
+   * @param pagesize
+   * @param from
+   * @param withFacets
+   * @return ElasticSearch request
+   */
   public static SearchRequestBuilder buildRequest(Client client, Search search, Integer pagesize, Integer from, boolean withFacets)
   {
 	
@@ -289,13 +300,22 @@ public class Occurrences extends Controller {
 	  }
 		
 		
-	  System.out.println(searchRequest);
+	  Logger.info("Search request: " + searchRequest);
 	  return searchRequest;
 	}
 	else return null;
 	
   }
 
+  /**
+   * Renders the occurrences search results
+   * @param taxaSearch
+   * @param placeSearch
+   * @param datasetSearch
+   * @param dateSearch
+   * @param onlyWithCoordinates
+   * @param from
+   */
   public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) 
   {   
 	int pagesize = 100;
@@ -449,6 +469,11 @@ public class Occurrences extends Controller {
 	
   }
   
+  
+  /**
+   * Renders the information of one occurrence according to its id
+   * @param id
+   */
   public static void show(Integer id) {
 	Client client = setESClient();
 	QueryBuilder q = termQuery("_id", id);
@@ -635,7 +660,17 @@ public class Occurrences extends Controller {
 	render(occurrence, taxa);
   } 
 
-  
+  /**
+   * Creates a CSV file corresponding to the user request 
+   * @param taxaSearch
+   * @param placeSearch
+   * @param datasetSearch
+   * @param dateSearch
+   * @param onlyWithCoordinates
+   * @param link
+   * @return
+   * @throws IOException
+   */
   public static boolean createCSV(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, String link) throws IOException
   {
 	int pagesize = 500;
@@ -643,8 +678,6 @@ public class Occurrences extends Controller {
 	  Client client = setESClient();
 	  Search search = Search.parser(taxaSearch, placeSearch, datasetSearch,
 		  dateSearch, onlyWithCoordinates);
-	  // SearchRequestBuilder searchRequest = buildRequest(client, search,
-	  // pagesize, 0, true);
 
 	  SearchResponse response;
 	  List<Occurrence> occurrences = new ArrayList<Occurrence>();
@@ -1254,7 +1287,17 @@ public class Occurrences extends Controller {
 	  return true;
   }
   
-  /*** TODO: envoi de mail, zip, clean du dossier ***/
+  /**
+   * Renders the download page
+   * @param taxaSearch
+   * @param placeSearch
+   * @param datasetSearch
+   * @param dateSearch
+   * @param onlyWithCoordinates
+   * @param mode
+   * @param email
+   * @throws IOException
+   */
   public static void download(String taxaSearch, String placeSearch,
 	  String datasetSearch, String dateSearch, boolean onlyWithCoordinates,
 	  String mode, String email) throws IOException 
@@ -1284,6 +1327,11 @@ public class Occurrences extends Controller {
 	}
   }
   
+  /**
+   * Creates a thread to download a big amount of data
+   * @author michael
+   *
+   */
   public static class DownloadThread extends Thread
   {
     String taxaSearch;
@@ -1316,7 +1364,7 @@ public class Occurrences extends Controller {
 	   }
 	   catch (IOException e)
 	   {
-		 System.out.println("Error during the csv file creation: " + e.getMessage());
+		 Logger.error("Error during the csv file creation", e.getMessage());
 	   }  
 	   Properties props = new Properties();
 	   props.put("mail.smtp.host", Play.configuration.getProperty("mail.smtp.host"));
@@ -1339,9 +1387,9 @@ public class Occurrences extends Controller {
 	        msg.setSentDate(new Date());
 	        msg.setText("Your data are ready to be downloaded. Here is the link: " + serverLink);
 	        Transport.send(msg);
-	        System.out.println("Email has been sent");
+	        Logger.info("Email has been sent");
 	    } catch (MessagingException mex) {
-	        System.out.println("send failed, exception: " + mex);
+	        Logger.error("send failed, exception: " + mex);
 	    }
 	 }
   }

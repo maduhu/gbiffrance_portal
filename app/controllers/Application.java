@@ -34,7 +34,15 @@ import models.Util;
 
 public class Application extends Controller {
 
-  public static void search(String searchTaxa, String searchPlace, String searchCoordinates, 
+    /**
+     * Normalizes the search before creating the corresponding request 
+     * @param searchTaxa
+     * @param searchPlace
+     * @param searchCoordinates
+     * @param searchDataset
+     * @param searchDate
+     */
+	public static void search(String searchTaxa, String searchPlace, String searchCoordinates, 
 	  						String searchDataset, 
 	  						@Match("^([0-9][0-9][0-9][0-9])(-[0-9][0-9][0-9][0-9])?") String searchDate)
   {
@@ -60,6 +68,9 @@ public class Application extends Controller {
 	render("Application/Search/search.html", search);
   }
 
+  /**
+   * Renders the portal home page (Application/index.html)
+   */
   public static void index() {
 	render();
   } 

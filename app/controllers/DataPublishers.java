@@ -32,6 +32,9 @@ import models.*;
 
 public class DataPublishers extends Controller {
 
+  /**
+	* Show datapublisher information (DataPublishers/show.html)
+	*/	
   public static void show(Long id) {
 	DataPublisher dataPublisher = DataPublisher.findById(id);
 	List<Dataset> datasets = Dataset.find("dataPublisher", dataPublisher).asList();

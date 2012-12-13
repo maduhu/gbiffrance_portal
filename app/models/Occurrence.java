@@ -2,11 +2,11 @@ package models;
 
 import java.util.ArrayList;
 
-/*
- * ElasticSearch Collection created after the harvesting process (gbiffrance-harvest)
+/**
+ * The Occurrence class is related to the ElasticSearch collection created after the harvesting process (gbiffrance-harvest)
+ * @author Michael Akbaraly
+ *
  */
-
-
 public class Occurrence
 {
   public Integer id;	
@@ -204,16 +204,21 @@ public class Occurrence
   public String nomenclaturalStatus;
   public String taxonRemarks;
 
-  //Taxonomization
-  public String taxonStatus;
 
-  //Ecat
+  public String taxonStatus;
   public String ecatConceptId;
   public String ecatParentId;
 
-  //Search
+  /**
+   * Hit score get by the occurrence during a search  
+   */
   public float score;
 
+  
+  /**
+   * Related dataset
+   * @see Dataset
+   */
   public Dataset dataset;
 
   public Occurrence(){}

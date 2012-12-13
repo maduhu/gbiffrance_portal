@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="views/**" kind="src" path="app"/>
-	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="src" path="morphia-1.2.6a"/>
-	
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/opt/play/framework/play-1.2.3.jar" sourcepath="/opt/play/framework/src" />
+	<classpathentry kind="lib" path="/opt/play/framework/play-1.2.3.jar" sourcepath="/opt/play/framework/src"/>
 	<classpathentry kind="lib" path="/home/michael/Dropbox/gbif-workspace/git/gbiffrance-portal/lib/lucene-memory-3.5.0.jar"/>
 	<classpathentry kind="lib" path="/home/michael/Dropbox/gbif-workspace/git/gbiffrance-portal/lib/lucene-analyzers-3.5.0.jar"/>
 	<classpathentry kind="lib" path="/home/michael/Dropbox/gbif-workspace/git/gbiffrance-portal/lib/httpclient-4.2.1.jar"/>
@@ -94,6 +92,5 @@
 	<classpathentry kind="lib" path="/opt/play/framework/lib/jj-textile.jar"/>
 	<classpathentry kind="lib" path="/opt/play/framework/lib/jaxen-1.1.jar"/>
 	<classpathentry kind="lib" path="/opt/play/framework/lib/jamon-2.7.jar"/>
-	
 	<classpathentry kind="output" path="eclipse/classes"/>
 </classpath>

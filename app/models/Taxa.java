@@ -3,10 +3,15 @@ package models;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * the Taxa class is used to stored the information coming from the ECAT web service (http://ecat-dev.gbif.org/) and EOL webservice
+ * @author Michael Akbaraly
+ *
+ */
 public class Taxa
 {
 
-  //ECAT Information
   public long taxonId;
   public long parent_id;
 
@@ -52,7 +57,6 @@ public class Taxa
   public String species;
   public String canonicalSpecies;
 
-  //EOL Information
   public long eolID;
   public String description;
   public List<ArrayList<String>> mediaURLs;

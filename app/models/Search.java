@@ -9,24 +9,73 @@ import org.gbif.ecat.parser.NameParser;
 
 import controllers.Places;
 
+/**
+ * The Search class is used to generate a taxe/place/dataset/date search
+ * @author Michael Akbaraly
+ *
+ */
 public class Search
 {
-  public String taxaText; //original query text
+  /**
+   * original taxa query text
+   */
+  public String taxaText;
+  /**
+   * taxa list parsed from textual query
+   */
   public List<String> taxas = new ArrayList<String>();
+
   public String place = "";
+  /**
+   * original place query text
+   */
+  public String placeText;
+  /**
+   * enriched place list parsed from textual query
+   */
   public ArrayList<String> places = new ArrayList<String>();
-  public String placeText; //original query text
+  /**
+   *  place list parsed from textual query
+   */
   public ArrayList<String> placesText = new ArrayList<String>();
+  /**
+   * filter for searching only occurrences with coordinates
+   */
   public boolean onlyWithCoordinates = false;
   public String dataset = "";
+  /***
+   * dataset IDs list
+   */
   public List<Long> datasetsIds = new ArrayList<Long>();
+  /**
+   * bounding boxes list used to delimited the French territories
+   */
   public ArrayList<Float[]> boundingBoxes = new ArrayList<Float[]>();
   public Float[] boundingBox;
+  /**
+   * textual date query
+   */
   public String dateText = "";
+  /**
+   * extracted lowest date range
+   */
   public Integer fromDate;
+  /**
+   * extracted highest date range
+   */
   public Integer toDate;
 
 
+  
+  /***
+   * Uses and enriches the given parameters before sending the request to the search engine
+   * @param searchTaxa
+   * @param searchPlace
+   * @param searchDataset
+   * @param searchDate
+   * @param searchCoordinates
+   * @return search, enriched request to send to the search engine
+   */
   public static Search parser(String searchTaxa, String searchPlace, String searchDataset, String searchDate, boolean searchCoordinates)
   {
 	Search search = new Search();
@@ -76,8 +125,6 @@ public class Search
 		  
 		}
 	  }
-	  System.out.println(search.places.size());
-	   
 	}	
 	/*** Coordinates ***/
 	if (searchCoordinates) search.onlyWithCoordinates = true;
@@ -105,7 +152,9 @@ public class Search
 	return search;  
   }
 
-  /* Extracts bounding box information from the search */
+  /**
+   *  Extracts bounding box information from the search 
+   */
   public static Float[] extractBoundingBox(String place)
   {
 	float boundingBoxSWLatitude = 0;
@@ -120,10 +169,8 @@ public class Search
 		if (splittedEnrichedSearch[i].startsWith("[") && splittedEnrichedSearch[i].endsWith("]"))
 		{
 		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("[\\[,\\]]", " ").trim();
-		  System.out.println(splittedEnrichedSearch[i]);
 		  splittedEnrichedSearch[i] = splittedEnrichedSearch[i].replaceAll("  ", " ");
 		  String[] boundingBox = splittedEnrichedSearch[i].split(" ");
-		  //System.out.println(boundingBox[0] + " " +  boundingBox[1] + " " +boundingBox[2] + " " + boundingBox[3]);
 		  boundingBoxSWLatitude = Float.valueOf(boundingBox[0]);
 		  boundingBoxSWLongitude =  Float.valueOf(boundingBox[1]);
 		  boundingBoxNELatitude =  Float.valueOf(boundingBox[2]);

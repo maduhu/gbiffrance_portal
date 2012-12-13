@@ -13,6 +13,10 @@ import models.*;
 
 public class Places extends Controller {
 
+  /**
+	* Renders the places list corresponding to the search	
+	* @param search
+	*/
   public static void search(String search)
   {
 	String[] splittedSearch = search.split(";");

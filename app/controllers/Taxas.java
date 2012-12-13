@@ -27,7 +27,6 @@ public class Taxas extends Controller {
 	NameParser nameParser = new NameParser();
 	HttpResponse ecatResponse;
 	ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?&pagesize=30&rkey=1&count=true&q=" + search).get();
-	//System.out.println("http://ecat-dev.gbif.org/ws/usage/?rank=g&rkey=1&count=true&q=" + search);
 	if(ecatResponse.success())
 	{
 	  int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
@@ -105,6 +104,12 @@ public class Taxas extends Controller {
 	renderJSON(taxas);
   }
 
+  /**
+   * Retrieve and store EOL web-service information in a given Taxa object
+   * @param taxonId
+   * @param taxa
+   * @return
+   */
   public static Taxa ecatInformation(Long taxonId, Taxa taxa)
   {
 	// ECAT Information  
@@ -178,6 +183,12 @@ public class Taxas extends Controller {
 	return taxa;
   }
 
+  /**
+   *
+   * Retrieve and store EOL web-service information in a given Taxa object
+   * @param taxa
+   * @return
+   */
   public static Taxa eolInformation(Taxa taxa)
   {
 	// EOL Information
@@ -330,7 +341,10 @@ public class Taxas extends Controller {
 
   }
 
-  
+  /**
+   * Renders the taxa list corresponding to the search	
+   * @param search
+   */
   public static void search(String search, int page) 
   {
 	try
@@ -387,6 +401,9 @@ public class Taxas extends Controller {
   }
     
 
+  /**
+	* Show taxa information page (Taxas/show.html)
+	*/
   public static void show(Long taxonId) {
 
 
@@ -397,6 +414,12 @@ public class Taxas extends Controller {
 	render(taxa);
   }
 
+  /**
+   * Renders the children of a taxa depending on a specific rank
+   * @param taxonId
+   * @param rank
+   * @param page
+   */
   public static void showChildren(Long taxonId, String rank, Integer page) { 
 	int pagesize = 50;
 	int totalPages;

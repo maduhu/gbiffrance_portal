@@ -3,9 +3,17 @@ package models;
 import java.text.Normalizer;
 import java.util.regex.Pattern;
 
+/**
+ * The Util class gathers diverse useful methods
+ * @author Michael Akbaraly
+ *
+ */
 public class Util
 {
-  /* Normalize the search by removing special characters */
+  /**
+   * Normalize the search by removing special characters 
+   * @return string without accents
+   */
   public static String normalize(String string)
   {
 	if (string != null)

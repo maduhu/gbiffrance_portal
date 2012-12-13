@@ -33,6 +33,11 @@ import models.Util;
 
 public class Datasets extends Controller {
 
+  
+  /**
+   * Renders the dataset list corresponding to the search	
+   * @param search
+   */
   public static void search(String search) {
 	List<Dataset> datasets = new ArrayList<Dataset>();
 	if (!search.isEmpty())
@@ -44,7 +49,6 @@ public class Datasets extends Controller {
     	  splittedSearch[h] = splittedSearch[h].toLowerCase();
     	  Pattern regex = Pattern.compile("^" + splittedSearch[h]);
     	  datasets.addAll((Collection) Dataset.find("tags", regex).asList());
-    	  //System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
     	  //Removes duplicates
     	  for (int i = 0; i < datasets.size(); ++i)
     		for (int j = i + 1; j < datasets.size(); ++j)
@@ -55,6 +59,10 @@ public class Datasets extends Controller {
 	render("Application/Search/datasets.html", datasets, search);
   }
 
+  /**
+   * Renders a dataset list in JSON format corresponding to a partial search
+   * @param search
+   */
   public static void autocomplete(String search)
   {
 	search = Util.normalize(search);
@@ -62,20 +70,61 @@ public class Datasets extends Controller {
 	List<Dataset> datasets = new ArrayList<Dataset>();	
 	Pattern regex = Pattern.compile("^" + search);
 	datasets.addAll((Collection) Dataset.find("tags", regex).asList());
-	//System.out.println("size" + datasets.size() + " / " + Dataset.find("tags", regex).toString());
 	renderJSON(datasets);
   }
 
+  
+  /**
+ 	* Show dataset information page (Datasets/show.html)
+ 	*/
   public static void show(Long id) {
 	Dataset dataset = Dataset.findById(id);
 	render(dataset);
   } 
 
+  /**
+	* Show dataset edition page (Datasets/show.html)
+	*/
   public static void edit(Long id) {
 	Dataset dataset = Dataset.findById(id);
 	render(dataset);
   }
 
+  /**
+   * Saves in the database the edited dataset information
+   * @param id
+   * @param title
+   * @param description
+   * @param resourceLanguage
+   * @param basisOfRecord
+   * @param resourceContactName
+   * @param resourceContactRole
+   * @param resourceContactAddress
+   * @param resourceContactEmail
+   * @param resourceContactTelephone
+   * @param resourceCreatorName
+   * @param resourceCreatorRole
+   * @param resourceCreatorAddress
+   * @param resourceCreatorEmail
+   * @param resourceCreatorTelephone
+   * @param metadataProviderName
+   * @param metadataProviderRole
+   * @param metadataProviderAddress
+   * @param metadataProviderEmail
+   * @param metadataProviderTelephone
+   * @param geographicCoverageDescription
+   * @param geographicCoverageBoundingCoordinates
+   * @param taxonomicCoverageDescription
+   * @param taxonomicCoverageTaxonList
+   * @param temporalCoverageDate
+   * @param keywords
+   * @param samplingDescription
+   * @param qualityControl
+   * @param resourceCitation
+   * @param homePageLink
+   * @param dwcArchiveLink
+   * @param tags
+   */
   public static void save(@Required Long id, 
 	  @Required String title, 
 	  String description,

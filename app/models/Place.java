@@ -2,46 +2,98 @@ package models;
 
 import java.util.ArrayList;
 
+import play.Logger;
 import play.libs.WS;
 import play.libs.WS.HttpResponse;
 
 import com.google.gson.JsonObject;
 
-/*
- * ElasticSearch Collection created after the harvesting process (gbiffrance-harvest)
+
+
+/**
+ * the Place class is used to stored the information coming from the Yahoo Geo! web service (http://where.yahooapis.com)
+ * @author Michael Akbaraly
+ *
  */
-
-
 public class Place
 {
+  /**
+   * the place ID
+   */
   public int id;
+  /**
+   * the place name
+   */
   public String name;
+  /**
+   * the place name in French
+   */
   public String nameFr;
+  /**
+   * the place name in English
+   */
   public String nameEn;
+  /**
+   * the place name in Spanish
+   */
   public String nameEs;
+  /**
+   * the place name in German
+   */
   public String nameDe;
 
+  /**
+   * the centroid latitude of the place
+   */
   public float centroidLatitude;
+  /**
+   * the centroid longitude of the place
+   */
   public float centroidLongitude;
 
+  /**
+   * the south west bounding box latitude of the place
+   */
   public float boundingBoxSWLatitude;
+  /**
+   * the south west bounding box longitude of the place
+   */
   public float boundingBoxSWLongitude;
+  /**
+   * the north east bounding box latitude of the place
+   */
   public float boundingBoxNELatitude;
+  /**
+   * the north east bounding box longitude of the place
+   */
   public float boundingBoxNELongitude;
-
+  /**
+   * the place type name in French
+   */
   public String placeTypeNameFr;
+  /**
+   * the place type name
+   */
   public String placeTypeName;
+  /**
+   * the place related country
+   */
   public String country;
 
 
 
-  /* Adds places translations to the search ex: search = Pica pica France -> search = Pica pica France France Francia Frankreich*/
+  /**
+   *  Adds places translations to the search ex: search = Pica pica France -> search = Pica pica France France Francia Frankreich
+   *  @param texPlace
+   *  			place or concatenated places list name 
+   *  @return textPlace	enriched String with additional information
+   */
   public static String enrichSearchWithPlaces(String textPlace)
   {	  
 	int count = 0;
 	textPlace = textPlace.replaceAll(" ", "%20");
 
-	//System.out.println("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
+	Logger.info("Yahoo web service request: " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
 	HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 	if (geoResponse.success())
 	{
@@ -51,15 +103,11 @@ public class Place
 	  {  
 		int id = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("woeid").getAsInt();
 		String placeTypeName = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("placeTypeName").getAsString();
-		//if (placeTypeName.equals("Country") || placeTypeName.equals("Colloquial") || placeTypeName.equals("State") || placeTypeName.equals("Region") || placeTypeName.equals("Department") || placeTypeName.equals("Town") || placeTypeName.equals("Overseas Region"))
-		//{
+		
 		HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
 		String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		textPlace += ";" + nameFr;
-		//float centroidLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("latitude").getAsFloat();
-		//float centroidLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("centroid").getAsJsonObject().get("longitude").getAsFloat();
-		//search += " " + centroidLatitude+"#"+centroidLongitude;	
-
+		
 		float boundingBoxSWLatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("southWest").getAsJsonObject().get("latitude").getAsFloat();
 		float boundingBoxSWLongitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("southWest").getAsJsonObject().get("longitude").getAsFloat();
 		float boundingBoxNELatitude = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("boundingBox").getAsJsonObject().get("northEast").getAsJsonObject().get("latitude").getAsFloat();
@@ -88,7 +136,7 @@ public class Place
 		}			
 	  }	
 	}
-	System.out.println("search: " + textPlace);
+	Logger.info("Searched place: " + textPlace);
 	return textPlace;
   }  
 
