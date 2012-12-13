@@ -57,12 +57,12 @@ taxa='${occurrence.scientificName}';
 var datapublisher_id='${occurrence.dataset.dataPublisher.id}'
 var dataset_id='${occurrence.dataset.id}'
 
-var datapublisher_name='${occurrence.dataset.dataPublisher.name}'
+var datapublisher_name="${occurrence.dataset.dataPublisher.name}"
 
 var datapublisher_code='${occurrence.ownerInstitutionCode}'
 
 
-var scientificname_taxa='${taxa.canonicalSpecies}';
+var scientificname_taxa="${occurrence.scientificName}";
 var kingdom_taxa='${taxa.canonicalKingdom}'
 var phylum_taxa='${taxa.canonicalPhylum}' 
 var classs_taxa='${taxa.canonicalClass}'
@@ -309,7 +309,6 @@ var ajax_x=$('#map').width()/2
 var ajax_y=$('#map').height()/2
 
 $('#map_container').append('<img id="ajax_image" style="display:none;position:relative;width:50px;height:50px;left:'+ajax_x+'px;top:-'+ajax_y+'px" src="../../../public/images/spinner3-greenie.gif"/>')
-//.css({'margin-left':ajax_x,'margin-top':ajax_y})
 });
 </script>
 <div class="container">
