@@ -222,6 +222,7 @@ var this_taxa=features.taxa;
 
   }
    
+//$('#map_it,#map').hide()
 var dataset_bboxes=false;
 $('#map_it').click(function ()
 {
@@ -236,17 +237,16 @@ $('#map_it').click(function ()
 
 var places_text=$('#input-search-place').val()
 var taxes_text=$('#input-search-taxa').val()
- 
+ var datapublishers_text=$('#input-search-dataset').val()
 
 var ids=[]
 
- jQuery.ajax({url:'http://localhost:9000/datasets/search?search=Mammiferes%20de%20France;Ecoscope',
+ jQuery.ajax({url:'http://localhost:9000/datasets/search?search='+datapublishers_text,
  dataType: 'html',
  success: function(data)
  {
 $data=$(data)
 
-console.warn($(data).filter(function(){ return $(this).find('.table') }))
 var tr = $data.find('table tr') 
 
 tr.each(function(i,_this) {
@@ -367,8 +367,8 @@ this_bbox=this_bbox.substring(this_bbox.length-1, -1)
 </div>
 #{/if} 
 <div class="container">
-   <!--<div id="map" style='width:700px;height:400px'></div> 
-   <div id='map_it'>map it</div> -->
+   <div id="map" style='width:700px;height:400px;display:none'></div> 
+   <div id='map_it' style='display:none'>map it</div> 
   <div class="row">
     <div id="occurrences"></div> 
     <div id="sidebar" class="span3">
