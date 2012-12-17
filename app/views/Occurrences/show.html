@@ -76,7 +76,7 @@ var specificEpithet='${specificEpithet_interpreted}'
 
 map = new L.Map('map',{ 'crs': L.CRS.EPSG900913})
 
-url='http://a.tiles.mapbox.com/v1/perikut.map-ua7dmxeg.jsonp';
+url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
 
 wax.tilejson(url, function(tilejson) {
           basemap = new wax.leaf.connector(tilejson);         
@@ -211,6 +211,7 @@ $.ajax({
     dataType: "jsonp", 
     crossDomain : true,
   success: function(data, textStatus, xhr) {
+
      features=data.features;
      zoom_level='five_degrees'; 
    generate_paths(features, zoom_level,options)  
