@@ -2,17 +2,360 @@
 #{include 'Application/Search/bar.html' /}
 #{set title:'Home' /}
 <script src="@{'/public/javascripts/search/search.js'}"></script>
+ <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+ 
+<script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
+<script src="@{'/public/javascripts/jquery.xcolor.js'}"></script>
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/tipsy.css'}"></link>
+
+<style type="text/css">
+path  {
+            
+             stroke-width: 1px;
+            stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
+
+</style>
 <script type="text/javascript" >
   var taxas = #{jsAction @Taxas.search(':search', ':page') /}  
   var occurrences = #{jsAction @Occurrences.search(':searchTaxa', ':searchPlace', ':searchDataset', ':searchDate', ':onlyWithCoordinates', ':from') /}  
   var places = #{jsAction @Places.search(':search') /}
+ 
+
   var datasets = #{jsAction @Datasets.search(':search') /}
  
   $(document).ready(function() {
 	searchOccurrences("${search.taxaText}","${search.placeText}","${search.dataset}","${search.dateText}","${search.onlyWithCoordinates}", 0)
+
+  //alert("${search.dataset}")
     searchTaxas("${search.taxaText}",'1');
     searchPlaces("${search.placeText}", 0);
-    searchDatasets("${search.dataset}");           
+    searchDatasets("${search.dataset}");      
+
+var taxes="${search.taxaText}"//.split(';')
+
+function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+    return [point.x, point.y];
+  }
+
+var path = d3.geo.path().projection(function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+
+    return [point.x, point.y];
+  });
+
+window.pol_degree==5 
+  zoom_level='five_degrees'; 
+var o_colors=['gold','lime','orange','orangered','royalblue','blue','gold','lightseagreen','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue',]
+var ramp_colors=new Array();
+var colors=['blue','gold','lightseagreen','lime','orange','orangered','royalblue','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue','red']
+var taxa,datapublisher;
+for (i=0;i<o_colors.length-1;i++)
+{
+var new_colors=$.xcolor.analogous(o_colors[i],6,20);
+
+colors[i]=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors[i].push(this_color)
+}
+
+ramp_colors.push(colors[i])
+}
+var num_plotted_taxa=0;
+var plotted_taxa=[]
+
+ map._initPathRoot() 
+
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
+bboxes=[]
+paths_taxa={};
+var paths={};
+
+function reset() {
+    
+if (dataset_bboxes==true)
+    {
+      bboxes.forEach(function (d)
+      {      
+  
+        d.attr("d",path)      
+      })
+    }
+   
+  for (zoom_level in paths)
+{
+paths[zoom_level].forEach(function (d)
+      {        
+        d.attr("d",path)      
+      })
+
+  
+
+    }
+    } 
+  map.on("viewreset", reset)
+
+
+function generate_paths (data,zoom_level)
+   {
+console.log(data)
+        for (i=0;i<data.length;i++)
+     {
+features=data[i].features;
+
+var this_taxa=features.taxa;
+
+
+  bounds = d3.geo.bounds(features)
+  var opacityScale = d3.scale.linear()
+                     .domain([d3.min(features, function(d) { return d.properties.count; }), d3.max(features, function(d) { return d.properties.count; })])
+                     .range([0.4, 1]);  
+  var count_extent = d3.extent(features, function(d){return d.properties.count});
+
+  var ramp =d3.scale.linear().domain(count_extent).range(ramp_colors[num_plotted_taxa]);
+  var this_path='path.'+zoom_level
+  
+   var  path_feature = g.selectAll(this_path).attr('centroid',function (d) {return d.centroid})
+    .data(features,function (d)
+    {
+      var centroid=d.centroid;
+      return d.centroid;
+    })
+  path_feature.enter().append("path").attr("d", path).attr('class','polygons').attr('opacity',0.7).attr('fill',function (d)
+  {
+    return ramp(d.properties.count);
+  })
+
+  path_feature.each(function (d)
+   {
+    var centroid=d.centroid
+    
+    if (typeof $(this).data('centr')=='undefined')
+    {
+      $(this).data('centr',[])
+      $(this).data('info_taxes_colors',[])
+      $(this).data('info_taxes',[])
+      $(this).data('info_ids',[])
+      $(this).data('info_counts',[])
+      $(this).data('centr').push(centroid);
+      $(this).data('total_counts',0)
+      $(this).data('visualized_items',0)
+    }
+    
+    
+
+        if ($.inArray(taxa,$(this).data('info_taxes'))==-1)   
+    {
+  //  console.log('adding taxa '+taxa+' to centroi '+centroid)
+      $(this).data('info_taxes').push(this_taxa);   
+      $(this).data('info_ids').push(d.properties.random_id)
+      $(this).data('info_counts').push(d.properties.count)  
+      $(this).data('info_taxes_colors').push(ramp(d.properties.count)) 
+      var total=$(this).data('total_counts')+d.properties.count 
+      $(this).data('total_counts',total)
+      var visualized_items=$(this).data('visualized_items')
+      $(this).data('visualized_items',visualized_items+1)
+      var info_taxes_colors=$(this).data('info_taxes_colors')        
+      if (info_taxes_colors.length>1)
+      {
+        var new_color=$.xcolor.additive($(this).attr('fill'),ramp(d.properties.count))
+        $(this).attr('fill',new_color)
+        d.fill_color=new_color
+      }
+    else
+    {
+    $(this).attr('fill',info_taxes_colors[0])
+    
+    
+    }
+
+    } 
+
+    })
+
+  if (typeof paths[zoom_level]=='undefined') paths[zoom_level]=[]
+
+//if (typeof paths[zoom_level][taxa]=='undefined') paths[zoom_level][taxa]=[]
+    paths[zoom_level].push(path_feature);   
+ 
+  $('path.polygons').tipsy({ 
+                              delayIn: 500, 
+                              fade: true, 
+                              gravity: 'w', 
+                               offset: 0, 
+                               opacity:1,
+                              html: true, 
+                              title: function() {
+
+                              if ($(this).attr('opacity')>0)
+                              {
+
+                                var d = this.__data__;
+                                var info_taxes=$(this).data('info_taxes');
+                                var info_counts=$(this).data('info_counts');
+                                var text='<b>Total occurrences</b> <b>'+$(this).data('total_counts')+'</b> for '+info_taxes.length+' taxonomies<p>';                              
+                                for (i=0;i<info_taxes.length;i++)
+                                {
+                                 text+='<span class="red_tipsy">'+info_taxes[i]+'</span> '+info_counts[i]+'<p>';                                 
+                                }
+
+                                return text;
+               }
+               else
+               {
+               return false;
+               }
+                              }
+                            }) 
+
+
+     }
+ 
+
+
+
+  }
+   
+var dataset_bboxes=false;
+$('#map_it').click(function ()
+{
+
+// var ids=[]
+// $('#freq_dataset tr').each(function(i,_this)
+// {1
+// var this_url=$(_this).find('td:first a').attr('href').split('=')
+// ids.push(this_url[1])
+
+// })
+
+var places_text=$('#input-search-place').val()
+var taxes_text=$('#input-search-taxa').val()
+ 
+
+var ids=[]
+
+ jQuery.ajax({url:'http://localhost:9000/datasets/search?search=Mammiferes%20de%20France;Ecoscope',
+ dataType: 'html',
+ success: function(data)
+ {
+$data=$(data)
+
+console.warn($(data).filter(function(){ return $(this).find('.table') }))
+var tr = $data.find('table tr') 
+
+tr.each(function(i,_this) {
+
+   var this_url=$(_this).find('td:last a').attr('href').split('=')
+ 
+ids.push(this_url[1])
+})
+
+ids=$.unique(ids).join()
+
+
+ }
+})
+
+
+
+if (places!=='')
+{
+places=places_text.split(';')
+places_bbox=[]
+}
+var this_bbox
+this_bbox=''
+for (q=0;q<places.length;q++)
+{
+
+var url='http://where.yahooapis.com/v1/places.q('+places[q]+')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--'
+//HjPxmnzV34HJjbf6t756Vwmg8axC0i3fOcgW0nTxLJlrVV_Zvik6SIpUYD906V3uf6y4OcAlWpsD..o2.wpLoHkvR22EP_A-
+
+ jQuery.ajax({url:url,
+ dataType: 'json',
+ level: q,
+ this_bbox: this_bbox,
+ success: function(data)
+ {
+
+ var boundingBox=data.places.place[0].boundingBox
+ var sw_bbox=boundingBox.southWest
+ var ne_bbox=boundingBox.northEast
+//bottomLeftLon+' '+bottomLeftLat+','+topRightLon+' '+topRightLat
+ //  for (var p in obj) {
+this_bbox+=sw_bbox.longitude+' '+sw_bbox.latitude 
+this_bbox+=','+ne_bbox.longitude+' '+ne_bbox.latitude+'|'
+//this.places_bbox.push(this_bbox)
+if (this.level==places.length-1)
+{
+this_bbox=this_bbox.substring(this_bbox.length-1, -1)
+
+  $.ajax({
+     // url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes,
+      url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes_text,
+      type: 'GET',
+      data:{bbox:this_bbox,datapublishers:ids},
+   dataType: "jsonp", 
+    crossDomain : true,
+  success: function(data, textStatus, xhr) {
+   
+       for (i=0;i<data.bboxes.length;i++)
+     {
+     // console.warn(data.bboxes[i])
+       features=data.bboxes[i];
+       var  path_feature = g.selectAll('bboxes')
+                                .data(data.bboxes)
+      
+       path_feature.enter().append("path").attr("d", path).attr('class','bboxes')
+                        
+                        
+                        .attr('opacity',function (d){ 
+
+
+                         return 0.1
+                         
+                        }).attr('fill','red');
+
+                         bboxes.push(path_feature)
+     }
+                      dataset_bboxes=true    
+
+   zoom_level='five_degrees'; 
+       generate_paths(data.features,zoom_level)  
+
+
+    
+
+       generate_bboxes(data.bboxes)
+ 
+   
+      }
+      ,
+ error: function (request, status, error) {
+  alert(error)
+    }
+    });
+}
+
+ }
+ 
+ })
+
+}
+
+
+
+
+  
+})
+ 
+
   });
 </script>
 #{if flash.errorDate}
@@ -24,6 +367,8 @@
 </div>
 #{/if} 
 <div class="container">
+   <!--<div id="map" style='width:700px;height:400px'></div> 
+   <div id='map_it'>map it</div> -->
   <div class="row">
     <div id="occurrences"></div> 
     <div id="sidebar" class="span3">
@@ -33,3 +378,14 @@
     </div>  
   </div>
 </div>
+<script type="text/javascript" >
+    map = new L.Map('map',{ 'crs': L.CRS.EPSG900913})
+
+url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
+
+wax.tilejson(url, function(tilejson) {
+          basemap = new wax.leaf.connector(tilejson);         
+            map.addLayer(basemap,true)
+              })
+map.fitWorld()
+              </script>
