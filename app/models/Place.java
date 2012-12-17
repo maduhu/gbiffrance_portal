@@ -3,6 +3,7 @@ package models;
 import java.util.ArrayList;
 
 import play.Logger;
+import play.Play;
 import play.libs.WS;
 import play.libs.WS.HttpResponse;
 
@@ -80,7 +81,7 @@ public class Place
    */
   public String country;
 
-
+  public static String apiKey = Play.configuration.getProperty("yahoo.api");
 
   /**
    *  Adds places translations to the search ex: search = Pica pica France -> search = Pica pica France France Francia Frankreich
@@ -93,8 +94,8 @@ public class Place
 	int count = 0;
 	textPlace = textPlace.replaceAll(" ", "%20");
 
-	Logger.info("Yahoo web service request: " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--");
-	HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+	Logger.info("Yahoo web service request: " + "http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid="+apiKey);
+	HttpResponse geoResponse = WS.url("http://where.yahooapis.com/v1/places.q('"+textPlace+"')?format=json&appid="+apiKey).get();
 	if (geoResponse.success())
 	{
 	  JsonObject jsonObject = geoResponse.getJson().getAsJsonObject().get("places").getAsJsonObject();
@@ -104,7 +105,7 @@ public class Place
 		int id = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("woeid").getAsInt();
 		String placeTypeName = jsonObject.get("place").getAsJsonArray().get(0).getAsJsonObject().get("placeTypeName").getAsString();
 		
-		HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+		HttpResponse geoResponseFr = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=fr&appid="+apiKey).get();
 		String nameFr = geoResponseFr.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		textPlace += ";" + nameFr;
 		
@@ -115,15 +116,15 @@ public class Place
 
 		textPlace += ";["+boundingBoxSWLatitude+","+boundingBoxSWLongitude+","+boundingBoxNELatitude+","+boundingBoxNELongitude+"]";		 
 
-		HttpResponse geoResponseEn = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=en&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+		HttpResponse geoResponseEn = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=en&appid="+apiKey).get();
 		String nameEn = geoResponseEn.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		textPlace += ";" + nameEn;
 
-		HttpResponse geoResponseEs = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=es&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+		HttpResponse geoResponseEs = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=es&appid="+apiKey).get();
 		String nameEs = geoResponseEs.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		textPlace += ";" + nameEs;
 
-		HttpResponse geoResponseDe = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=de&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--").get();
+		HttpResponse geoResponseDe = WS.url("http://where.yahooapis.com/v1/place/" + id + "?format=json&lang=de&appid="+apiKey).get();
 		String nameDe = geoResponseDe.getJson().getAsJsonObject().get("place").getAsJsonObject().get("name").getAsString();
 		textPlace += ";" + nameDe;
 
