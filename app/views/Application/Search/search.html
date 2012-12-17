@@ -24,8 +24,11 @@ path  {
  
 
   var datasets = #{jsAction @Datasets.search(':search') /}
- 
+     var cell_size=5;
   $(document).ready(function() {
+
+
+
 	searchOccurrences("${search.taxaText}","${search.placeText}","${search.dataset}","${search.dateText}","${search.onlyWithCoordinates}", 0)
 
   //alert("${search.dataset}")
@@ -69,37 +72,7 @@ ramp_colors.push(colors[i])
 var num_plotted_taxa=0;
 var plotted_taxa=[]
 
- map._initPathRoot() 
-
- svg = d3.select("#map").select("svg")
- g = svg.append("g");
-bboxes=[]
-paths_taxa={};
-var paths={};
-
-function reset() {
-    
-if (dataset_bboxes==true)
-    {
-      bboxes.forEach(function (d)
-      {      
-  
-        d.attr("d",path)      
-      })
-    }
-   
-  for (zoom_level in paths)
-{
-paths[zoom_level].forEach(function (d)
-      {        
-        d.attr("d",path)      
-      })
-
-  
-
-    }
-    } 
-  map.on("viewreset", reset)
+ 
 
 
 function generate_paths (data,zoom_level)
@@ -239,36 +212,75 @@ var places_text=$('#input-search-place').val()
 var taxes_text=$('#input-search-taxa').val()
  var datapublishers_text=$('#input-search-dataset').val()
 
-var ids=[]
+ids=[]
+bboxes=[]
+paths_taxa={};
+paths={}; 
+$('#map').show()
+if ($('#map g').size()==0)
+{
+ map = new L.Map('map',{ 'crs': L.CRS.EPSG900913})
 
- jQuery.ajax({url:'http://localhost:9000/datasets/search?search='+datapublishers_text,
- dataType: 'html',
- success: function(data)
- {
-$data=$(data)
+url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
 
-var tr = $data.find('table tr') 
+wax.tilejson(url, function(tilejson) {
+          basemap = new wax.leaf.connector(tilejson);         
+            map.addLayer(basemap,true)
+              })
+map.fitWorld()
 
-tr.each(function(i,_this) {
+map._initPathRoot() 
 
-   var this_url=$(_this).find('td:last a').attr('href').split('=')
- 
-ids.push(this_url[1])
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
+ console.warn(g)
+bboxes=[]
+paths_taxa={};
+paths={};
+
+function reset() {
+    
+if (dataset_bboxes==true)
+    {
+      bboxes.forEach(function (d)
+      {      
+  
+        d.attr("d",path)      
+      })
+    }
+   
+  for (zoom_level in paths)
+{
+paths[zoom_level].forEach(function (d)
+      {        
+        d.attr("d",path)      
+      })
+
+  
+
+    }
+    } 
+  map.on("viewreset", reset)
+
+}
+
+
+  function get_db_id()
+{
+
+//   http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_cluster.php
+ return jQuery.ajax({url:'http://localhost:9000/datasets/search?search='+datapublishers_text,
+ dataType: 'html'
 })
-
-ids=$.unique(ids).join()
-
-
- }
-})
+}
 
 
 
-if (places!=='')
+if (places_text!=='')
 {
 places=places_text.split(';')
 places_bbox=[]
-}
+
 var this_bbox
 this_bbox=''
 for (q=0;q<places.length;q++)
@@ -292,7 +304,29 @@ var url='http://where.yahooapis.com/v1/places.q('+places[q]+')?format=json&appid
 this_bbox+=sw_bbox.longitude+' '+sw_bbox.latitude 
 this_bbox+=','+ne_bbox.longitude+' '+ne_bbox.latitude+'|'
 //this.places_bbox.push(this_bbox)
-if (this.level==places.length-1)
+var ids=[]
+
+if (datapublishers_text!='')
+{
+
+ $.when(get_db_id())
+  .then(function(data){
+
+    $data=$(data)
+
+var tr = $data.find('table tr') 
+
+tr.each(function(i,_this) {
+
+   var this_url=$(_this).find('td:last a').attr('href').split('=')
+ 
+ids.push(this_url[1])
+})
+
+ids=$.unique(ids).join()
+
+
+    if (this.level==places.length-1)
 {
 this_bbox=this_bbox.substring(this_bbox.length-1, -1)
 
@@ -300,11 +334,16 @@ this_bbox=this_bbox.substring(this_bbox.length-1, -1)
      // url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes,
       url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes_text,
       type: 'GET',
-      data:{bbox:this_bbox,datapublishers:ids},
+      data:{bbox:this_bbox,datapublishers:ids,polygon:cell_size},
    dataType: "jsonp", 
     crossDomain : true,
   success: function(data, textStatus, xhr) {
-   
+      
+
+      if ($('#map path').size()>0)
+
+        $('#map path').remove()
+
        for (i=0;i<data.bboxes.length;i++)
      {
      // console.warn(data.bboxes[i])
@@ -334,7 +373,7 @@ this_bbox=this_bbox.substring(this_bbox.length-1, -1)
 
        generate_bboxes(data.bboxes)
  
-   
+
       }
       ,
  error: function (request, status, error) {
@@ -343,10 +382,91 @@ this_bbox=this_bbox.substring(this_bbox.length-1, -1)
     });
 }
 
+  })
+}
+
+
+
  }
  
  })
 
+}
+
+}
+else
+{
+
+  $('#map').show()
+
+var ids=[]
+
+
+ $.when(get_db_id())
+  .then(function(data){
+
+    $data=$(data)
+
+var tr = $data.find('table tr') 
+
+tr.each(function(i,_this) {
+
+   var this_url=$(_this).find('td:last a').attr('href').split('=')
+ 
+ids.push(this_url[1])
+})
+
+ids=$.unique(ids).join()
+
+
+   $.ajax({
+     // url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes,
+      url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes_text,
+      type: 'GET',
+      data:{datapublishers:ids,polygon:cell_size},
+    dataType: "jsonp", 
+    crossDomain : true,
+    success: function(data, textStatus, xhr) {
+    
+
+         if ($('#map path').size()>0)
+
+        $('#map path').remove()
+
+       for (i=0;i<data.bboxes.length;i++)
+     {
+     // console.warn(data.bboxes[i])
+       features=data.bboxes[i];
+       var  path_feature = g.selectAll('bboxes')
+                                .data(data.bboxes)
+      
+       path_feature.enter().append("path").attr("d", path).attr('class','bboxes')
+                        
+                        
+                        .attr('opacity',function (d){ 
+
+
+                         return 0.1
+                         
+                        }).attr('fill','red');
+
+                         bboxes.push(path_feature)
+     }
+                      dataset_bboxes=true    
+
+   zoom_level='five_degrees'; 
+       generate_paths(data.features,zoom_level)  
+
+    //   generate_bboxes(data.bboxes)
+ 
+   
+      }
+      ,
+ error: function (request, status, error) {
+  alert(error)
+    }
+    })
+})
 }
 
 
@@ -368,7 +488,7 @@ this_bbox=this_bbox.substring(this_bbox.length-1, -1)
 #{/if} 
 <div class="container">
    <div id="map" style='width:700px;height:400px;display:none'></div> 
-   <div id='map_it' style='display:none'>map it</div> 
+   <div class='btn btn-primary btn-tiny'  id='map_it' >map it</div> 
   <div class="row">
     <div id="occurrences"></div> 
     <div id="sidebar" class="span3">
@@ -378,14 +498,3 @@ this_bbox=this_bbox.substring(this_bbox.length-1, -1)
     </div>  
   </div>
 </div>
-<script type="text/javascript" >
-    map = new L.Map('map',{ 'crs': L.CRS.EPSG900913})
-
-url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
-
-wax.tilejson(url, function(tilejson) {
-          basemap = new wax.leaf.connector(tilejson);         
-            map.addLayer(basemap,true)
-              })
-map.fitWorld()
-              </script>
