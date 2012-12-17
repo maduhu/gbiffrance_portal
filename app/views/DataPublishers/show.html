@@ -2,157 +2,699 @@
       <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
       <script src="@{'/public/javascripts/nv.d3.min.js'}"></script>
       <script src="@{'/public/javascripts/pieChart.js'}"></script>
+    <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
+      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}"/>
+        
+
+      <script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
+      
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"></link>
+      <link rel="stylesheet" href="@{'/public/stylesheets/tipsy.css'}"/>
+
 #{set title:'Home' /}
+
+<style type="text/css">
+.selected
+{
+  color: #C60F0F;
+  font-weight: bold;
+}
+        path  {
+            
+             stroke-width: 1px;
+            stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
+
+  #map_tooltip
+  {
+width:auto;position:relative;z-index:50;background:#DDDDDD; color:#6053;font-size: 1.1em;  
+max-height:50px;
+ -webkit-transition:opacity .5s;
+  -moz-transition:opacity .5s;
+  box-shadow:0px 0px 10px #5CACEE;
+  -moz-box-shadow:0px 0px 10px #5CACEE;
+  -webkit-box-shadow:0px 0px 10px #5CACEE; border:2px solid #5CACEE;
+  border-radius:2px;
+
+}
+</style>
+
 <script type="text/javascript">
 var data;
+
+var datapublishers_json=
+[
+    {
+        "datapublisher_id": 1,
+        "datapublisher_name": "Service du Patrimoine Naturel",
+        "datapublisher_acronym": "SPN",
+        "datapublisher_geo_count": 2296381,
+        "datapublisher_not_geo_count": 1308,
+        "datapublisher_datasets": [
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I041) : Insectes Hétéroptères Mirides de France",
+                "dataset_id": 12,
+                "dataset_geocount": 7819,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I029) : Poissons d'eau douce de France",
+                "dataset_id": 9,
+                "dataset_geocount": 93799,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I037) : Oiseaux nicheurs de France",
+                "dataset_id": 10,
+                "dataset_geocount": 179115,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I057) : Flore du Limousin",
+                "dataset_id": 14,
+                "dataset_geocount": 137554,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I009) : Espèces Végétales Menacées de France métropolitaine",
+                "dataset_id": 5,
+                "dataset_geocount": 4039,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Coleoptera specimens of the Muséum national d'Histoire naturelle",
+                "dataset_id": 34,
+                "dataset_geocount": 757,
+                "dataset_not_geocount": 1308
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I093) : Flore du Massif Armoricain",
+                "dataset_id": 21,
+                "dataset_geocount": 230402,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I210) : CBN du Massif Central",
+                "dataset_id": 28,
+                "dataset_geocount": 1423,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I062) : Flore de l'Ain",
+                "dataset_id": 15,
+                "dataset_geocount": 4888,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I002) : Mammifères de France",
+                "dataset_id": 3,
+                "dataset_geocount": 119905,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I067) : Flore d'Ille-et-Vilaine",
+                "dataset_id": 17,
+                "dataset_geocount": 343834,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I214) : Données sur Tamias sibiricus (Ecureuil de Corée)",
+                "dataset_id": 30,
+                "dataset_geocount": 19,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I205) : CBN Alpin de Gap",
+                "dataset_id": 24,
+                "dataset_geocount": 794,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I008) : Loup en France",
+                "dataset_id": 4,
+                "dataset_geocount": 27988,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I085) : Crustacés Décapodes de France",
+                "dataset_id": 20,
+                "dataset_geocount": 10254,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I069) : Flore protégée du Dauphiné",
+                "dataset_id": 18,
+                "dataset_geocount": 3762,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I215) : Atlas de la flore de Lorraine",
+                "dataset_id": 31,
+                "dataset_geocount": 4285,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I094) : insectes Coléoptères Saproxylophages de France",
+                "dataset_id": 22,
+                "dataset_geocount": 7575,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I011) : Amphibiens et Reptiles de France (Enquête 1)",
+                "dataset_id": 6,
+                "dataset_geocount": 27922,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I201) : Programme national espèces végétales de la Directive Habitat",
+                "dataset_id": 23,
+                "dataset_geocount": 678,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (ONEMA) : Données ONEMA sur les poissons et écrevisses d'eau douce",
+                "dataset_id": 33,
+                "dataset_geocount": 136897,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I001) : Insectes Coléoptères Scarabéidés Laparostici de France",
+                "dataset_id": 2,
+                "dataset_geocount": 32554,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I012) : Oiseaux hivernants de France",
+                "dataset_id": 7,
+                "dataset_geocount": 709810,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I207) : CBN Bailleul",
+                "dataset_id": 25,
+                "dataset_geocount": 389,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I063) : Fichier communal des ongulés",
+                "dataset_id": 16,
+                "dataset_geocount": 57920,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I206) : CBN Aquitaine-Poitou-Charentes",
+                "dataset_id": 1,
+                "dataset_geocount": 152,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I209) : CBN de Midi-Pyrénées",
+                "dataset_id": 27,
+                "dataset_geocount": 816,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I014) : Insectes Orthoptères de France",
+                "dataset_id": 8,
+                "dataset_geocount": 46436,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I211) : CBN Méditerranéen de Porquerolles",
+                "dataset_id": 29,
+                "dataset_geocount": 846,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I216) : Inventaire du Parc national du Mercantour",
+                "dataset_id": 32,
+                "dataset_geocount": 953,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I208) : CBN Brest",
+                "dataset_id": 26,
+                "dataset_geocount": 434,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I039) : Enquête carnivores",
+                "dataset_id": 11,
+                "dataset_geocount": 97840,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Inventaire National du Patrimoine Naturel (I054) : Flore de Sologne",
+                "dataset_id": 13,
+                "dataset_geocount": 4522,
+                "dataset_not_geocount": null
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 2,
+        "datapublisher_name": "Muséum d'Histoire Naturelle de Paris",
+        "datapublisher_acronym": "MNHN",
+        "datapublisher_geo_count": 462252,
+        "datapublisher_not_geo_count": 2039438,
+        "datapublisher_datasets": [
+            {
+                "name": "Fish collections of Museum national d'Histoire naturelle",
+                "dataset_id": 38,
+                "dataset_geocount": 120576,
+                "dataset_not_geocount": 101584
+            },
+            {
+                "name": "Coleoptera specimens of the Muséum national d'Histoire naturelle",
+                "dataset_id": 34,
+                "dataset_geocount": 1514,
+                "dataset_not_geocount": 2616
+            },
+            {
+                "name": "Echinoderm specimens",
+                "dataset_id": 37,
+                "dataset_geocount": 11582,
+                "dataset_not_geocount": 8176
+            },
+            {
+                "name": "Herbarium specimens - Harmas de J. H. Fabre",
+                "dataset_id": 39,
+                "dataset_geocount": 130,
+                "dataset_not_geocount": 24982
+            },
+            {
+                "name": "Paleontology specimens data",
+                "dataset_id": 44,
+                "dataset_geocount": 16,
+                "dataset_not_geocount": 204820
+            },
+            {
+                "name": "Orthoptera collection at the Muséum national d'Histoire naturelle",
+                "dataset_id": 43,
+                "dataset_geocount": 20,
+                "dataset_not_geocount": 3878
+            },
+            {
+                "name": "Molluscs specimens",
+                "dataset_id": 40,
+                "dataset_geocount": 72418,
+                "dataset_not_geocount": 11412
+            },
+            {
+                "name": "Crustaceans specimens",
+                "dataset_id": 35,
+                "dataset_geocount": 20800,
+                "dataset_not_geocount": 20904
+            },
+            {
+                "name": "Ornithology specimens",
+                "dataset_id": 42,
+                "dataset_geocount": 21790,
+                "dataset_not_geocount": 22528
+            },
+            {
+                "name": "Phanerogams herbarium specimens",
+                "dataset_id": 45,
+                "dataset_geocount": 211280,
+                "dataset_not_geocount": 1107850
+            },
+            {
+                "name": "Cryptogams herbarium specimens",
+                "dataset_id": 36,
+                "dataset_geocount": 2126,
+                "dataset_not_geocount": 523730
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 3,
+        "datapublisher_name": "Conservatoire botanique national du Bassin parisien",
+        "datapublisher_acronym": "CBNBP",
+        "datapublisher_geo_count": 8927558,
+        "datapublisher_not_geo_count": 248714,
+        "datapublisher_datasets": [
+            {
+                "name": "Observations du Conservatoire botanique national du Bassin parisien",
+                "dataset_id": 46,
+                "dataset_geocount": 8927558,
+                "dataset_not_geocount": 248714
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 4,
+        "datapublisher_name": "IRD",
+        "datapublisher_acronym": "IRD",
+        "datapublisher_geo_count": 979774,
+        "datapublisher_not_geo_count": 36,
+        "datapublisher_datasets": [
+            {
+                "name": "observe_tuna_ecoscope",
+                "dataset_id": 50,
+                "dataset_geocount": 366678,
+                "dataset_not_geocount": 36
+            },
+            {
+                "name": "observe_tuna_bycatch_ecoscope",
+                "dataset_id": 49,
+                "dataset_geocount": 440534,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "ecoscope_observation_database",
+                "dataset_id": 47,
+                "dataset_geocount": 172562,
+                "dataset_not_geocount": null
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 5,
+        "datapublisher_name": "Agoralogie",
+        "datapublisher_acronym": "Agoralogie",
+        "datapublisher_geo_count": 113,
+        "datapublisher_not_geo_count": null,
+        "datapublisher_datasets": [
+            {
+                "name": "iHerbarium",
+                "dataset_id": 51,
+                "dataset_geocount": 113,
+                "dataset_not_geocount": null
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 6,
+        "datapublisher_name": "Association des Naturalistes de la Vallée du Loing et du massif de Fontainebleau",
+        "datapublisher_acronym": "ANVL",
+        "datapublisher_geo_count": 4,
+        "datapublisher_not_geo_count": 2068,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbarium specimens data ",
+                "dataset_id": 52,
+                "dataset_geocount": 4,
+                "dataset_not_geocount": 2068
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 7,
+        "datapublisher_name": "INRA Lusignan",
+        "datapublisher_acronym": "INRA Lusignan",
+        "datapublisher_geo_count": 537,
+        "datapublisher_not_geo_count": null,
+        "datapublisher_datasets": [
+            {
+                "name": "The French National Collection of forage and turf species (grasses and legumes).",
+                "dataset_id": 53,
+                "dataset_geocount": 537,
+                "dataset_not_geocount": null
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 11,
+        "datapublisher_name": "Herbarium of Université de Montpellier 2, Institut de Botanique",
+        "datapublisher_acronym": "Herbarium Montpellier 2",
+        "datapublisher_geo_count": 102,
+        "datapublisher_not_geo_count": 23038,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbarium specimens ",
+                "dataset_id": 57,
+                "dataset_geocount": 102,
+                "dataset_not_geocount": 23038
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 14,
+        "datapublisher_name": "Herbier des conservatoires et jardins botaniques de Nancy",
+        "datapublisher_acronym": "Herbier Nancy",
+        "datapublisher_geo_count": 685,
+        "datapublisher_not_geo_count": 12403,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbarium specimens",
+                "dataset_id": 60,
+                "dataset_geocount": 685,
+                "dataset_not_geocount": 12403
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 16,
+        "datapublisher_name": "IFREMER - French Research Institute for Exploitation of the Sea",
+        "datapublisher_acronym": "IFREMER",
+        "datapublisher_geo_count": 188776,
+        "datapublisher_not_geo_count": null,
+        "datapublisher_datasets": [
+            {
+                "name": "Quadrige",
+                "dataset_id": 62,
+                "dataset_geocount": 188776,
+                "dataset_not_geocount": null
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 18,
+        "datapublisher_name": "Institut Scientifique, Mohamed V University",
+        "datapublisher_acronym": "Institut Mohamed V University",
+        "datapublisher_geo_count": 87,
+        "datapublisher_not_geo_count": 2353,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbarium specimens - Institut Scientifique ",
+                "dataset_id": 68,
+                "dataset_geocount": 87,
+                "dataset_not_geocount": 2353
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 22,
+        "datapublisher_name": "Musée Zoologique de la Ville de Strasbourg",
+        "datapublisher_acronym": "Musée Zoologique Strasbourg",
+        "datapublisher_geo_count": 13,
+        "datapublisher_not_geo_count": 12466,
+        "datapublisher_datasets": [
+            {
+                "name": "Porifera MZS",
+                "dataset_id": 73,
+                "dataset_geocount": 13,
+                "dataset_not_geocount": 935
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 27,
+        "datapublisher_name": "Museum d'Histoire Naturelle of Aix-en-Provence, Herbarium",
+        "datapublisher_acronym": "Herbarium MHN Aix-en-Provence",
+        "datapublisher_geo_count": 1,
+        "datapublisher_not_geo_count": 8652,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbarium specimens ",
+                "dataset_id": 78,
+                "dataset_geocount": 1,
+                "dataset_not_geocount": 8652
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 31,
+        "datapublisher_name": "Société des Sciences Naturelles et Mathématiques de Cherbourg",
+        "datapublisher_acronym": "Societé des de Cherbourg",
+        "datapublisher_geo_count": 477,
+        "datapublisher_not_geo_count": 472,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbarium specimens",
+                "dataset_id": 82,
+                "dataset_geocount": 477,
+                "dataset_not_geocount": 472
+            }
+        ]
+    },
+    {
+        "datapublisher_id": 32,
+        "datapublisher_name": "Université de Strasbourg",
+        "datapublisher_acronym": "Université de Strasbourg",
+        "datapublisher_geo_count": 32610,
+        "datapublisher_not_geo_count": 41153,
+        "datapublisher_datasets": [
+            {
+                "name": "Herbier de Wallis et Futuna",
+                "dataset_id": 85,
+                "dataset_geocount": 3374,
+                "dataset_not_geocount": null
+            },
+            {
+                "name": "Herbier de Strasbourg",
+                "dataset_id": 83,
+                "dataset_geocount": 752,
+                "dataset_not_geocount": 41153
+            },
+            {
+                "name": "Herbier de nouvelle-caledonie",
+                "dataset_id": 84,
+                "dataset_geocount": 28484,
+                "dataset_not_geocount": null
+            }
+        ]
+    }
+]
+
+
 jQuery(document).ready(function($) {
 
-var url = window.location.search.split("id=");
-var dataset_id=url[1];
-//  console.warn(eval(dataset))
-  var interaction;
+var interaction
+// var lat=48.856930;
+// var lng=2.341200;
+// var latlng=new L.LatLng(lat,lng);
+
 var lat=48.856930;
 var lng=2.341200;
 var latlng=new L.LatLng(lat,lng);
 
-map = new L.Map('map')
+
+ map = new L.Map('map',{ 'crs': L.CRS.EPSG900913});
 map.addLayer(new L.Marker(latlng)); 
 
 
- url='http://a.tiles.mapbox.com/v1/perikut.map-ua7dmxeg.jsonp';
+var url = window.location.search.split("id=");
+var datapublisher_id=url[1];
+
+$.each(datapublishers_json,function(i,data)
+      {       
+      if (data.datapublisher_id==datapublisher_id)
+      {
+       datapublisher_name=data.datapublisher_name;  
+
+
+       $('#map_tooltip').html('<b>'+data.datapublisher_geo_count+'</b> georeferenced occurrences in '+datapublisher_name).fadeIn('slow')
+
+     }
+   })
+
+if (datapublisher_name!=='undefined')
+{
+ var simple_datapublisher_url='http://www.gbif.fr/mbtiles/simple_datapublisher_'+datapublisher_id+'/metadata.jsonp';
+$map=$('#map').get(0)
+$('#map').append("<div id='mouseover_span' style='position:relative;cursor:pointer;width:20px;height:20px;opacity:0.01;background-color:blue'></div>")
+
+
+
+
+  map.on("viewreset", function ()
+  {
+    $("#mouseover_span").attr('original-title','');
+  })
+    wax.tilejson(simple_datapublisher_url, function(tilejson) {
+          this_datapublisher = new wax.leaf.connector(tilejson);
+         map.addLayer(this_datapublisher,true);
+         this_datapublisher.setOpacity(0)
+
+
+
+ 
+
+                  var center=tilejson.center.split(',')
+         var lat=center[1];
+        var lng=center[0];
+        var zoom=center[2];
+        var latlng=new L.LatLng(lat,lng);
+         map.setView(latlng, zoom);
+
+          interaction= wax.leaf.interaction(this_datapublisher)
+    .map(map)
+    .tilejson(tilejson)     
+    .on({
+      on: function(o) {
+  
+          
+         if (o.e.type !== 'mousemove') 
+        {
+    
+       var relativeX = o.e.pageX - $map.offsetLeft-10; 
+var relativeY = o.e.pageY - $map.offsetTop-10;
+var obj=o.data;
+
+
+          $.each(datapublishers_json,function(i,data)
+      {
+        var dataset_name,datapublisher_name
+           
+      if (data.datapublisher_id==datapublisher_id)
+      {
+
+
+       datapublisher_name=data.dataset_id;
+      $.each(data,function (i,dataset)
+      {
+ 
+        if (dataset.dataset_id==obj.dataset_id) 
+          {
+            dataset_name=dataset.dataset_name
+          }
+      })
+
+      if (typeof obj.point_id!=='undefined') point_id=obj.point_id
+        else point_id=obj.oid
+      content='<div class="hoverbox" style="z-index:10000"><div id="point_centroid" class="'+point_id+'"/></br><div id="tooltip_datapublisher_id" class="'+datapublisher_id+'" > Datapublisher <b>'+datapublisher_name+'</b></div></br><div id="tooltip_dataset_id" class='+obj.dataset_id+'>Dataset <b>'+dataset_name+'</b></div></br><b>'+obj.count_occurrences+'</b> occurrences</br>';
+//                content='<div onClick="show_species('+>Number of species '+obj.count_scientificname+'</br>';
+        content+='<div id="show_genus_id"><b>'+obj.count_genus+'</b> different Genus</div></br>';
+                // content+='<div id="show_family_id"><b>'+obj.count_family+'</b> different Families</div></br>';
+                content+='<div id="show_scientificname_id"><b>'+obj.count_scientificname+'</b> different Species</div></br>';
+                content+='<div id="show_phylum_id"><b>'+obj.count_phylum+'</b> different Phylums</div></br>';
+                  content+='<div id="show_class_id"><b>'+obj.count_classs+'</b> different Class</div></br>';
+                    content+='<div id="show_order_id"><b>'+obj.count_orderr+'</b> different Order</div></div>';
+
+                 
+      }
+      })
+
+$('#mouseover_span').css({'top':relativeY+'px','left':relativeX+'px'})
+
+  $('#mouseover_span').tipsy({fade: true, opacity:1,gravity: 'w', html: true, 
+title: function () 
+ {
+ return content
+}
+                       
+  });
+
+        }
+      }
+
+              })
+
+   })
+
+
+ $('#occurrences a').click(function(event)
+{
+
+
+ this_datapublisher.setOpacity(1)
+  $('#map').animate({'height':'500px'})
+  
+ // map.invalidateSize()
+  event.preventDefault()
+}) 
+}
+
+         url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
      wax.tilejson(url, function(tilejson) {
           basemap = new wax.leaf.connector(tilejson);
          map.addLayer(basemap,true);
          })
 
- map.setView(latlng, 5);
-  /*
-   $('.dropdown-toggle').dropdown()
+}) 
 
-     layers=[{'name':'occurrences','title':'Occurrences',
-          'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/simple_inpn2_3/metadata.jsonp'},
-          {
-      'name':'cantons','title':'Cantons France',       
-      'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/cantons_spn_mnhn/metadata.jsonp'
-          },
-            {
-      'name':'departements','title':'Departements France',  
-      //to change url     
-      'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/cantons_spn_mnhn/metadata.jsonp'
-          },
-      {
-      'name':'arrondissements','title':'Arrondissements France',       
-      'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/france3_2_spn_mnhn/metadata.jsonp'
-          },    
-      {
-      'name':'regions','title':'Regions France', 
-      'url':'http://lully.snv.jussieu.fr/gbif/mapping/mbtiles/region_spn_mnhn/metadata.jsonp'
-      }]
-
-  $('#polygon_type a,#map_occ a').click(function(event)
-{
- $('#map').animate({'height':'500px'})
-
-          event.preventDefault()
-          var layer=$(this).parent().attr('id');
- 
-          $.each(map._layers, function(index, value) { 
-      
-                    map.removeLayer(value)
-                 })  
-                 
-       
-            $.each(layers,function(i,data)
-            {
-            if(data.name==layer)
-            {
-                    
-                       url=data.url;
-                       var layer_name=data.name;
-                       if (interaction!==undefined)
-                        interaction.remove()
-                       
-                       wax.tilejson(url, function(tilejson) {              
-                             layer_name= new wax.leaf.connector(tilejson);
-                             layer_name.name=layer;
-                             layer_name.title=data.title;
-                             layer_name.type='layer';
-                             map.addLayer(layer_name);
-                             map.addLayer(basemap,true);
-                             layer_name.setOpacity(0.8)                
-                             interaction = wax.leaf.interaction(map, tilejson)                
-                           });  
-                           
-           // $('.my_legend').fadeOut('slow').empty();
-         
-            }
-            
-            })  
-
-})
-   
-  $('#stats_type a').click(function(event)
-{
-
-          event.preventDefault()
-          
-          var taxa_type=$(this).parent().attr('id');
-console.warn(taxa_type)
-
-$('#stats_div').show().animate({'height':'500px'});
-
-$.ajax(
-    'http://lully.snv.jussieu.fr/gbif/mapping/php/stats_json.php?id='+dataset_id,
-    {
-    jsonpCallback: 'callback',
-    crossDomain:true, 
-    dataType: "jsonp",
-    
-      error:function (xhr, ajaxOptions, thrownError){
-                    console.info(xhr.status);
-                    console.warn(thrownError);
-                }  
-    ,
-    success : function(data){
-      var to_plot=data[0][taxa_type];
-
-      nv.addGraph(function() {
-        var width = 500,
-        height = 500;
-
-    var chart = nv.models.pieChart()
-        .x(function(d) { return d.key })
-        //.y(function(d) { return d.value })
-        .values(function(d) { return d })
-        //.labelThreshold(.08)
-        //.showLabels(false)
-        .color(d3.scale.category10().range())
-        .width(width)
-        .height(height)
-        .donut(true);
-
- 
-          width=700,height=500
-          d3.select("#chart")
-          .datum([to_plot])
-          .transition().duration(1800)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-
-    return chart;
-
-    })
-    
-    } //votre callback
-});
-
-})
-
- */
-
-});
 
 </script>
 <div class="container">
@@ -161,9 +703,11 @@ $.ajax(
     <div class="page-header well alert-info">
       <h1>${dataPublisher.name}</h1>
     </div>
+
+    <div id="map_container">
     <div id="map" style='width:100%;height:300px;position:relative'></div>
-
-
+   <div id='map_tooltip' style='display:none'></div>
+   </div>
 <!--    <div class="nav-collapse">
    <ul class="nav">
       <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">Show biodiversity by polygon<b class="caret"></b></a>
@@ -181,9 +725,10 @@ $.ajax(
    </div> -->
 
 
-<!--     <ul style='list-style:none;margin:0 0 0 0'>
+    <ul style='list-style:none;margin:0 0 0 0'>
     <li id='occurrences'><a href="#">Check biodiversity map by occurrences</a></li>
-
+  </ul>
+<!--
     <div class="nav-collapse">
     <div class="nav">
       <li class="dropdown">
