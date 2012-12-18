@@ -4,8 +4,8 @@
 
   #{if results}
     #{if boundingBox}
-      <a target='blank' href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france_test.html?
-      bboxSWLongitude=${boundingBox[1]}&bboxSWLatitude=${boundingBox[0]}&bboxNELongitude=${boundingBox[3]}&bboxNELatitude=${boundingBox[2]}">See all occurrences in this bounding box</a> 
+     <!-- <a target='blank' href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france_test.html?
+      bboxSWLongitude=${boundingBox[1]}&bboxSWLatitude=${boundingBox[0]}&bboxNELongitude=${boundingBox[3]}&bboxNELatitude=${boundingBox[2]}">See all occurrences in this bounding box</a> -->
     #{/if}
 
     #{if places}
@@ -19,7 +19,7 @@
       </thead>        
       #{list items:places, as:'place'}
       <tr>
-        <td><a target='blank' href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france_test.html?bboxSWLongitude=${place.boundingBoxSWLongitude}&bboxSWLatitude=${place.boundingBoxSWLatitude}&bboxNELongitude=${place.boundingBoxNELongitude}&bboxNELatitude=${place.boundingBoxNELatitude}">${place.nameFr}</a></td>
+        <td><!-- <a target='blank' href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france_test.html?bboxSWLongitude=${place.boundingBoxSWLongitude}&bboxSWLatitude=${place.boundingBoxSWLatitude}&bboxNELongitude=${place.boundingBoxNELongitude}&bboxNELatitude=${place.boundingBoxNELatitude}"> -->${place.nameFr}<!-- </a> --></td>
         <td>${place.placeTypeNameFr}</td>
         <td>${place.country}</td>
         <!-- <td>${place.centroidLatitude},${place.centroidLongitude}</td> -->
