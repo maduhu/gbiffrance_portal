@@ -240,6 +240,10 @@ public class Occurrences extends Controller {
 		datasetF.add(boolFilter().must(termFilter("dataset", search.datasetsIds.get(i))));	
 	  }
 	}
+	else if(search.dataset != null)
+	{
+		datasetF.add(boolFilter().must(termFilter("dataset", search.dataset)));	
+	}
 	if (search.onlyWithCoordinates || !search.boundingBoxes.isEmpty())
 	{	
 	  coordinatesF = boolFilter()
@@ -294,7 +298,7 @@ public class Occurrences extends Controller {
 	{
 	  SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
 	  if (withFacets) searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
-	  if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	  if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0 || search.dataset != null)
 	  {
 	    searchRequest = searchRequest.setFilter(f);
 	  }
