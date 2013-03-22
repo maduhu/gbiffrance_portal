@@ -1,0 +1,716 @@
+#{extends 'main.html' /}
+#{include 'Application/Search/bar.html' /}
+#{set title:'Home' /}
+
+ <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+  <script src="@{'/public/javascripts/highcharts.js'}"></script>
+  <script src="@{'/public/javascripts/exporting.js'}"></script>
+
+
+
+
+<style type="text/css">
+#map path  {
+            
+             stroke-width: 1px;
+            stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
+
+.sorted:hover
+{
+  cursor: pointer;
+  /*background-color: #776AED;*/
+}
+
+</style>
+<script type="text/javascript" >
+
+//actions defined in app/controllers/Application.java
+   var taxas = #{jsAction @Taxas.search(':search', ':page') /}  
+
+  
+var occurrences = #{jsAction @Occurrences.search(':searchTaxa', ':searchPlace', ':searchDataset', ':searchDate', ':onlyWithCoordinates', ':from') /}  
+
+   var places = #{jsAction @Places.search(':search') /}
+ 
+
+   var datasets = #{jsAction @Datasets.search(':search') /}
+   
+     var cell_size=5;
+var features
+
+
+function reset() {
+    
+if (dataset_bboxes==true)
+    {
+
+      bboxes.forEach(function (d)
+      {      
+  
+        d.attr("d",path)      
+      })
+    }
+   
+  for (zoom_level in paths)
+{
+paths[zoom_level].forEach(function (d)
+      {        
+        d.attr("d",path)      
+      })
+
+  
+
+    }
+    } 
+
+function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+    return [point.x, point.y];
+  }
+
+var path = d3.geo.path().projection(function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+
+    return [point.x, point.y];
+  });
+
+
+
+  $(document).ready(function() {
+//alert('search.html')
+
+        //click on pagination
+          $('.span6').live('click',function (event)
+        {
+        if ($(event.target).hasClass('pager_class'))
+        {
+        $("#ajax_image").show()
+        $('#occurrences_table,.span3,#sidebar').fadeOut(1000)
+        $('.red, .span6 ').removeClass('red')
+        $(event.target).addClass('red')
+
+        }
+        })
+$('#extra_outils').hide()
+
+ids=[]
+bboxes=[]
+paths_taxa={};
+paths={}; 
+$('#map').show().css('opacity',0.0001)
+if ($('#map g').size()==0)
+{
+
+  
+ map = new L.Map('map',{ 'crs': L.CRS.EPSG900913})
+
+url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
+
+wax.tilejson(url, function(tilejson) {
+          basemap = new wax.leaf.connector(tilejson);         
+            map.addLayer(basemap,true)
+              })
+map.fitWorld()
+
+map._initPathRoot() 
+
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
+ 
+bboxes=[]
+paths_taxa={};
+paths={};
+
+  map.on("viewreset", reset)
+  map.scrollWheelZoom.disable();
+}
+
+
+$('.icon-remove').live('click',function ()
+              {
+                var $parent=$(this).parent();
+                if ($parent.is('li')) $parent.remove()
+                  else  $parent.parent().remove()
+              })
+
+ 
+ first_request=true;
+
+ //executes search based on URL
+searchOccurrences("${search.taxaText}","${search.placeText}","${search.dataset}","${search.dateText}","${search.onlyWithCoordinates}", 0)
+
+ //  //alert("${search.dataset}")
+
+    // searchTaxas("${search.taxaText}",'1');
+    // searchPlaces("${search.placeText}", 0);
+    // searchDatasets("${search.dataset}");      
+
+
+$('#search-submit').show()
+
+$('#search-submit').click(function ()
+{
+ var taxes_arr= $('#taxa-dropdown li').map(function()
+   {   
+   return jQuery(this).find('b').eq(0).text()   
+   }).get().join(';')
+   $('#input-search-taxa').val(taxes_arr)
+
+ var places_arr=$('#places-dropdown li').map(function()
+   {   
+   return jQuery(this).find('b').eq(0).text()   
+   }).get().join(';')
+ 
+
+ var datasets_arr=$('#datapublishers-dropdown li').map(function()
+   {   
+   return jQuery(this).find('b').eq(0).text()   
+   }).get().join(';')
+
+
+//$('#input-search-place').val(places_arr)
+console.info(places_arr)
+//???????????
+searchOccurrences(taxes_arr,places_arr,datasets_arr,"${search.dateText}","${search.onlyWithCoordinates}", 0)
+
+ })   
+
+var taxes_array;
+
+ dataset_bboxes=false;
+
+
+window.pol_degree==5 
+  zoom_level='five_degrees'; 
+var o_colors=['gold','lime','orange','orangered','royalblue','blue','gold','lightseagreen','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue',]
+var ramp_colors=new Array();
+var colors=['blue','gold','lightseagreen','lime','orange','orangered','royalblue','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue','red']
+var taxa,datapublisher;
+for (i=0;i<o_colors.length-1;i++)
+{
+var new_colors=$.xcolor.analogous(o_colors[i],6,20);
+
+colors[i]=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors[i].push(this_color)
+}
+
+ramp_colors.push(colors[i])
+}
+var num_plotted_taxa=0;
+var plotted_taxa=[]
+
+ 
+  function get_db_id()
+{
+
+//   http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_cluster.php
+ return jQuery.ajax({url:'http://localhost:9000/datasets/search?search='+datasets_text,
+ dataType: 'html'
+})
+}
+
+function remove_paths()
+{
+  return function ()
+  {
+    if ($('#map path').size()>0)
+    {
+      console.warn($('#map path').size())
+        $('#map path').remove()
+          }
+      
+    }
+}
+
+var features ,bboxes;
+
+function generate_paths (data,zoom_level)
+   {
+console.warn('generating paths')
+
+console.warn(data)
+ for (i=0;i<data.length;i++)
+     {
+
+features=data[i].features;
+
+var this_taxa=data[i].taxa;
+
+
+  bounds = d3.geo.bounds(features)
+  var opacityScale = d3.scale.linear()
+                     .domain([d3.min(features, function(d) { return d.properties.count; }), d3.max(features, function(d) { return d.properties.count; })])
+                     .range([0.4, 1]);  
+  var count_extent = d3.extent(features, function(d){return d.properties.count});
+
+  var ramp =d3.scale.linear().domain(count_extent).range(ramp_colors[num_plotted_taxa]);
+  var this_path='path.'+zoom_level
+  
+   var  path_feature = g.selectAll(this_path).attr('centroid',function (d) {return d.centroid})
+    .data(features,function (d)
+    {
+      var centroid=d.centroid;
+      return d.centroid;
+    })
+  path_feature.enter().append("path").attr("d", path).attr('class','polygons').attr('opacity',0.7).attr('fill',function (d)
+  {
+    return ramp(d.properties.count);
+  })
+
+  path_feature.each(function (d)
+   {
+    var centroid=d.centroid
+    
+    if (typeof $(this).data('centr')=='undefined')
+    {
+      $(this).data('centr',[])
+      $(this).data('info_taxes_colors',[])
+      $(this).data('info_taxes',[])
+      $(this).data('info_ids',[])
+      $(this).data('info_counts',[])
+      $(this).data('centr').push(centroid);
+      $(this).data('total_counts',0)
+      $(this).data('visualized_items',0)
+    }
+    
+    
+
+        if ($.inArray(this_taxa,$(this).data('info_taxes'))==-1)   
+    {
+    
+      $(this).data('info_taxes').push(this_taxa);   
+      $(this).data('info_ids').push(d.properties.random_id)
+      $(this).data('info_counts').push(d.properties.count)  
+      $(this).data('info_taxes_colors').push(ramp(d.properties.count)) 
+      var total=$(this).data('total_counts')+d.properties.count 
+      $(this).data('total_counts',total)
+      var visualized_items=$(this).data('visualized_items')
+      $(this).data('visualized_items',visualized_items+1)
+      var info_taxes_colors=$(this).data('info_taxes_colors')        
+      if (info_taxes_colors.length>1)
+      {
+        var new_color=$.xcolor.additive($(this).attr('fill'),ramp(d.properties.count))
+        $(this).attr('fill',new_color)
+        d.fill_color=new_color
+      }
+    else
+    {
+    $(this).attr('fill',info_taxes_colors[0])
+    
+    
+    }
+
+    } 
+
+    })
+
+  if (typeof paths[zoom_level]=='undefined') paths[zoom_level]=[]
+
+//if (typeof paths[zoom_level][taxa]=='undefined') paths[zoom_level][taxa]=[]
+    paths[zoom_level].push(path_feature);   
+ 
+  $('path.polygons').tipsy({ 
+                              delayIn: 500, 
+                              fade: true, 
+                              gravity: 'w', 
+                               offset: 0, 
+                               opacity:1,
+                              html: true, 
+                              title: function() {
+
+                              if ($(this).attr('opacity')>0)
+                              {
+
+                                var d = this.__data__;
+                                var info_taxes=$(this).data('info_taxes');
+                                var info_counts=$(this).data('info_counts');
+                                var text='<b>Total occurrences</b> <b>'+$(this).data('total_counts')+'</b> for '+info_taxes.length+' taxonomies<p>';                              
+                                for (i=0;i<info_taxes.length;i++)
+                                {
+                                 text+='<span class="red_tipsy">'+info_taxes[i]+'</span> '+info_counts[i]+'<p>';                                 
+                                }
+
+                                return text;
+               }
+               else
+               {
+               return false;
+               }
+                              }
+                            }) 
+
+
+     }
+ 
+
+  }  //end generate_paths
+  
+
+function plot_map(taxes,this_bbox,ids,cell_size)
+{
+  $.ajax({
+      url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes+'&datapublishers='+ids,
+    //  url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes_text,
+      type: 'GET',
+      data:{bbox:this_bbox,polygon:cell_size},
+   dataType: "jsonp", 
+    crossDomain : true,
+  success: function(data, textStatus, xhr) {
+     
+    if (data.main_bbox[0].length= 0) 
+  {
+   alert('some error in bbox??')
+   zoom=2;
+    map.fitWorld()
+  }
+  else
+  {
+  if (typeof data.main_bbox[1]=='undefined') alert('We cannot get any geo-referenced record for this taxa at this selected area;')
+    else
+    {
+    var up_right=data.main_bbox[1].split(',')
+    var bottom_left=data.main_bbox[0].split(',')
+    
+ bounds = new L.LatLngBounds(
+        new L.LatLng(bottom_left[1],bottom_left[0]),
+
+        new L.LatLng(up_right[1],up_right[0]));
+
+zoom=map.getBoundsZoom(bounds)
+
+map.fitBounds(bounds) 
+    }
+
+
+
+  }
+     generate_paths(data.features,'five_degrees')  
+
+     if (!$('#map_it').is(':visible'))
+     {
+      $('#map_it').show();
+      $('#map').height(5);
+     }
+    else
+      {
+      $('#map').height(340)  
+      }
+    
+      
+      }
+    });
+}
+var this_bbox,places
+function collect_parameters()
+{
+  return function ()
+  {
+if (first_request==true)
+{
+taxes="${search.taxaText}";//.split(';')
+places="${search.placeText}";
+datasets_text="${search.dataset}";  
+
+if (taxes!=='')
+{
+taxes_array=taxes.split(';');
+var lis='';
+for (var i = taxes_array.length - 1; i >= 0; i--) 
+{
+
+   lis+='<li><i class="icon-remove" style="color:#9C0890;float:left;"></i><b>'+taxes_array[i]+'</b></li>';  
+};
+
+
+$('#taxa-dropdown ul').append(lis)
+
+var count=$('#taxa-dropdown li').size()
+
+$('#taxa-dropdown-trigger').html('Taxas  <span class="badge_mini badge-success">'+count+'</span>')
+
+
+}
+
+// for (datasets_json as dataset)
+// {
+//     if (dataset==this_dataset)
+//     {
+//         console.log(datasets_json[dataset].datapublisher_id)
+//     }
+// }
+
+if (datasets_text!='')
+{
+var datasets_array=datasets_text.split(';');
+var lis='';
+for (var i = datasets_array.length - 1; i >= 0; i--) 
+{
+  lis+='<li><i class="icon-remove" style="color:#9C0890;float:left;"></i><b>'+datasets_array[i]+'</b></li>';  
+};
+$('#datapublishers-dropdown ul').append(lis)
+
+var count=$('#datapublishers-dropdown li').size()
+
+$('#datapublishers-dropdown-trigger').html('Datasets  <span class="badge_mini badge-success">'+count+'</span>')
+
+}
+
+if (places!='')
+{
+places_array=places.split(';');
+var lis='';
+for (var i = places_array.length - 1; i >= 0; i--) 
+{
+
+   lis+='<li><i class="icon-remove" style="color:#9C0890;float:left;"></i><b>'+places_array[i]+'</b></li>';  
+};
+
+
+$('#places-dropdown ul').append(lis);
+
+var count=$('#places-dropdown li').size()
+
+$('#places-dropdown-trigger').html('Places  <span class="badge_mini badge-success">'+count+'</span>')
+
+}
+
+}
+else
+{
+  console.info('first req false')
+taxes= $('#taxa-dropdown b').map(function()
+   {
+   return jQuery(this).text()
+   
+   }).get().join(';')
+
+
+  places= $('#places-dropdown b').map(function()
+   {
+   return jQuery(this).text()   
+   }).get().join(';')
+}
+
+
+var taxes_array
+   if (taxes!=='')
+{
+taxes_array=taxes.split(';');
+
+
+}
+
+var datasets_array;
+
+if (datasets_text!='')
+{
+var datasets_array=datasets_text.split(';');
+}
+
+var places_array;
+
+if (places!=='')
+{
+
+places_array=places.split(';');
+
+}
+
+ 
+    
+
+//if (places_array.length>0)
+if (typeof(places_array)!=='undefined')
+
+ {
+ 
+places_bbox=[]
+
+this_bbox=''
+
+for (var q=0;q<places_array.length;q++)
+{
+
+var url='http://where.yahooapis.com/v1/places.q('+places_array[q]+')?format=json&appid=M3lUf_vV34FjRZ.y0gzSptK7oUgWsLVnIJp_GD32DD1Ae7nfam.UgjnRV9PZlxzQYg--'
+//HjPxmnzV34HJjbf6t756Vwmg8axC0i3fOcgW0nTxLJlrVV_Zvik6SIpUYD906V3uf6y4OcAlWpsD..o2.wpLoHkvR22EP_A-
+
+ jQuery.ajax({url:url,
+ dataType: 'json',
+ level: q,
+ this_bbox: this_bbox,
+ success: function(data)
+ {
+ var that=this;
+ var boundingBox=data.places.place[0].boundingBox
+ var sw_bbox=boundingBox.southWest
+ var ne_bbox=boundingBox.northEast
+//bottomLeftLon+' '+bottomLeftLat+','+topRightLon+' '+topRightLat
+ //  for (var p in obj) {
+this_bbox+=sw_bbox.longitude+' '+sw_bbox.latitude 
+this_bbox+=','+ne_bbox.longitude+' '+ne_bbox.latitude+'|'
+//this.places_bbox.push(this_bbox)
+var ids=[]
+
+//if (datapublishers_text!='')
+if (datasets_array!='')
+{
+
+ $.when(get_db_id())
+  .then(function(data){
+
+    $data=$(data)
+
+var tr = $data.find('table tr') 
+
+tr.each(function(i,_this) {
+
+   var this_url=$(_this).find('td:last a').attr('href').split('=')
+ 
+ids.push(this_url[1])
+})
+
+ids=$.unique(ids).join()
+
+if (that.level==places_array.length-1)
+{
+this_bbox=this_bbox.substring(this_bbox.length-1, -1)
+
+//plot_map(taxes,this_bbox,ids,cell_size)
+  
+}
+
+  })
+}
+
+
+
+ }
+ 
+ })
+
+}
+
+}  //end if places+text!=''
+else
+{
+
+
+
+
+var ids=[]
+
+
+ $.when(get_db_id())
+  .then(function(data){
+
+    $data=$(data)
+
+var tr = $data.find('table tr') 
+
+tr.each(function(i,_this) {
+
+   var this_url=$(_this).find('td:last a').attr('href').split('=')
+ 
+ids.push(this_url[1])
+})
+
+ids=$.unique(ids).join()
+
+
+ //  plot_map(taxes,this_bbox,ids,cell_size)
+})
+
+
+
+
+
+ 
+}
+
+}
+
+}
+
+collect_parameters()()
+first_request=false;
+// $.when(get_f()())
+//   .then(function(data){
+// //alert(window.features)
+// })
+
+$('#map_it').click(function ()
+{
+
+if (!$(this).hasClass('selected'))
+{
+  $('#map').height(400).css('opacity',1)
+  $(this).addClass('selected').text('Update map')
+  return false;
+  
+}
+else
+{
+ $.when(remove_paths()())
+  .then(function(){
+        
+      if (first_request==true)
+      {
+
+$.when(collect_parameters()())
+  .then(function(){
+console.warn('okkk')
+
+})        
+      
+      }
+      else
+      {
+     $.when(collect_parameters()())
+  .then(function(){
+console.info('okkk2')
+         
+}) 
+      }
+      
+    //   generate_bboxes(data.bboxes)
+
+  })
+}
+
+    });
+
+//for the moment, keep it hidden!
+$('#map').hide()
+ 
+
+  });
+</script>
+#{if flash.errorDate}
+<div class="container alert alert-error" style="width:890px;" id="flash">
+     
+    	<p style="color:#c00">
+          <h4>&{'dateError'}</h4>
+    	</p>	
+</div>
+#{/if} 
+<div class="container">
+   <div class='btn btn-primary btn-tiny'  style='position:relative;display:none;' id='map_it'>Visualize map</div>  
+    <div id="map" style='width:100%;height:400px;display:none;position:relative'></div> 
+    
+  <div class="row occ_results" style="margin-left: 0px;opacity:0.01;">
+     <div id="occurrences"></div>  
+  <!--   <div id="sidebar" class="span3">
+     
+      <div class='alert alert-error taxes_alert2'><b>Your taxas</b><ul style="list-style:none;"></ul></div>
+      <div id="datasets"></div>
+      <div id="places"></div>
+      <div id="taxas"></div>
+    </div>   -->
+  </div>
+</div>

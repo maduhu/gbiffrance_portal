@@ -191,7 +191,7 @@
         options: {
             shapeOptions: {
                 stroke: !0,
-                color: "#f06eaa",
+                color: "red",
                 weight: 4,
                 opacity: .5,
                 fill: !0,
@@ -239,7 +239,7 @@
         options: {
             shapeOptions: {
                 stroke: !0,
-                color: "#f06eaa",
+                color: "red",
                 weight: 4,
                 opacity: .5,
                 fill: !0,
@@ -261,7 +261,7 @@
         options: {
             shapeOptions: {
                 stroke: !0,
-                color: "#f06eaa",
+                color: "red",
                 weight: 4,
                 opacity: .5,
                 fill: !0,

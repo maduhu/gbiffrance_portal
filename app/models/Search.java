@@ -132,7 +132,12 @@ public class Search
 	if (searchDataset != null && !searchDataset.isEmpty()) 
 	{
 	  search.dataset = searchDataset.replaceAll("\'", "");	
+	  System.out.println("datasets in search : "+search.dataset);
+
+	  
 	  search.datasetsIds = Dataset.getDatasetsIds(searchDataset);
+	  //System.out.println("eeee"+search.datasetsIds);
+	  //EMPTKY KEY!!!!!!!! []
 	}
 	/*** Date ***/
 	if (searchDate != null && !searchDate.isEmpty()) 

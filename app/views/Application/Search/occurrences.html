@@ -1,41 +1,61 @@
-
+<style type="text/css">
+.occurrence_info      
+{
+border: 0.5px solid  #575C7D;
+}
+</style>
 <script type="text/javascript">
+// Highcharts.Point.prototype.tooltipFormatter = function (useHeader) {
+//     var point = this, series = point.series;
+//     return ['<span style="color:' + series.color + '">', (point.name || series.name), '</span>: ',
+//         (!useHeader ? ('<b>x = ' + (point.name || point.x) + '.</b> ') : ''),
+//         '<b>', (!useHeader ? 'y = ' : ''), Highcharts.numberFormat(point.y, 0), '</b>'].join('');
+// };
+
 //QUICK AND DIRTY CODE
 function show_hide (elem,graph_name,list_name)
 {
 
-
+  //  case 'class': show_hide(_this,"graph_freq_taxa","freq_class");break;
   $this=$(elem);
+   
+    if ($this.hasClass('graphic'))
+    {    
+      //we are currently seeing the graphic
+       $('#'+graph_name).slideUp().height(0);
+      $('#'+list_name).show()    
+      $this.html('Graphique')
+    }
+    else
+    {
+      //we are currently seeing the table list
 
-  if ($this.hasClass('graphic'))
-  {    
-    $('#'+graph_name).hide()
-    $('#'+list_name).show()    
-    $this.html('Show as graphic')
-  }
-  else
-  {
-    $('#'+list_name).hide()
-    $('#'+graph_name).show() 
-    $this.html('Show as list')
-  }
+      $('#'+list_name).slideUp().height(0);
+      $('#'+graph_name).slideDown().show() 
+      $this.html('Liste')
+    }
   $this.toggleClass('graphic')
     return false;
 
+
 }
+
+
 </script>
-  #{if nbHits}
-    <div class="span6">
-    <h6><ul class="breadcrumb"> &{'yourSearch'}:<br/>
+   #{if nbHits}
+
+    <div class="span6" style='width:30%'>
+ <!--    <h6><ul class="breadcrumb"> &{'yourSearch'}: <br/>
       #{if search.taxaText}<li>Taxa: ${search.taxaText}</li><br/>#{/if}
       #{if search.placeText}<li>Place: ${search.placeText}<br/></li>#{/if}
       #{if search.dataset}<li>Dataset: ${search.dataset}<br/></li>#{/if}
       #{if search.dateText}<li>Date: ${search.dateText}<br/></li>#{/if}
       #{if search.onlyWithCoordinates}<li>Only with coordinates</li>#{/if}
-    </ul></h6>
-    <h3>Occurrences</h3>
-    <!-- Pagination -->
-    #{if occurrencesTotalPages == 100}<i>${pagesize*occurrencesTotalPages} &{'firstResults'} ${nbHits} occurrences</i>#{/if}
+    </ul></h6> -->
+
+    <h3><b>${nbHits}</b> occurrences</h3>
+
+    #{if occurrencesTotalPages == 100}<i>${occurrencesTotalPages} &{'firstResults'} ${nbHits} occurrences</i>#{/if}
     #{else}Page ${current} &{'for'} ${nbHits} &{'results'}#{/else}
     #{if nbHits <= 5000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates, 'DIRECT')}">&{'download'}</a>#{/if}
     #{elseif nbHits <= 300000}<a target="_blank" href="@{Occurrences.download(search.taxaText,search.placeText,search.dataset,search.dateText,search.onlyWithCoordinates)}">&{'download'}</a>#{/elseif}
@@ -80,28 +100,30 @@ function show_hide (elem,graph_name,list_name)
           <a class='pager_class' onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','${(i-1)*pagesize}',${i});">${i} </a>
         #{/list}
     #{/else}
-    
+    <div id='occurrences_div' style='border:solid #675D5E;'>
     <table id="occurrences_table" class="table table-condensed table-striped table-bordered">
       <thead>
         <tr>
           <th>Scientific Name</th>
-          <!-- <th>Dataset</th>
-          <th>Data Publisher</th>-->
+          <!--  <th>Dataset</th>
+          <th>Data Publisher</th> -->
         </tr>
       </thead>
       %{i = 0}%
       #{list items:occurrences, as:'occurrence'}  
       %{i = i + 1}%
       <tr>
-        <td class="hoverable">
+        <td class="hoverable ${occurrence.ecatConceptId}">
           <div style="float:left;">
           <a target="_blank" href ="@{Occurrences.show(occurrence.id)}">
             <i>
               #{if occurrence.scientificName && occurrence.scientificName.size() < 70}
+
+              <!-- ${occurrence.ecatConceptId} -->
                 ${occurrence.scientificName}
               #{/if}
               #{elseif occurrence.scientificName}
-                ${occurrence.scientificName[0..69]}[...]
+                ${occurrence.scientificName[0..69]}---[...]${occurrence.ecatConceptId}
               #{/elseif}
               #{else}
                 N/A
@@ -114,9 +136,9 @@ function show_hide (elem,graph_name,list_name)
           #{/if}
           </div> 
           <div style="float:right;">  
-          <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/>#{/if}
+          <h6>#{if occurrence.decimalLatitude && occurrence.decimalLongitude}<img width="15" height="15" src="@{'/public/images/gps_icon.png'}"/><!-- #{/if}
               #{if occurrence.catalogNumber && occurrence.catalogNumber.size() < 20}${occurrence.catalogNumber}#{/if}
-              #{elseif occurrence.catalogNumber}${occurrence.catalogNumber[0..18]}[...]#{/elseif}
+              #{elseif occurrence.catalogNumber}${occurrence.catalogNumber[0..18]}[...]#{/elseif} -->
           </h6>
           </div>  
           <div style="clear:both;" class="well occurrence_info">
@@ -124,71 +146,135 @@ function show_hide (elem,graph_name,list_name)
             <a target="_blank" href ="@{DataPublishers.show(occurrence.dataset.dataPublisher.id)}">Datapublisher: ${occurrence.dataset.dataPublisher.name}</a>
           </div>       
         </td>    
-        <!-- <td>${occurrence.score}</td> -->  
+    <!--     <td>${occurrence.score}</td>  -->
       </tr>
       #{/list}
       </table>
     </div>
+    </div>
 
-    <div class="span3">
+     
+    <div class="span3" style='width:60%'>
+
       <!-- <a href="http://lully.snv.jussieu.fr/sagg/web/app_dev.php/StatBase?taxa=${search.taxaText}&place=${search.placeText}&dataset=${search.dataset}&date=${search.dateText}"><button class="btn">Advanced statistics</button></a>-->
-      #{if frequentTaxas}
-      <h4>&{'frequentTaxa'}</h4>
 
-      <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_taxa","freq_taxa")'>&{'showlist'}</a>
-      <svg style='width:300px;height:300px' id='graph_freq_taxa'></svg>
+     <div id='taxas_stats'>
+     
+       <h3>Top 10 plus fréquents taxas</h3>
+       <div id='graphic_filters'>
+       <div class="btn btn-danger btn-tiny" id="by_species">Espèce</div>
+       <div class="btn btn-info btn-tiny" id="by_genus">Genre</div>
+       <div class="btn btn-info btn-tiny" id="by_class">Classe</div>
+     </div>
+      <a href='#' id='graph_display' class='graphic'>&{'showlist'}</a>
+
+     
+      <div style='width:auto;height:320px;background-color:#E1F5E8;' id='graph_freq_taxa'></div> 
+       <!-- <svg style='width:300px;height:300px' id='graph_freq_taxa'></svg>  -->
+       #{if frequentTaxas}
       <table id='freq_taxa' style='display:none' class="table table-condensed">
-        #{list items:frequentTaxas, as:'frequentTaxa'}
+        
+          #{list items:frequentTaxas, as:'frequentTaxa'}
 
           <tr>
-            <td><a target="_blank" href ="@{Taxas.show(frequentTaxa.get('taxonId'))}"><i>${frequentTaxa.get('scientificName')}</i></a></td>
+            <td><a target="_blank" href ="@{Taxas.show(frequentTaxa.get('taxonId'))}"><i>${frequentTaxa.get('scientificName').capAll()}</i></a></td>
             <!-- Result filter based on ecat -->
-            <td><a target="_blank" onClick="searchOccurrences('${frequentTaxa.get('canonicalName')}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentTaxa.get('count')}</a></td>        
+            <td><a target="_blank" onClick="searchOccurrences('${frequentTaxa.get('canonicalName')}', '${search.placeText}', '${search.dataset}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentTaxa.get('count')}</a></td>   
+            <td><a style="display:none" target="_blank" href ="@{Taxas.show(frequentTaxa.get('taxonId'))}">${frequentTaxa.get('taxonId')}</a></td>     
           </tr>
        #{/list}
       </table>
       #{/if}
+
+       #{if frequentGenus}
+      
+      <table id='freq_genus' style='display:none;height:0px;' class="table table-condensed">
+        
+          #{list items:frequentGenus, as:'frequentGenus2'}
+
+          <tr>
+          <td><a target="_blank"><i>${frequentGenus2.get('genus').capAll()}</i></a></td>
+            <!-- Result filter based on ecat -->
+            <td><a target="_blank">${frequentGenus2.get('count')}</a></td>   
+          </tr>
+       #{/list}
+      </table>
+    #{/if}
+
+         #{if frequentClass}
+      
+      <table id='freq_class' style='display:none;height:0px;' class="table table-condensed">
+        
+          #{list items:frequentClass, as:'frequentClass2'}
+
+          <tr>
+          <td><a target="_blank"><i>${frequentClass2.get('class').capAll()}</i></a></td>
+            <!-- Result filter based on ecat -->
+            <td><a target="_blank">${frequentClass2.get('count')}</a></td>   
+          </tr>
+       #{/list}
+      </table>
+    #{/if}
+
+    </div>
       #{if frequentDatasets}
-      <h4>&{'frequentDatasets'}</h4>
+      <h3>&{'frequentDatasets'}</h3>
       <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_dataset","freq_dataset")'>&{'showlist'}</a>
-      <svg style='width:300px;height:300px' id='graph_freq_dataset'></svg>
+        <div style='width:auto;height:300px' id='graph_freq_dataset'></div> 
+     
+        
+
+
+      
       <table id="freq_dataset" style='display:none' class="table table-condensed">
         #{list items:frequentDatasets, as:'frequentDataset'}
           <tr>
             <td><a target="_blank" href ="@{Datasets.show(frequentDataset.get('id'))}"><i>${frequentDataset.get('title')}</i></a></td>
             <!-- Result filter based on dataset -->
-            <td><a target="_blank" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${frequentDataset.get('name')}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentDataset.get('count')}</a></td>       
+            <td><a target="_blank" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${frequentDataset.get('name')}', '${search.dateText}', '${search.onlyWithCoordinates}','0');">${frequentDataset.get('count')}</a></td>   
+             <td style='display:none;'>${frequentDataset.get('id')}</td>    
           </tr>
        #{/list}
       </table>
       #{/if}
-       #{if frequentYears}
+      <!--  #{if frequentYears}
       <h4>&{'frequentDates'}</h4>
          <a href='#' class='graphic' onClick='show_hide(this,"graph_freq_dates","freq_dates")'>&{'showlist'}</a>
-      <svg style='width:230px;height:300px' id='graph_freq_dates'></svg>
+      <svg style='width:auto;height:300px' id='graph_freq_dates'></svg>
       <table id="freq_dates" style='display:none' class="table table-condensed">
         #{list items:frequentYears, as:'frequentYear'}
           <tr>
             <td><i>${frequentYear.get('year')}</i></td>
-            <!-- Result filter based on dataset -->
+            
             <td><a target="_blank" onClick="searchOccurrences('${search.taxaText}', '${search.placeText}', '${search.dataset}', '${frequentYear.get('year')}', '${search.onlyWithCoordinates}','0');">${frequentYear.get('count')}</a></td>       
           </tr>
        #{/list}
       </table>
       #{/if}      
     </div>
-  #{/if}
-  #{else}
-  <div class="span8">
+   #{/if} -->
+  #{else} 
+<div class="span8">
     <h3>Occurrences</h3>    
     <h6>Pas de résultats</h6>
   </div>    
   
-  #{/else}
+  #{/else} 
   
   <script type="text/javascript">
+
+  var chart;
+
+
  
 $(document).ready(function() {
+
+
+
+var total=addSeparator("${nbHits}");
+$('.span6 h3 b').html(total)
+
+
 $('.occurrence_info').hide()
 
 $('.span6').click(function (event)
@@ -196,7 +282,7 @@ $('.span6').click(function (event)
 if ($(event.target).hasClass('pager_class'))
 {
 $("#ajax_image").show()
-$('#occurrences_table,.span3,#sidebar').fadeOut(1000)
+$('#occurrences_table,#sidebar').fadeOut(1000)
 $('.red, .span6 ').removeClass('red')
 $(event.target).addClass('red')
 }
@@ -217,18 +303,16 @@ var dates=[];
 taxes.push({keys: "taxes",values:[]})  
 datasets.push({keys: "taxes",values:[]})
 dates.push({keys: "taxes",values:[]})
-
+/*
+[
+  ['Fermee',   2],
+      ['Inconnu',       14],              
+      ['Active',    94],
+      ['Passive',       5]
+    ]
+      */
 //$('#freq_taxa tr').size()>5 ? labels=false : labels=true;
-$('#freq_taxa tr').each(function(i,_this)
-{
-if (i<10)
-{
- taxes[0]['values'].push(
-{ 'name' :  $(_this).find('td').eq(0).text(),
-  'count' : $(_this).find('td').eq(1).text()}
-) 
-}
-})
+
 
 $('#freq_dates tr').each(function(i,_this)
 {
@@ -242,67 +326,310 @@ if (i<5)
  }
 })
 
+var taxa_array=[];
+var taxa_count=0
+$('#freq_taxa tr').each(function(i,_this)
+{
+if (i<10)
+{
+ taxa_array.push([ $(_this).find('td').eq(0).text(),parseInt($(_this).find('td').eq(1).text()),parseInt($(_this).find('td').eq(2).text()) ] ) 
+ taxa_count+=parseInt($(_this).find('td').eq(1).text())
+}
+})
 
+var genus_array=[];
+var genus_count=0
+$('#freq_genus tr').each(function(i,_this)
+{
+if (i<10)
+{
+genus_array.push([ $(_this).find('td').eq(0).text(),parseInt($(_this).find('td').eq(1).text()) ] ) 
+genus_count+=parseInt($(_this).find('td').eq(1).text())
+}
+})
+
+var class_array=[];
+var class_count=0
+$('#freq_class tr').each(function(i,_this)
+{
+if (i<10)
+{
+class_array.push([ $(_this).find('td').eq(0).text(),parseInt($(_this).find('td').eq(1).text()) ] ) 
+class_count+=parseInt($(_this).find('td').eq(1).text())
+}
+})
+
+
+
+var datasets_array=[];
+var datasets_count=0
 $('#freq_dataset tr').each(function(i,_this)
 {
 if (i<10)
 {
- datasets[0]['values'].push(
-{ 'name' :  $(_this).find('td').eq(0).text(),
-  'count' : $(_this).find('td').eq(1).text()}
-) 
+var this_count=parseInt($(_this).find('td').eq(1).text())
+ datasets_array.push([ $(_this).find('td').eq(0).text(),this_count,parseInt($(_this).find('td').eq(2).text()) ] ) 
+ datasets_count+=parseInt($(_this).find('td').eq(1).text())
 }
 })
 
-//Piecharts 
-function render_chart (data,container)
+var new_colors=$.xcolor.analogous('#a5db97',30);
+colors=new Array();
+for (d in new_colors)
 {
-console.warn('rendering chart')
-  nv.addGraph(function() {
-        var width = 230,
-        height = 230;      
-        var chart = nv.models.pieChart()        
-        .x(function(d) { return d.name })
-        .y(function(d) { return d.count })        
-        .color(d3.scale.category10().range())
-        .width(width)
-        .height(height)
-        .donut(false)
-        .showLabels(false);
-          
-        d3.select("#"+container)
-          .datum([data[0]])
-          .transition().duration(2800)
-          .attr('width', width)
-          .attr('height', height)
-          .call(chart);
-
-    return chart;
-})
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors.push(this_color)
 }
-render_chart(datasets,"graph_freq_dataset");
-render_chart(taxes,"graph_freq_taxa");
 
-//DATES histogram
-nv.addGraph(function() {  
-  var chart = nv.models.discreteBarChart()
-      .x(function(d) { return d.year })
-      .y(function(d) { return d.count })
-      .staggerLabels(false)      
-      .tooltips(true)
-      .showValues(false)
 
-  d3.select('#graph_freq_dates')
+        
+function render_highchart (render_to,this_array,title)
+{
+  console.warn(this_array)
+  chart = new Highcharts.Chart({
+            chart: {
+               backgroundColor: '#E1F5E8',
+                renderTo: render_to,
+                //'graph_freq_taxa',
+               
+                plotBorderWidth: null,
+                plotShadow: false
+               
+            },
+            colors:colors,
+            title: {
+                text: title
+            },
+            tooltip: {
+              useHTML: true,
 
-      .datum(dates)
-      .transition().duration(1500)
-      .attr('width',200)
-      .attr('height',200)
-      .call(chart);
-  return chart;
+            formatter: function(){
+                return '<span class="my_highcart_tooltip">'+this.point.name+' '+addSeparator(this.point.y)+' ('+this.point.percentage.toFixed(2)+'%)</span>';
+            },
+          //    pointFormat: '<b>{point.y}</b> ({point.percentage})%</b>',
+              backgroundColor: 'rgba(20,19,19,1)',
+
+              
+              percentageDecimals: 1,
+              style: {
+                    
+                    borderWidth: 2,
+                    borderColor: '#AAA',
+                    color:'white',
+                    overflow:'auto',
+                    width:'200px',
+                    fontSize: '10pt',
+                padding: 10,
+                fontWeight: 'bold'
+            }
+            },
+            plotOptions: {
+                pie: {
+                    //showInLegend:true,
+                    allowPointSelect: true,
+                    borderColor: '#DAE4E8',
+                     borderWidth: 1,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+
+                        style: {
+                          
+                          color:'black',
+                          fontSize: '12px'
+                        },
+                        useHTML:true,
+                        formatter: function () 
+                        {
+                          var label_type;
+                          var this_name=this.point.name;
+                          if (render_to=='graph_freq_taxa')                        
+                        {
+                           label_type='taxa_label';
+                            if (this_name.length>20)
+                          {
+                            this_name=this_name.split(' ');
+                            this_name=this_name[0]+' '+this_name[1]
+                          }
+                        }
+                             if (render_to=='graph_freq_dataset')                        
+                        {
+                             label_type='datasets_label';
+                        }
+                          
+                          
+
+                    return '<div style="max-width:100px;height:auto;" class="'+label_type+'" id="'+this.point.config[2]+'"><b>'+this_name+'</b></div>';
+                  //  return '<div id="'+this.point.config[2]+'"><b>'+this.point.name+'</b></div>'
+                          // : '+this.y+' occurrences
+                         } 
+                     }
+                    ,
+                    // showInLegend: true
+                }
+            },
+              legend: {
+            align: 'right',
+            verticalAlign: 'top',
+            width:100,
+            
+             
+            x: -100,
+            y: 100
+          },
+            series: [{
+                type: 'pie',
+                
+                data: this_array,
+                 events: {
+                                  click: function(e) {
+                                  //    alert ('A series was added');
+                                  console.warn(e.point)
+                                 console.info(e.point.config[0])
+              
+                                  }
+                              }
+            }]
+        });
+
+ function search_ecatID (this_taxa)
+ {
+        return function ()
+  {
+  console.log('my taxa is'+this_taxa)
+  $.getJSON('http://ecat-dev.gbif.org/ws/usage/?rkey=1&q='+this_taxa+'&searchType=canonical&callback=?',
+       { format:'JSONP'},
+       function(json, textStatus) 
+    {
+      var id=json.data[0].taxonID;
+      console.warn(id)
+      return id;
+      
+      
+      //optional stuff to do after success
+    });
+  }
+ }  
+// $('.datasets_label, .taxa_label').tipsy({live:true,fade: true, opacity:1,gravity: 'n', html: true, 
+// title: function () 
+//  {
+//  var d=this;
+// var url;
+// if ($(this).hasClass('taxa_label')) 
+//   {
+//   var this_taxa=$(this).text();
+  
+//   console.warn(d.id)
+//   if (d.id!=='undefined')
+//   {
+//      url="http://localhost:9000/taxas/show?taxonId="+d.id;
+//   }
+//     else
+//     {
+//       $.when(search_ecatID (this_taxa)()).then(function(id)
+//       {
+      
+      
+//        console.info(url)
+//        url="http://localhost:9000/taxas/show?taxonId="+id;
+     
+//      })
+//     } 
+    
+//   }
+// if ($(this).hasClass('datasets_label'))    
+//  url="http://localhost:9000/datasets/show?id="+d.id 
+
+//  var html='<a target="_blank" href="'+url+'">Visualize its description</a>';
+
+//  return html;
+// }
+                     
+// });
+}
+
+// if ($('#graph_freq_taxa svg').size()==0)
+// {
+  var taxa_count=addSeparator(taxa_count);
+
+ render_highchart('graph_freq_taxa',taxa_array,taxa_count+' occurrences d\'un  total de '+total);
+render_highchart('graph_freq_dataset',datasets_array,datasets_count+' occurrences d\'un  total de '+total); 
+var taxa_graph='speciesName';
+
+         $('#graphic_filters').click(function (event)
+       {              
+      $(this).find('.btn-danger').removeClass('btn-danger').addClass('btn-info')
+        
+        $this=$(event.target)
+        $this.addClass('btn-danger').removeClass('btn-info')
+        
+
+var this_id=$this.attr('id');
+var _this=$('#graph_display')[0];
+console.warn(this_id)
+  switch (this_id)
+  {
+    case 'by_species': 
+     taxa_graph='speciesName';
+    var array_to_plot=taxa_array;
+      var to_plot_count=addSeparator(taxa_count);
+   
+    var table_to_plot=$('#freq_taxa')
+    break;
+
+      case 'by_genus': 
+     taxa_graph='genus';
+    var array_to_plot=genus_array;
+       var to_plot_count=addSeparator(genus_count);
+     var table_to_plot=$('#freq_genus')
+    break;
+
+  case 'by_class': 
+     taxa_graph='class';
+    var array_to_plot=class_array;
+       var to_plot_count=addSeparator(class_count);
+     var table_to_plot=$('#freq_class')
+    break;
+  }
+   
+
+   if ($('#graph_freq_taxa').is(':visible'))  
+   {
+
+   render_highchart('graph_freq_taxa',array_to_plot,to_plot_count+' occurrences d\'un total de '+total);   
+   } 
+   else
+   {
+    $('#taxas_stats table').hide()
+    table_to_plot.show()
+    // $('#taxas_stats table').show()
+    // $('#freq_taxa').hide()
+
+   }
+   
+   
+
+
+       })
+
+$('#graph_display').click(function(e) {
+
+
+var _this=e.target;
+// alert(taxa_graph)
+switch (taxa_graph)
+{
+  case 'speciesName': show_hide(_this,"graph_freq_taxa","freq_taxa");break;
+  case 'genus': show_hide(_this,"graph_freq_taxa","freq_genus");break;
+    case 'class': show_hide(_this,"graph_freq_taxa","freq_class");break;
+}
+  e.preventDefault();
 });
+  
 $("#ajax_image").hide()
-$('#occurrences_table,.span3,#sidebar').fadeIn(500)
+$('.occ_results,#occurrences_table,#sidebar').css('opacity',1)
+
 });
   </script>
 

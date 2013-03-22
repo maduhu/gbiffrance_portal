@@ -49,15 +49,20 @@ public class Datasets extends Controller {
     	  splittedSearch[h] = splittedSearch[h].toLowerCase();
     	  Pattern regex = Pattern.compile("^" + splittedSearch[h]);
     	  datasets.addAll((Collection) Dataset.find("tags", regex).asList());
-    	  //Removes duplicates
+    	  //Removes duplicates IT IS NOT WORKING!!!!!!!!
     	  for (int i = 0; i < datasets.size(); ++i)
     		for (int j = i + 1; j < datasets.size(); ++j)
     		  if (datasets.get(i).id == datasets.get(j).id)
-    			datasets.remove(j);
+    		  	datasets.remove(j);
+    			//datasets.remove(datasets.get(j));
+
+
 	  }
 	}
+	
 	render("Application/Search/datasets.html", datasets, search);
   }
+
 
   /**
    * Renders a dataset list in JSON format corresponding to a partial search

@@ -9,22 +9,33 @@
     #{/if}
 
     #{if places}
-    <table class="table table-bordered table-condensed table-striped">
+
+    <table style="max-width:270px;">
       <thead>
         <tr>        
+          <th></th>
+          <th></th>
           <th>Nom</th>
           <th>Type</th>
           <th>Pays</th>
+          <th style='display:none'>Bbox</th>
+
         </tr>
-      </thead>        
+      </thead>    
+      <tbody>
       #{list items:places, as:'place'}
       <tr>
-        <td><!-- <a target='blank' href="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/gbif_france_test.html?bboxSWLongitude=${place.boundingBoxSWLongitude}&bboxSWLatitude=${place.boundingBoxSWLatitude}&bboxNELongitude=${place.boundingBoxNELongitude}&bboxNELatitude=${place.boundingBoxNELatitude}"> -->${place.nameFr}<!-- </a> --></td>
+        <td><i class="icon-trash" style="color:#9C0890;margin-right: 10px;float:left;"></i></td>
+        <td><i class="icon-eye-open" style="color:#9C0890;margin-right: 10px;float:left;"></i></td>
+        <td>${place.nameFr}</td>
         <td>${place.placeTypeNameFr}</td>
         <td>${place.country}</td>
-        <!-- <td>${place.centroidLatitude},${place.centroidLongitude}</td> -->
+        <td style='display:none' class='bbox_handler'>${place.boundingBoxSWLatitude},${place.boundingBoxSWLongitude},${place.boundingBoxNELatitude},${place.boundingBoxNELongitude}</td>
+        <td style='display:none'>${place.centroidLatitude},${place.centroidLongitude}</td> 
       </tr>  
+
       #{/list}
+    </tbody>    
     </table>
     #{/if}
   #{/if} 

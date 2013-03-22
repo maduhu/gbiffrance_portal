@@ -7,6 +7,7 @@ GET     /                                       Application.index
 GET		/search									Application.search
 GET     /search                                 Application.search
 
+
 GET		/show									Occurrences.show
 GET     /searchOccurrence                       Occurrences.search
 GET     /searchOccurrence.{<json>format}        Occurrences.search

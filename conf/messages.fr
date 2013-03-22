@@ -12,7 +12,9 @@ type=Type
 country=Pays
 noResults=Pas de résultats
 onlyWithCoordinates=Avec géolocalisation
-info_bar=Cliquez sur un bouton pour ajouter un filtre, double-cliquez sur le filtre pour le supprimer
+info_bar=Cliquez sur un bouton pour ajouter un filtre
+searchButton=Récherche d'occurrences
+
 
 
 #*********************************Search/search.html*************************************

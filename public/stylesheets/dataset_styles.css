@@ -1,0 +1,140 @@
+#my_data ul
+{
+  list-style: none;
+}
+#plot_graphic,#plot_list
+{
+cursor:pointer;
+
+}
+.red_tipsy
+{
+  font-weight: bold;
+  color: #d12a2a;
+}
+
+.yellow_tipsy
+{
+  font-weight: bold;
+  color: #ffea00;
+}
+.wax-tooltip span:hover
+{
+  cursor: pointer;
+  background-color: #BBF486;
+  color: black;
+  margin: 4px;
+  
+}
+
+#datapublisher_table td,#datasets_table td
+{
+font-size:14px;
+text-align: center;
+color: black;
+font-weight: bold;
+}
+#datapublisher_table th,#datasets_table th
+{
+
+font-size:13px;
+text-align: center;
+color: #c42f2f;
+}
+#datapublisher_table,#datasets_table 
+{
+
+background:#DDDDDD;
+ -webkit-transition:opacity .5s;
+  -moz-transition:opacity .5s;
+  box-shadow:0px 0px 10px #5CACEE;
+  -moz-box-shadow:0px 0px 10px #5CACEE;
+  -webkit-box-shadow:0px 0px 10px #5CACEE; border:2px solid #5CACEE;
+}
+
+  .notify
+  {
+  font-size:16px;
+  font-color:#d12268;
+  background: #7788e0;
+  border: solid 1px #1a1616;
+  }
+.wax-tooltip {
+  z-index:50;
+  position:absolute;
+  background:#1a1a1a;
+  color:#fff;
+  padding:7px;
+ // left:1100px;
+ right: 10px;
+  top:30px;
+  border:2px solid #5CACEE;
+  border-radius:2px;
+  max-width:300px;
+  max-height: 400px;
+  overflow: auto;
+  opacity:1;
+  font-type: Georgia;
+  line-height: 1.3em;
+  font-size: 1em;
+//  width: auto;
+  -webkit-transition:opacity .9s;
+  -moz-transition:opacity .9s;
+  box-shadow:0px 0px 10px #5CACEE;
+  -moz-box-shadow:0px 0px 10px #5CACEE;
+  -webkit-box-shadow:0px 0px 10px #5CACEE;
+  }
+
+.taxa_table td {
+  padding: 8px;
+  line-height: 14px;
+  text-align: center;
+  vertical-align: center;
+  
+}
+
+.td_selected
+{
+cursor:pointer;
+background:#f54f4f;
+color:white;
+font-weight: bold;
+font-size: 18px;
+}
+.td_hovered
+{
+cursor:pointer;
+background:#3e71f0;
+color:white;
+font-weight: bold;
+font-size: 18px;
+}
+
+
+.selected
+{
+  color: #C60F0F;
+  font-weight: bold;
+  cursor:pointer;
+}
+        #map path  {
+            
+             stroke-width: 0.5px;
+            stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
+
+
+
+#map_tooltip
+  {
+width:auto;position:relative;z-index:50;background:#DDDDDD; color:#6053;font-size: 1.1em;  
+max-height:50px;
+ -webkit-transition:opacity .5s;
+  -moz-transition:opacity .5s;
+  box-shadow:0px 0px 10px #5CACEE;
+  -moz-box-shadow:0px 0px 10px #5CACEE;
+  -webkit-box-shadow:0px 0px 10px #5CACEE; border:2px solid #5CACEE;
+  border-radius:2px;
+
+}

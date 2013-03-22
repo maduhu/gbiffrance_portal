@@ -1,560 +1,790 @@
 #{extends 'main.html' /}
       <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
-      <script src="@{'/public/javascripts/nv.d3.min.js'}"></script>
-      <script src="@{'/public/javascripts/pieChart.js'}"></script>
-    <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
-      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}"/>
-        
-
-      <script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
       
-      <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"></link>
-      <link rel="stylesheet" href="@{'/public/stylesheets/tipsy.css'}"/>
+<script src="@{'/public/javascripts/jquery.fullscreen-min.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+<script src="@{'/public/javascripts/highcharts.js'}"></script>
+<script src="@{'/public/javascripts/exporting.js'}"></script>
+<script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
+<script src="@{'/public/javascripts/mapping/TileLayer.TileJSON.js'}"></script>
+<!-- <script src="@{'/public/bootstrap/js/bootstrap-notify.js'}"></script> -->
+<link rel="stylesheet" media="screen" href="@{'/public/bootstrap/css/bootstrap-notify.css'}"/>
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}"/>
+
+ <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"></link>
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/dataset_styles.css'}"> 
 
 #{set title:'Home' /}
 
-<style type="text/css">
-.selected
-{
-  color: #C60F0F;
-  font-weight: bold;
-}
-        path  {
-            
-             stroke-width: 1px;
-            stroke: #3b3535;
-            shape-rendering: crispEdges;
-        }
 
-  #map_tooltip
-  {
-width:auto;position:relative;z-index:50;background:#DDDDDD; color:#6053;font-size: 1.1em;  
-max-height:50px;
- -webkit-transition:opacity .5s;
-  -moz-transition:opacity .5s;
-  box-shadow:0px 0px 10px #5CACEE;
-  -moz-box-shadow:0px 0px 10px #5CACEE;
-  -webkit-box-shadow:0px 0px 10px #5CACEE; border:2px solid #5CACEE;
-  border-radius:2px;
-
-}
-</style>
 
 <script type="text/javascript">
 var data;
+var datapublishers_json;
 
-var datapublishers_json=
-[
+var paths={};
+var bboxes=[]
+
+var dataset_bboxes=false
+var o_colors=['lime','orange','orangered','royalblue','blue','gold','lightseagreen','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue',]
+var ramp_colors=new Array();
+var colors=[]
+
+var taxa,datapublisher;
+for (i=0;i<o_colors.length-1;i++)
+{
+var new_colors=$.xcolor.analogous(o_colors[i],6,20);
+
+colors[i]=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors[i].push(this_color)
+}
+
+ramp_colors.push(colors[i])
+}
+
+
+var datapublisher_id=parseInt("${dataPublisher.id}");
+function compareCount(a, b)
+ {
+ var my_a=parseInt(a[1]);
+ var my_b=parseInt(b[1]);           
+   if (my_a > my_b) return -1;
+   if (my_a < my_b) return 1;
+   return 0;
+ }
+ 
+ function compareName(a, b)
+ {
+    if (a[0] < b[0]) return -1;
+   if (a[0] > b[0]) return 1;
+   return 0;
+ }
+
+    function query_bounds()
     {
-        "datapublisher_id": 1,
-        "datapublisher_name": "Service du Patrimoine Naturel",
-        "datapublisher_acronym": "SPN",
-        "datapublisher_geo_count": 2296381,
-        "datapublisher_not_geo_count": 1308,
-        "datapublisher_datasets": [
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I041) : Insectes Hétéroptères Mirides de France",
-                "dataset_id": 12,
-                "dataset_geocount": 7819,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I029) : Poissons d'eau douce de France",
-                "dataset_id": 9,
-                "dataset_geocount": 93799,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I037) : Oiseaux nicheurs de France",
-                "dataset_id": 10,
-                "dataset_geocount": 179115,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I057) : Flore du Limousin",
-                "dataset_id": 14,
-                "dataset_geocount": 137554,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I009) : Espèces Végétales Menacées de France métropolitaine",
-                "dataset_id": 5,
-                "dataset_geocount": 4039,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Coleoptera specimens of the Muséum national d'Histoire naturelle",
-                "dataset_id": 34,
-                "dataset_geocount": 757,
-                "dataset_not_geocount": 1308
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I093) : Flore du Massif Armoricain",
-                "dataset_id": 21,
-                "dataset_geocount": 230402,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I210) : CBN du Massif Central",
-                "dataset_id": 28,
-                "dataset_geocount": 1423,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I062) : Flore de l'Ain",
-                "dataset_id": 15,
-                "dataset_geocount": 4888,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I002) : Mammifères de France",
-                "dataset_id": 3,
-                "dataset_geocount": 119905,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I067) : Flore d'Ille-et-Vilaine",
-                "dataset_id": 17,
-                "dataset_geocount": 343834,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I214) : Données sur Tamias sibiricus (Ecureuil de Corée)",
-                "dataset_id": 30,
-                "dataset_geocount": 19,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I205) : CBN Alpin de Gap",
-                "dataset_id": 24,
-                "dataset_geocount": 794,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I008) : Loup en France",
-                "dataset_id": 4,
-                "dataset_geocount": 27988,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I085) : Crustacés Décapodes de France",
-                "dataset_id": 20,
-                "dataset_geocount": 10254,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I069) : Flore protégée du Dauphiné",
-                "dataset_id": 18,
-                "dataset_geocount": 3762,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I215) : Atlas de la flore de Lorraine",
-                "dataset_id": 31,
-                "dataset_geocount": 4285,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I094) : insectes Coléoptères Saproxylophages de France",
-                "dataset_id": 22,
-                "dataset_geocount": 7575,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I011) : Amphibiens et Reptiles de France (Enquête 1)",
-                "dataset_id": 6,
-                "dataset_geocount": 27922,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I201) : Programme national espèces végétales de la Directive Habitat",
-                "dataset_id": 23,
-                "dataset_geocount": 678,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (ONEMA) : Données ONEMA sur les poissons et écrevisses d'eau douce",
-                "dataset_id": 33,
-                "dataset_geocount": 136897,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I001) : Insectes Coléoptères Scarabéidés Laparostici de France",
-                "dataset_id": 2,
-                "dataset_geocount": 32554,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I012) : Oiseaux hivernants de France",
-                "dataset_id": 7,
-                "dataset_geocount": 709810,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I207) : CBN Bailleul",
-                "dataset_id": 25,
-                "dataset_geocount": 389,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I063) : Fichier communal des ongulés",
-                "dataset_id": 16,
-                "dataset_geocount": 57920,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I206) : CBN Aquitaine-Poitou-Charentes",
-                "dataset_id": 1,
-                "dataset_geocount": 152,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I209) : CBN de Midi-Pyrénées",
-                "dataset_id": 27,
-                "dataset_geocount": 816,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I014) : Insectes Orthoptères de France",
-                "dataset_id": 8,
-                "dataset_geocount": 46436,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I211) : CBN Méditerranéen de Porquerolles",
-                "dataset_id": 29,
-                "dataset_geocount": 846,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I216) : Inventaire du Parc national du Mercantour",
-                "dataset_id": 32,
-                "dataset_geocount": 953,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I208) : CBN Brest",
-                "dataset_id": 26,
-                "dataset_geocount": 434,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I039) : Enquête carnivores",
-                "dataset_id": 11,
-                "dataset_geocount": 97840,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Inventaire National du Patrimoine Naturel (I054) : Flore de Sologne",
-                "dataset_id": 13,
-                "dataset_geocount": 4522,
-                "dataset_not_geocount": null
-            }
-        ]
-    },
+     return jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_extents_by_taxa_final.php',
+      data:  {'taxa':taxa,'type':to_plot,'data_type':'datapublisher','data_id':datapublisher_id},
+     dataType: 'jsonp',
+     success: function(data)
+     {
+     
+    if (data.main_bbox[0].length= 0) 
+      {
+       alert('some error in bbox??')
+       zoom=2;
+        map.fitWorld()
+      }
+      else
+      {
+      if (typeof data.main_bbox[1]=='undefined') 
+        {
+          alert('We cannot get any geo-referenced record for this taxa')
+        }
+        else
+        {
+    var up_right=data.main_bbox[1].split(',')
+    var bottom_left=data.main_bbox[0].split(',')    
+    bounds = new L.LatLngBounds(
+        new L.LatLng(bottom_left[1],bottom_left[0]),
+        new L.LatLng(up_right[1],up_right[0]));
+    zoom=map.getBoundsZoom(bounds)
+    map.fitBounds(bounds) 
+        }
+      }
+     }
+    })
+    }  //end query_bounds function
+
+    var polygon;
+    //geoprojecting created rectangles (d3.js) using leaflet.js webmapping tool
+    var path = d3.geo.path().projection(function project(x) {
+    
+        var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+
+        return [point.x, point.y];
+      });
+
+    function reset() {
+    //polygon flags that some rectangle exists and have to reproject at each zoom in/out
+    if (polygon==true)
     {
-        "datapublisher_id": 2,
-        "datapublisher_name": "Muséum d'Histoire Naturelle de Paris",
-        "datapublisher_acronym": "MNHN",
-        "datapublisher_geo_count": 462252,
-        "datapublisher_not_geo_count": 2039438,
-        "datapublisher_datasets": [
-            {
-                "name": "Fish collections of Museum national d'Histoire naturelle",
-                "dataset_id": 38,
-                "dataset_geocount": 120576,
-                "dataset_not_geocount": 101584
-            },
-            {
-                "name": "Coleoptera specimens of the Muséum national d'Histoire naturelle",
-                "dataset_id": 34,
-                "dataset_geocount": 1514,
-                "dataset_not_geocount": 2616
-            },
-            {
-                "name": "Echinoderm specimens",
-                "dataset_id": 37,
-                "dataset_geocount": 11582,
-                "dataset_not_geocount": 8176
-            },
-            {
-                "name": "Herbarium specimens - Harmas de J. H. Fabre",
-                "dataset_id": 39,
-                "dataset_geocount": 130,
-                "dataset_not_geocount": 24982
-            },
-            {
-                "name": "Paleontology specimens data",
-                "dataset_id": 44,
-                "dataset_geocount": 16,
-                "dataset_not_geocount": 204820
-            },
-            {
-                "name": "Orthoptera collection at the Muséum national d'Histoire naturelle",
-                "dataset_id": 43,
-                "dataset_geocount": 20,
-                "dataset_not_geocount": 3878
-            },
-            {
-                "name": "Molluscs specimens",
-                "dataset_id": 40,
-                "dataset_geocount": 72418,
-                "dataset_not_geocount": 11412
-            },
-            {
-                "name": "Crustaceans specimens",
-                "dataset_id": 35,
-                "dataset_geocount": 20800,
-                "dataset_not_geocount": 20904
-            },
-            {
-                "name": "Ornithology specimens",
-                "dataset_id": 42,
-                "dataset_geocount": 21790,
-                "dataset_not_geocount": 22528
-            },
-            {
-                "name": "Phanerogams herbarium specimens",
-                "dataset_id": 45,
-                "dataset_geocount": 211280,
-                "dataset_not_geocount": 1107850
-            },
-            {
-                "name": "Cryptogams herbarium specimens",
-                "dataset_id": 36,
-                "dataset_geocount": 2126,
-                "dataset_not_geocount": 523730
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 3,
-        "datapublisher_name": "Conservatoire botanique national du Bassin parisien",
-        "datapublisher_acronym": "CBNBP",
-        "datapublisher_geo_count": 8927558,
-        "datapublisher_not_geo_count": 248714,
-        "datapublisher_datasets": [
-            {
-                "name": "Observations du Conservatoire botanique national du Bassin parisien",
-                "dataset_id": 46,
-                "dataset_geocount": 8927558,
-                "dataset_not_geocount": 248714
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 4,
-        "datapublisher_name": "IRD",
-        "datapublisher_acronym": "IRD",
-        "datapublisher_geo_count": 979774,
-        "datapublisher_not_geo_count": 36,
-        "datapublisher_datasets": [
-            {
-                "name": "observe_tuna_ecoscope",
-                "dataset_id": 50,
-                "dataset_geocount": 366678,
-                "dataset_not_geocount": 36
-            },
-            {
-                "name": "observe_tuna_bycatch_ecoscope",
-                "dataset_id": 49,
-                "dataset_geocount": 440534,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "ecoscope_observation_database",
-                "dataset_id": 47,
-                "dataset_geocount": 172562,
-                "dataset_not_geocount": null
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 5,
-        "datapublisher_name": "Agoralogie",
-        "datapublisher_acronym": "Agoralogie",
-        "datapublisher_geo_count": 113,
-        "datapublisher_not_geo_count": null,
-        "datapublisher_datasets": [
-            {
-                "name": "iHerbarium",
-                "dataset_id": 51,
-                "dataset_geocount": 113,
-                "dataset_not_geocount": null
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 6,
-        "datapublisher_name": "Association des Naturalistes de la Vallée du Loing et du massif de Fontainebleau",
-        "datapublisher_acronym": "ANVL",
-        "datapublisher_geo_count": 4,
-        "datapublisher_not_geo_count": 2068,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbarium specimens data ",
-                "dataset_id": 52,
-                "dataset_geocount": 4,
-                "dataset_not_geocount": 2068
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 7,
-        "datapublisher_name": "INRA Lusignan",
-        "datapublisher_acronym": "INRA Lusignan",
-        "datapublisher_geo_count": 537,
-        "datapublisher_not_geo_count": null,
-        "datapublisher_datasets": [
-            {
-                "name": "The French National Collection of forage and turf species (grasses and legumes).",
-                "dataset_id": 53,
-                "dataset_geocount": 537,
-                "dataset_not_geocount": null
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 11,
-        "datapublisher_name": "Herbarium of Université de Montpellier 2, Institut de Botanique",
-        "datapublisher_acronym": "Herbarium Montpellier 2",
-        "datapublisher_geo_count": 102,
-        "datapublisher_not_geo_count": 23038,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbarium specimens ",
-                "dataset_id": 57,
-                "dataset_geocount": 102,
-                "dataset_not_geocount": 23038
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 14,
-        "datapublisher_name": "Herbier des conservatoires et jardins botaniques de Nancy",
-        "datapublisher_acronym": "Herbier Nancy",
-        "datapublisher_geo_count": 685,
-        "datapublisher_not_geo_count": 12403,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbarium specimens",
-                "dataset_id": 60,
-                "dataset_geocount": 685,
-                "dataset_not_geocount": 12403
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 16,
-        "datapublisher_name": "IFREMER - French Research Institute for Exploitation of the Sea",
-        "datapublisher_acronym": "IFREMER",
-        "datapublisher_geo_count": 188776,
-        "datapublisher_not_geo_count": null,
-        "datapublisher_datasets": [
-            {
-                "name": "Quadrige",
-                "dataset_id": 62,
-                "dataset_geocount": 188776,
-                "dataset_not_geocount": null
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 18,
-        "datapublisher_name": "Institut Scientifique, Mohamed V University",
-        "datapublisher_acronym": "Institut Mohamed V University",
-        "datapublisher_geo_count": 87,
-        "datapublisher_not_geo_count": 2353,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbarium specimens - Institut Scientifique ",
-                "dataset_id": 68,
-                "dataset_geocount": 87,
-                "dataset_not_geocount": 2353
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 22,
-        "datapublisher_name": "Musée Zoologique de la Ville de Strasbourg",
-        "datapublisher_acronym": "Musée Zoologique Strasbourg",
-        "datapublisher_geo_count": 13,
-        "datapublisher_not_geo_count": 12466,
-        "datapublisher_datasets": [
-            {
-                "name": "Porifera MZS",
-                "dataset_id": 73,
-                "dataset_geocount": 13,
-                "dataset_not_geocount": 935
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 27,
-        "datapublisher_name": "Museum d'Histoire Naturelle of Aix-en-Provence, Herbarium",
-        "datapublisher_acronym": "Herbarium MHN Aix-en-Provence",
-        "datapublisher_geo_count": 1,
-        "datapublisher_not_geo_count": 8652,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbarium specimens ",
-                "dataset_id": 78,
-                "dataset_geocount": 1,
-                "dataset_not_geocount": 8652
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 31,
-        "datapublisher_name": "Société des Sciences Naturelles et Mathématiques de Cherbourg",
-        "datapublisher_acronym": "Societé des de Cherbourg",
-        "datapublisher_geo_count": 477,
-        "datapublisher_not_geo_count": 472,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbarium specimens",
-                "dataset_id": 82,
-                "dataset_geocount": 477,
-                "dataset_not_geocount": 472
-            }
-        ]
-    },
-    {
-        "datapublisher_id": 32,
-        "datapublisher_name": "Université de Strasbourg",
-        "datapublisher_acronym": "Université de Strasbourg",
-        "datapublisher_geo_count": 32610,
-        "datapublisher_not_geo_count": 41153,
-        "datapublisher_datasets": [
-            {
-                "name": "Herbier de Wallis et Futuna",
-                "dataset_id": 85,
-                "dataset_geocount": 3374,
-                "dataset_not_geocount": null
-            },
-            {
-                "name": "Herbier de Strasbourg",
-                "dataset_id": 83,
-                "dataset_geocount": 752,
-                "dataset_not_geocount": 41153
-            },
-            {
-                "name": "Herbier de nouvelle-caledonie",
-                "dataset_id": 84,
-                "dataset_geocount": 28484,
-                "dataset_not_geocount": null
-            }
-        ]
+   var current_zoom=map.getZoom()
+ // zoom_level='five_degrees';   STILL NECESSARY?  
+      for (zoom_level in paths)
+      {
+    paths[zoom_level].forEach(function (d)
+          {        
+            d.attr("d",path)      
+          })
+      }      
     }
-]
+    } 
 
+
+  paths_taxa={};
+  //THIS FUNCTION creates paths (rectangles) using d3.js and symbolizes them depending on count_occurrences for a taxa
+  function generate_paths (features,zoom_level)
+   {
+   if (typeof paths_taxa[zoom_level]=='undefined') paths_taxa[zoom_level]=[]
+ 
+  bounds = d3.geo.bounds(features)
+  var opacityScale = d3.scale.linear()
+                     .domain([d3.min(features, function(d) { 
+                      return d.properties.count; }), 
+                     d3.max(features, function(d) { return d.properties.count; })])
+                     .range([0.4, 1]);  
+
+  var count_extent = d3.extent(features, function(d){return d.properties.count});
+  var ramp =d3.scale.linear().domain(count_extent).range(ramp_colors[num_plotted_taxa]);
+  var this_path='path.'+zoom_level;
+  
+   var  path_feature = g.selectAll(this_path).attr('centroid',function (d) {
+    return d.centroid;
+    })
+    .data(features,function (d)
+    {
+      var centroid=d.centroid;
+   return d.centroid;
+    })
+    path_feature.enter().append("path").attr("d", path).attr('class',zoom_level)
+    .attr('opacity',1)
+
+  
+  path_feature.each(function (d)
+   {
+    var centroid=d.centroid
+    //this polygon (unique centroid parameter) has not been created before. Let's create its data arrays (will be filled later)
+    //These arrays will be useful when we want to add more than one taxa on map (list)  
+    if (typeof $(this).data('centr')=='undefined')
+    {
+      $(this).data('centr',[])
+      $(this).data('info_taxes_colors',[])
+      $(this).data('info_taxes',[])
+      $(this).data('info_ids',[])
+      $(this).data('info_counts',[])
+      $(this).data('centr').push(centroid);
+      $(this).data('total_counts',0)
+      $(this).data('visualized_items',0)
+    }
+    //the polygon we are requesting has not our taxa inside its data, so let's push its parameters
+    if ($.inArray(taxa,$(this).data('info_taxes'))==-1)   
+    {
+  //  console.log('adding taxa '+taxa+' to centroi '+centroid)
+      $(this).data('info_taxes').push(taxa);   
+      $(this).data('info_ids').push(d.properties.random_id)
+      $(this).data('info_counts').push(d.properties.count)  
+      $(this).data('info_taxes_colors').push(ramp(d.properties.count)) 
+      var total=$(this).data('total_counts')+d.properties.count 
+      $(this).data('total_counts',total)
+      var visualized_items=$(this).data('visualized_items')
+      $(this).data('visualized_items',visualized_items+1)
+      var info_taxes_colors=$(this).data('info_taxes_colors')      
+      //mixing colors, to be improved!!
+      if (info_taxes_colors.length>1)
+      {
+        var new_color=$.xcolor.additive($(this).attr('fill'),ramp(d.properties.count))
+        $(this).attr('fill',new_color)
+        d.fill_color=new_color        
+      }
+      else
+      {
+      $(this).attr('fill',info_taxes_colors[0])
+      }
+
+    } //end $.inArray  
+    var _this=d3.select(this);
+    //var this_fill=_this.attr('fill')
+    var this_opacity=_this.attr('opacity')
+
+    // _this.transition().duration(500).attr('opacity',this_opacity+0.2).attr('fill','yellow').each("end", function () { _this.transition().duration(1500).attr('opacity',this_opacity).attr('fill',this_fill) });
+    
+    polygon=true;
+    })  //end  path_feature.each
+  
+    $('#remove_pol').show()
+
+    if (typeof paths[zoom_level]=='undefined') paths[zoom_level]=[]
+
+    //if (typeof paths[zoom_level][taxa]=='undefined') paths[zoom_level][taxa]=[]
+    paths[zoom_level].push(path_feature); 
+
+    window.bounds=bounds;
+    //has to change!
+    window['$path_'+zoom_level]=$('path.'+zoom_level)
+    //console.log('$path_'+zoom_level)
+   // $path_1=$('path.one_degree')
+   // $path_0_5=$('path.half_degree')
+   // $path_3=$('path.three_degree')
+
+               //only show a tooltip with info when hovering over not transparent polygons!! (option to hide polygons will be avaible soon)
+                var $to_tipsy=window['$path_'+zoom_level].filter(function (i,val)
+                {
+                return $(val).attr('opacity')>0
+                })
+
+                $to_tipsy.tipsy({ 
+                              delayIn: 500, 
+                              fade: true, 
+                              gravity: 'w', 
+                               offset: 0, 
+                               opacity:1,
+                              html: true, 
+                              title: function() {
+
+                              if ($(this).attr('opacity')>0)
+                              {
+                                var d = this.__data__;
+                                var info_taxes=$(this).data('info_taxes');
+                                var info_counts=$(this).data('info_counts');
+                                var text='<b>Total occurrences</b> <b>'+$(this).data('total_counts')+'</b> for '+info_taxes.length+' taxonomies<p>';                              
+                                for (i=0;i<info_taxes.length;i++)
+                                {
+                                 text+='<span class="red_tipsy">'+info_taxes[i]+'</span> '+info_counts[i]+'<p>';                                 
+                                }
+                                return text;
+                               }
+                               else
+                               {
+                               return false;
+                               }
+                              }
+                            })  
+            }
+      var num_plotted_taxa=0; 
+       function show_by_polygon ()
+      {
+       $.when(query_bounds())
+        .then(function(data){
+
+          $("#ajax_image")
+          .ajaxStart(function(){
+            //console.warn($(this))
+            $(this).show();
+          })
+          .ajaxComplete(function(){
+            $(this).hide();
+          });
+
+      //we request info to postGIS to construct our polygons and associated info using d3.js+Leaflet.js
+      $.ajax({
+        url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/geojson_cluster_simple_final.php',
+        data: {'taxa':taxa,'type':window.to_plot,'data_id':datapublisher_id,'req_type':'polygon','zoom':zoom,'data_type':'datapublisher','degree':window.pol_degree},
+        type: 'GET',
+        dataType: 'jsonp',
+      success: function(data, textStatus, xhr) {
+
+        if (window.pol_degree==5)  zoom_level='five_degrees'; 
+        if (window.pol_degree==1)  zoom_level='one_degree'; 
+        if (window.pol_degree=='0_5')  zoom_level='half_degree'; 
+
+        //add a message informing            
+        var message='<b>'+addSeparator(data.total)+'</b> occurrences of taxa <b>'+taxa+'</b> distributed in <b>'+addSeparator(data.num_clusters)+'</b> polygons<br><b>Minimum</b> '+addSeparator(data.min)+'   <b>Maximum</b> '+addSeparator(data.max);
+
+        if ($('.notify').size()>0) $('.notify').remove()
+
+        $('#map_tooltip').before("<div class='notify'>"+message+"</div>")
+  
+        features=data.features;
+        //create the paths/polygons
+        generate_paths(features, zoom_level)
+   
+        g.selectAll('.'+zoom_level).each(function ()
+        {
+            
+            var _this=d3.select(this);
+            var this_fill=_this.attr('fill')
+            var this_opacity=_this.attr('opacity')
+            
+           _this.transition().duration(500).attr('opacity',this_opacity+0.2).attr('fill','gold').each("end", function () { _this.transition().duration(1500).attr('opacity',this_opacity).attr('fill',this_fill) });
+        })
+    }
+    });
+    num_plotted_taxa++;
+    //console.info('num plotted '+num_plotted_taxa)
+    });
+    } //end show_by_polygon
+
+simple_orderby= function(type,big_array,to_plot)
+            {
+        var sorted_array=big_array.sort(compareCount);           
+        return sorted_array;
+        }
+
+orderby= function(type,big_array,to_plot)
+            {
+
+var content='';
+   
+ //           content+="<h3>"+to_plot+" abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+            switch (to_plot)
+            {
+            case 'genus': 
+            var content="<h3>Genus abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+            break;
+            
+      case 'scientificname': 
+      var content="<h3>Species abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+      break;       
+
+          case 'family': 
+      var content="<h3>Family abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+      break;    
+             case 'classs': 
+      var content="<h3>Class abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+      break; 
+                case 'order': 
+      var content="<h3>Order abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+      break;       
+                   case 'order': 
+      var content="<h3>Phylum abundance</h3><span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+      break;
+
+            }
+            if (type=='counts')
+            {
+         //   console.warn(to_plot)
+            content+="<span style='color:#0CACF7' id='orderby_names'>Order by name</span></br>";
+            console.dir(big_array)
+            var sorted_array=big_array.sort(compareCount);            
+            }
+            if (type=='names')
+            {
+
+            content+="<span style='color:#0CACF7' id='orderby_counts'>Order by abundance</span></br>";
+            var sorted_array=big_array.sort(compareName);                 
+            }
+
+      for (i=0;i<sorted_array.length;i++)
+      {
+//      $taxa_div=$('<div>'+sorted_array[i][0]+'</div>');
+      content+='<span><div class="red_tipsy">'+sorted_array[i][0]+'</div> '+sorted_array[i][1]+'</span></br>';
+        
+      }
+      content+="<span id='remove_pol' style='display:none;' class='yellow_tipsy'>Remove polygonal layer</span>";
+
+      $('#wax-tooltip_content').empty().append(content).show();
+    
+      if (!$('.wax-tooltip').is(':visible'))  $('.wax-tooltip').show()
+
+        $('#wax-tooltip_content div').tipsy({ 
+                              delayIn: 200, 
+                              fade: true, 
+                              gravity: 'e', 
+                              opacity:1,
+                              offset: 15,
+                              html: true, 
+                              title: function(e,target) {                               
+                                var this_taxa=$(this).html();   
+
+                var text='<div id="explore_sp"><a this_taxa="'+this_taxa+'" deg="1" href="#" class="by_polygon">Visualize 1 degrees area</a><p>';
+                text+='<a this_taxa="'+this_taxa+'" deg="0_5" href="#" class="by_polygon">Visualize 0.5 degree area</a><p>';
+                text+='<a this_taxa="'+this_taxa+'" href="#" class="canvas">Visualize individual occurrences</a>';
+                text+='</div>';
+                // text+='<p><a this_taxa="'+this_taxa+'" href="#" class="by_all">Get clusters for all collections</a>';                             
+                                return text;                                
+                              }
+                            });
+
+            }  //end order by function
+
+              //clicking on one of the possible visualizations of species in wax-tooltip   
+                 $('#explore_sp a').live('click',function()
+                {
+
+                cluster_action=$(this).attr('class')
+                window.taxa=$(this).attr('this_taxa').toString();
+                if (cluster_action=='by_polygon')
+                {
+                window.pol_degree=$(this).attr('deg')
+                show_by_polygon()
+                }
+              //we want to see individual occurrences, not grouped by density cells (polygons)
+                if (cluster_action=='canvas')
+                 {
+                jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_extents_canvas_final.php',
+                  data:  {'taxa':taxa,'type':to_plot,'data_type':'datapublisher','data_id':datapublisher_id},
+                 
+                 dataType: 'jsonp',
+                 success: function(data)
+                 {
+
+                $.each(map._layers, function(index, value)  
+                      {
+                      if (value.type=='canvas')
+                      {
+                map.removeLayer(value)
+                      }
+                      })
+
+                if (data.main_bbox[0].length= 0) 
+                  {
+                   alert('some error in bbox??')
+                   zoom=2;
+                    map.fitWorld()
+                  }
+                  else
+                  {
+                  if (typeof data.main_bbox[1]=='undefined') alert('We cannot get any geo-referenced record for this taxa')
+                    else
+                    {
+
+                     var max=data.max;
+                                     
+                    var up_right=data.main_bbox[1].split(',')
+                    var bottom_left=data.main_bbox[0].split(',')
+                    
+                 bounds = new L.LatLngBounds(
+                        new L.LatLng(bottom_left[1],bottom_left[0]),
+
+                        new L.LatLng(up_right[1],up_right[0]));
+
+                zoom=map.getBoundsZoom(bounds)
+
+                var message='<b>'+addSeparator(data.total)+'</b> occurrences of taxa <b>'+taxa+'</b> distributed in <b>'+addSeparator(data.num_clusters)+'</b> circles<br><b>Minimum</b> '+addSeparator(data.min)+'   <b>Maximum</b> '+addSeparator(data.max);
+
+                if ($('.notify').size()>0) $('.notify').remove()
+
+                $('#map_tooltip').before("<div class='notify'>"+message+"</div>").show()
+
+                map.fitBounds(bounds) 
+
+                var tile = new L.TileLayer.TileJSON({
+                        debug: false,
+                        opacity:0.7,
+                       
+                        // this value should be equal to 'radius' of your points        
+                        buffer: 5
+                    });
+                  tile.type='canvas';      
+                  tile.createUrl = function (bounds) {                 
+                   var bbox='BOX('+bounds[0]+'  '+bounds[1]+','+bounds[2]+' '+bounds[3]+')'
+                        var url = 'http://lully.snv.jussieu.fr/gbif/mapping/php/canvas_test_final.php?data_type=datapublisher&type='+to_plot+'&taxa='+taxa+'&zoom=5&data_id='+datapublisher_id+'&BBOX='+bbox;          
+                       return url
+                    };
+                    tile.styleFor = function (feature) {       
+                        var type = feature.geometry.type;
+                        var count=feature.properties.count
+                                                
+                  if (map.getZoom()>=3)
+                   {
+                  var radius=(count*15)/max
+                   }
+                   else
+                   {
+                    var radius=(count*10)/max
+                   }
+                 
+                        switch (type) {
+                            case 'Point': return {
+                                    color: 'black',
+                                    radius: radius,
+                                    outline: {
+                                    color: 'red',
+                                    size: 3
+                                    }
+                                };
+
+                            default:
+                                return null;
+                        }
+                    };
+                       map.addLayer(tile);
+
+                $('#canvas').click(function()
+                {
+
+                $.each(map._layers, function(index, value)  
+                      {
+                      if (value.type=='canvas')
+                      {
+                map.removeLayer(value)
+                      }
+                      })
+                      $('#canvas_manager').remove()
+                      
+                })
+                    }
+                  }
+                 }  //success of canvas PHP request
+                }) //end ajax request
+                }
+                })
+ 
+var new_colors=$.xcolor.analogous('#a5db97',30);
+colors=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors.push(this_color)
+}
+
+function render_highchart (render_to,this_array,title)
+{
+  if (!$("#data_list-dropdown-trigger").is(':visible')) $("#data_list-dropdown-trigger").show()
+  chart = new Highcharts.Chart({
+            chart: {
+               backgroundColor: '#FFFFFF',
+                renderTo: render_to,
+                //'graph_freq_taxa',
+               
+                plotBorderWidth: null,
+                plotShadow: false
+               
+            },
+            colors:colors,
+            // title: {
+            //     text: title
+            // },
+            tooltip: {
+              useHTML: true,
+
+            formatter: function(){
+                return '<span class="my_highcart_tooltip">'+this.point.name+' '+addSeparator(this.point.y)+' ('+this.point.percentage.toFixed(2)+'%)</span>';
+            },
+          //    pointFormat: '<b>{point.y}</b> ({point.percentage})%</b>',
+              backgroundColor: 'rgba(20,19,19,1)',
+
+              
+              percentageDecimals: 1,
+              style: {
+                    
+                    borderWidth: 2,
+                    borderColor: '#AAA',
+                    color:'white',
+                    overflow:'auto',
+                    width:'200px',
+                    fontSize: '10pt',
+                padding: 10,
+                fontWeight: 'bold'
+            }
+            },
+            plotOptions: {
+                pie: {
+                    //showInLegend:true,
+                    allowPointSelect: true,
+                    borderColor: '#DAE4E8',
+                     borderWidth: 1,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+
+                        style: {
+                          
+                          color:'black',
+                          fontSize: '12px'
+                        },
+                        useHTML:true,
+                        formatter: function () 
+                        {
+                          var label_type;
+                          var this_name=this.point.name;
+                          if (render_to=='graph_freq_taxa')                        
+                        {
+                           label_type='taxa_label';
+                            if (this_name.length>20)
+                          {
+                            this_name=this_name.split(' ');
+                            this_name=this_name[0]+' '+this_name[1]
+                          }
+                        }
+                             if (render_to=='graph_freq_dataset')                        
+                        {
+                             label_type='datasets_label';
+                        }
+                          
+                          
+
+                    return '<div style="max-width:100px;height:auto;" class="'+label_type+'" id="'+this.point.config[2]+'"><b>'+this_name+'</b></div>';
+                  //  return '<div id="'+this.point.config[2]+'"><b>'+this.point.name+'</b></div>'
+                          // : '+this.y+' occurrences
+                         } 
+                     }
+                    ,
+                    // showInLegend: true
+                }
+            },
+              legend: {
+            align: 'right',
+            verticalAlign: 'top',
+            width:100,
+            
+             
+            x: -100,
+            y: 100
+          },
+            series: [{
+                type: 'pie',
+                
+                data: this_array,
+                 events: {
+                                  click: function(e) {
+                                  //    alert ('A series was added');
+                                  console.warn(e.point)
+                                 console.info(e.point.config[0])
+              
+                                  }
+                              }
+            }]
+        });
+
+ function search_ecatID (this_taxa)
+ {
+        return function ()
+  {
+  console.log('my taxa is'+this_taxa)
+  $.getJSON('http://ecat-dev.gbif.org/ws/usage/?rkey=1&q='+this_taxa+'&searchType=canonical&callback=?',
+       { format:'JSONP'},
+       function(json, textStatus) 
+    {
+      var id=json.data[0].taxonID;
+      console.warn(id)
+      return id;
+      
+      
+      //optional stuff to do after success
+    });
+  }
+ }
+ 
+ } 
 
 jQuery(document).ready(function($) {
 
-var interaction
-// var lat=48.856930;
-// var lng=2.341200;
-// var latlng=new L.LatLng(lat,lng);
+var datapublisher_id=parseInt("${dataPublisher.id}");
+
+$('#fullscreen').click(function ()
+{
+  $('#map').fullscreen(true)
+  
+})
+
+$('#remove_pol').live('click',function ()
+{
+$('path').remove()
+$('#remove_pol').hide()
+})
+
+ // $('#map').append("<div class='notifications top-left'></div>")
+
+var interaction;
+
+var datapublishers_json = (function () {
+    var json = null;
+    $.ajax({
+        'async': false,
+        'global': false,
+        'url': '/public/json/datapub_stats/taxa_graphic_simple/datapublisher_'+datapublisher_id+'_graphic.json',
+        //'url' : 'http://www.gbif.fr:8080/gbiffrance_portal_test/public/json/datapub_stats/taxa_graphic_simple/datapublisher_'+datapublisher_id+'_graphic.json',
+        //'url': 'http://lully.snv.jussieu.fr/gbif/mapping/gbifs/taxa_graphic_simple/datapublisher_'+datapublisher_id+'_graphic.json',
+        'dataType': "json",
+        'success': function (data) {
+            json = data;
+           
+            for (dataset_id in data)
+            {
+          
+              if (dataset_id!=='datapublisher_info')
+              {
+
+               var html='<tr id="dataset_'+dataset_id+'">';
+                var dataset_info=data[dataset_id]['dataset_info'][0]
+
+              
+                for (info in dataset_info)
+                {
+
+                html+='<td>'+addSeparator(dataset_info[info])+'</td>';
+                }
+                html+='</tr>';
+                
+                $('#datasets_table tr:first').after(html)
+         
+              }
+              else
+              {
+              var html='<tr>';
+                var datapublisher_info=data['datapublisher_info'][0]                
+                for (info in datapublisher_info)
+                {                
+                if (typeof(datapublisher_info[info])!=='string' && info!=='datapublisher_id')
+                {
+                html+='<td>'+addSeparator(datapublisher_info[info])+'</td>';
+                }
+                
+                }
+                html+='</tr>';
+                
+                $('#datapublisher_table tr:first').after(html)
+              }
+            }
+
+               
+        }
+    });
+    return json;
+})(); 
+var taxa_array=null;
+function get_data (taxa_level,dataset_id,to_plot,data_type,datapublisher_id)
+{
+
+$.ajax({       
+       url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/dataportal/parsing_json.php',
+        data:{'taxa_level':taxa_level,'dataset':dataset_id,'datapublisher':datapublisher_id},
+        dataType: 'jsonp',
+        success: function (data) {          
+            taxa_array=data[taxa_level];
+            var top_taxa=[];
+            var top;
+            
+            if (i>=10)
+            {
+              top=10;
+            }
+            else
+            {
+              top=taxa_array.length;
+            }
+            for (var i = 0; i <top; i++) 
+            {
+              top_taxa.push(taxa_array[i])
+            };          
+
+          var order_by_count=simple_orderby('count',taxa_array,'testing') 
+          var html='<ul style="width:auto;list-style:none;">'
+          
+          $(order_by_count).each(function(i,d)
+          {           
+          html+='<li>'+d[0]+' <span class="red_tipsy">'+addSeparator(d[1])+'</span></li>';
+          })
+          html+='</ul>';
+          if (data_type=='graphic')
+          {
+          console.dir(top_taxa)
+          render_highchart('graphic',top_taxa,' occurrences d\'un  total de 234') 
+           $('#data_list-dropdown').append(html)
+          }
+           else
+           {
+          to_plot.find('#my_data').append(html)  
+           }
+          
+          }
+
+        })
+return taxa_array;
+}
+
+// $('body').click(function ()
+//   {
+//     var top=10;
+//     get_graphic ('genus',83,top)
+
+// })
+//render_highchart('graphic',taxa_array,taxa_count+' occurrences d\'un  total de '+total)
 
 var lat=48.856930;
 var lng=2.341200;
@@ -568,104 +798,89 @@ map.addLayer(new L.Marker(latlng));
 var url = window.location.search.split("id=");
 var datapublisher_id=url[1];
 
-$.each(datapublishers_json,function(i,data)
-      {       
-      if (data.datapublisher_id==datapublisher_id)
-      {
-       datapublisher_name=data.datapublisher_name;  
+var datapublisher_info=datapublishers_json.datapublisher_info[0];
 
+var datapublisher_name=datapublishers_json.datapublisher_name;
+$('#map_tooltip').html('<h2><b>'+addSeparator(datapublisher_info.datapublisher_geo_count)+'</b> occurrences géoreferencés').fadeIn('slow')
 
-       $('#map_tooltip').html('<b>'+data.datapublisher_geo_count+'</b> georeferenced occurrences in '+datapublisher_name).fadeIn('slow')
-
-     }
-   })
 
 if (datapublisher_name!=='undefined')
 {
- var simple_datapublisher_url='http://www.gbif.fr/mbtiles/simple_datapublisher_'+datapublisher_id+'/metadata.jsonp';
+ var simple_datapublisher_url='http://www.gbif.fr/mbtiles/datapublishers/simple_datapublisher_'+datapublisher_id+'/metadata.jsonp';
+
+ 
 $map=$('#map').get(0)
 $('#map').append("<div id='mouseover_span' style='position:relative;cursor:pointer;width:20px;height:20px;opacity:0.01;background-color:blue'></div>")
 
 
-
-
+         url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
+     wax.tilejson(url, function(tilejson) {
+        console.warn('added basemap')
+          basemap = new wax.leaf.connector(tilejson);
+         map.addLayer(basemap,true);
+         })
+var content;
   map.on("viewreset", function ()
   {
+      reset();
+
     $("#mouseover_span").attr('original-title','');
   })
     wax.tilejson(simple_datapublisher_url, function(tilejson) {
           this_datapublisher = new wax.leaf.connector(tilejson);
-         map.addLayer(this_datapublisher,true);
-         this_datapublisher.setOpacity(0)
+             this_datapublisher.bringToFront()
 
-
-
+         map.addLayer(this_datapublisher,false);
  
+         console.warn('added MY MAP')
+         this_datapublisher.setOpacity(1)
 
-                  var center=tilejson.center.split(',')
+         var center=tilejson.center.split(',')
          var lat=center[1];
         var lng=center[0];
         var zoom=center[2];
         var latlng=new L.LatLng(lat,lng);
          map.setView(latlng, zoom);
+ map._initPathRoot() 
 
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
           interaction= wax.leaf.interaction(this_datapublisher)
     .map(map)
     .tilejson(tilejson)     
     .on({
       on: function(o) {
-  
-          
          if (o.e.type !== 'mousemove') 
         {
-    
+    //console.warn('querying DATAPUBLISHER')
+    //We are querying clusters, which may contain data coming from different datasets but allways refering to same DATAPUBLISHER. It means we cannot provide info about from which dataset the cluster comes from (can be various). It can be improved in the future.
        var relativeX = o.e.pageX - $map.offsetLeft-10; 
-var relativeY = o.e.pageY - $map.offsetTop-10;
-var obj=o.data;
+    var relativeY = o.e.pageY - $map.offsetTop-10;
+    var obj=o.data;
 
-
-          $.each(datapublishers_json,function(i,data)
-      {
-        var dataset_name,datapublisher_name
-           
-      if (data.datapublisher_id==datapublisher_id)
-      {
-
-
-       datapublisher_name=data.dataset_id;
-      $.each(data,function (i,dataset)
-      {
- 
-        if (dataset.dataset_id==obj.dataset_id) 
-          {
-            dataset_name=dataset.dataset_name
-          }
-      })
 
       if (typeof obj.point_id!=='undefined') point_id=obj.point_id
         else point_id=obj.oid
-      content='<div class="hoverbox" style="z-index:10000"><div id="point_centroid" class="'+point_id+'"/></br><div id="tooltip_datapublisher_id" class="'+datapublisher_id+'" > Datapublisher <b>'+datapublisher_name+'</b></div></br><div id="tooltip_dataset_id" class='+obj.dataset_id+'>Dataset <b>'+dataset_name+'</b></div></br><b>'+obj.count_occurrences+'</b> occurrences</br>';
+      
+      //this has to be improved by Deferred objects (we will make an ajax call (point_id and datapublisher_code as parameter) and populate content with its info). This way avoid loading huge jsonps at each zoom in/out
+        content='<div class="hoverbox" style="z-index:10000"><div id="point_centroid" class="'+point_id+'"/></br><b>'+obj.count_occurrences+'</b> occurrences</br>';
 //                content='<div onClick="show_species('+>Number of species '+obj.count_scientificname+'</br>';
         content+='<div id="show_genus_id"><b>'+obj.count_genus+'</b> different Genus</div></br>';
                 // content+='<div id="show_family_id"><b>'+obj.count_family+'</b> different Families</div></br>';
-                content+='<div id="show_scientificname_id"><b>'+obj.count_scientificname+'</b> different Species</div></br>';
-                content+='<div id="show_phylum_id"><b>'+obj.count_phylum+'</b> different Phylums</div></br>';
-                  content+='<div id="show_class_id"><b>'+obj.count_classs+'</b> different Class</div></br>';
-                    content+='<div id="show_order_id"><b>'+obj.count_orderr+'</b> different Order</div></div>';
+        content+='<div id="show_scientificname_id"><b>'+obj.count_scientificname+'</b> different Species</div></br>';
+         content+='<div id="show_phylum_id"><b>'+obj.count_phylum+'</b> different Phylums</div></br>';
+        content+='<div id="show_class_id"><b>'+obj.count_classs+'</b> different Class</div></br>';
+        content+='<div id="show_order_id"><b>'+obj.count_orderr+'</b> different Order</div></div>';
+      //mouseover_span is invisible, it changes its position each time we click on a cluster. It is used to locate generated tooltip (tipsy).  
+      $('#mouseover_span').css({'top':relativeY+'px','left':relativeX+'px'})
 
-                 
+        $('#mouseover_span').tipsy({fade: true, opacity:1,gravity: 'e', html: true, 
+      title: function () 
+       {
+       return content
       }
-      })
-
-$('#mouseover_span').css({'top':relativeY+'px','left':relativeX+'px'})
-
-  $('#mouseover_span').tipsy({fade: true, opacity:1,gravity: 'w', html: true, 
-title: function () 
- {
- return content
-}
-                       
-  });
+                             
+        });
 
         }
       }
@@ -674,28 +889,222 @@ title: function ()
 
    })
 
+      //clicking on table to get info
+      $('#datasets_table tr').find('td:gt(2)').popover(
+        {
+            trigger: 'click',
+            delay: { show: 300, hide: 5800 },
+            html: true,
+            placement: 'bottom',
+             container: 'body',
+            title: function () 
+            {
+              return '<span id="dataset_id">Dataset information</span><i class="icon-remove" style="color:black;float:right;"></i>';
+            },
+            content: function ()
+            { 
 
- $('#occurrences a').click(function(event)
-{
+            var td_pos=this.cellIndex;
+            $('.td_selected').removeClass('td_selected');            
+            var taxa_level=$('#datasets_table th').eq(td_pos).attr('class');
+            $('.popover').not(this).hide()
+            $(this).addClass('td_selected');
+            var dataset_id=$(this).parent().attr('id').split('_')[1]
+            return "<div id='plot_graphic' class='"+dataset_id+'_'+taxa_level+"'> Plot as graphic</div><div id='plot_list' class='"+dataset_id+'_'+taxa_level+"'> Plot as list</div><div id='my_data' style='overflow-y:auto;max-height:250px'></div>"
+                  }
+            }).bind('hover',function ()
+            {
+             //$(this).css({'cursor':'pointer','background':'#3e71f0'})
+              $(this).addClass('td_hovered')  
+            }).bind('mouseout',function ()
+            {
+            $(this).removeClass('td_hovered')
+            })
 
+            $('.popover').live('click',function (event)
+            {
+            var $this=$(this) 
+            var $target=$(event.target)
+            var splitted_class=$target.attr('class').split('_')            
+            var dataset_id=splitted_class[0]
+            var taxa_level=splitted_class[1]
 
- this_datapublisher.setOpacity(1)
-  $('#map').animate({'height':'500px'})
-  
- // map.invalidateSize()
-  event.preventDefault()
-}) 
+            if ($(event.target).hasClass('icon-remove'))
+            {
+            $(this).hide();
+            $('.td_selected').removeClass('td_selected');
+            }
+            else
+            {
+            if (event.target.id=='plot_graphic')  
+            {
+            
+             get_data (taxa_level,dataset_id,$this.find(".popover-content"),'graphic',datapublisher_id)  
+            }
+            else   //get list
+            {
+              
+            get_data (taxa_level,dataset_id,$this.find(".popover-content"),'list',datapublisher_id)  
+            }
+            }
+
+            })
+
+          $('.hoverbox div, .hoverbox b ').live('hover',function (event)
+           {
+          $(event.target).toggleClass('selected')
+           })
+ 
+          //we query whats inside a map popup (ex: number different genus)
+          $('.hoverbox').live('click',function(event)
+           {
+          
+          big_array=[];
+          target=event.target     
+          target_id=target.id;
+          //id of cluster in database
+          var my_id=$(this).find('#point_centroid').attr('class');          
+          //this has to be improved!       
+           switch(target_id)
+           {
+           case 'show_genus_id': 
+          $(event.target).toggleClass('selected')
+            var content='';
+             jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_taxonomic_arrays_final.php',
+             data: {point_id:my_id,taxa:'genus',data_id:datapublisher_id,'data_type':'datapublisher'},
+             type: 'GET',
+            dataType: 'jsonp',
+            success: function(data)
+            {
+                    for (i=0;i<data['data'].length;i++)
+                        {
+                        var d=data['data'][i].split('+');
+
+                        big_array.push(d)
+
+                        }
+                      window.to_plot='genus';
+                      orderby('names',big_array,to_plot) 
+          }
+            })  
+           //console.warn('targeting genus'+$my_id);
+          return false; 
+          break;
+
+          case 'show_phylum_id': 
+            var content='';
+             jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_taxonomic_arrays_final.php',
+              data: {point_id:my_id,taxa:'phylum',data_id:datapublisher_id,'data_type':'datapublisher'},
+             type: 'GET',
+            dataType: 'jsonp',
+            success: function(data)
+            {
+
+            window.to_plot='phylum'
+           for (i=0;i<data['data'].length;i++)
+                            {
+                            var d=data['data'][i].split('+');
+                     
+                            big_array.push(d)
+                     
+                            }
+                      orderby('names',big_array,to_plot)            
+            }
+              })
+             //console.warn('targeting genus'+$my_id);
+            return false; 
+            break;
+
+           case 'show_order_id': 
+            var content='';
+             jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_taxonomic_arrays_final.php',
+              data: {point_id:my_id,taxa:'orderr',data_id:datapublisher_id,'data_type':'datapublisher'},
+             type: 'GET',
+            dataType: 'jsonp',
+            success: function(data)
+            {
+              for (i=0;i<data['data'].length;i++)
+                        {
+                        var d=data['data'][i].split('+');
+
+                        big_array.push(d)
+
+                        }
+                      window.to_plot='order';
+                      orderby('names',big_array,to_plot) 
+
+            }
+            })
+           
+          return false; 
+          break;
+
+          case 'show_class_id': 
+            var content='';
+             jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_taxonomic_arrays_final.php',
+              data: {point_id:my_id,taxa:'classs',data_id:datapublisher_id,'data_type':'datapublisher'},
+             type: 'GET',
+            dataType: 'jsonp',
+            success: function(data)
+            {
+
+            window.to_plot='classs'
+             for (i=0;i<data['data'].length;i++)
+                        {
+                        var d=data['data'][i].split('+');
+                        big_array.push(d)
+                        }
+                      orderby('names',big_array,to_plot) 
+          }
+            })
+    
+          return false; 
+          break;
+          
+          case 'show_scientificname_id':          
+            var content='';
+                        jQuery.ajax({url:'http://lully.snv.jussieu.fr/gbif/mapping/php/get_taxonomic_arrays_final.php',
+               data: {point_id:my_id,taxa:'scientificname',data_id:datapublisher_id,'data_type':'datapublisher'},
+                        type: 'GET',
+                        dataType: 'jsonp',
+                        success: function(data)
+                        {
+            
+                        for (i=0;i<data['data'].length;i++)
+                        {
+                        var d=data['data'][i].split('+');
+                        big_array.push(d)
+                        }
+                      window.to_plot='scientificname';
+                      orderby('names',big_array,to_plot) 
+                      }
+                        })
+                        return false;
+            
+          break;
+           default: //alert('nooops'); 
+           return false;
+           break;
+
+           }
+       
+           })
+
+    //we have to append this div after map created (otherwise creating of map tools removes it)
+    //wax-tooltip contains list of taxonomies requested inside a polygon (ex: show me list of genus from selected cluster)
+    $('#map').append("<div class='wax-tooltip' style='display:none;'><i class=icon-remove' style='color:#9C0890;float:left;''></i><div id='wax-tooltip_content'></div></div>")
+    //order wax-tooltip info
+      $('#orderby_counts').live('click',function()
+          {
+          orderby('counts',big_array,to_plot)
+          })
+
+          $('#orderby_names').live('click',function()
+          {
+          orderby('names',big_array,to_plot)
+          })
 }
-
-         url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
-     wax.tilejson(url, function(tilejson) {
-          basemap = new wax.leaf.connector(tilejson);
-         map.addLayer(basemap,true);
-         })
-
 }) 
-
-
 </script>
 <div class="container">
 <div class="container-fluid">
@@ -705,64 +1114,59 @@ title: function ()
     </div>
 
     <div id="map_container">
-    <div id="map" style='width:100%;height:300px;position:relative'></div>
+
+    <div id="map" style='width:100%;height:500px;position:relative'></div>
+   
    <div id='map_tooltip' style='display:none'></div>
    </div>
-<!--    <div class="nav-collapse">
-   <ul class="nav">
-      <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">Show biodiversity by polygon<b class="caret"></b></a>
-          <ul id='polygon_type' class="dropdown-menu">
-            <li id='departements'><a  href="#">Departements</a></li>
-            <li id='cantons'><a  href="#">Cantons</a></li>
-            <li id='arrondissements'><a  href="#">Arrondissements</a></li>
-            <li id='regions'><a  href="#">Regions</a></li>
-          </ul>
-      </li>
-    </ul>
+ 
+      <div class="btn-group">
 
-  
-  
-   </div> -->
+      <table id='datapublisher_table' class="taxa_table table-condensed">
+      <tbody>
+        <tr>          
+          <th>Total occurrences</th>
+           <th>Occurrences géoréferencés</th>
+          <th class='scientificName'>Èspeces</th>
+          <th class='genus'>Genus</th>
+          <th class='family'>Family</th>
+          <th class='orderr'>Order</th>
+          <th class='classs'>Class</th>
+          <th class='phylum'>Phylum</th>
+          <th class='kingdom'>Kingdom</th>  
+        </tr>        
+      </tbody>
+    </table>
+      </div>
 
-
-    <ul style='list-style:none;margin:0 0 0 0'>
-    <li id='occurrences'><a href="#">Check biodiversity map by occurrences</a></li>
-  </ul>
-<!--
-    <div class="nav-collapse">
-    <div class="nav">
-      <li class="dropdown">
-        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Check 5 most abundant taxa statistics by<b class="caret"></b></a>
-          <ul id='stats_type' class="dropdown-menu">
-            <li id='kingdom'><a  href="#">kingdom</a></li>
-             <li id='phylum'><a  href="#">phylum</a></li>
-             <li id='family'><a  href="#">family</a></li>
-             <li id='order'><a  href="#">order</a></li>
-             <li id='class'><a  href="#">class</a></li>
-             <li id='genus'><a  href="#">genus</a></li>
-             <li id='scientificname'><a  href="#">scientificname</a></li>             
-          </ul>  
-      </li>
-    </div>  
-    </div>
-  
-    </ul> -->
-
-  
- <!--    <div class="btn btn-small"></div>  -->
-    <div id='stats_div' style='display:hidden;width:500px;height:10px'>
-      <svg id='chart'></svg>
-    </div>
-    <div class="page-header well">
 
       <h3>Datasets</h3>
       <div class="btn-group">
-      #{list items:datasets, as:'dataset'}
-        <div class="btn btn-large"><a href="@{Datasets.show(dataset.id)}">${dataset.name}</a></div>
-      #{/list}
+      <table id='datasets_table' class="taxa_table table-condensed">
+      <tbody>
+        <tr>
+          <th>Dataset</th>
+          <th>Total occurrences</th>
+           <th>Occurrences géoréferencés</th>
+          <th class='scientificName'>Èspeces</th>
+          <th class='genus'>Genus</th>
+          <th class='family'>Family</th>
+          <th class='orderr'>Order</th>
+          <th class='classs'>Class</th>
+          <th class='phylum'>Phylum</th>
+          <th class='kingdom'>Kingdom</th>   
+        </tr>        
+      </tbody>
+    </table>
       </div>
     </div>
-    <table class="table table-condensed table-striped">
+
+        <div id='data_list-dropdown-trigger' style='cursor:pointer;display:none;color:#2eb352;font-weight:bold;margin-top:10px' href="#" data-dropdown="#data_list-dropdown">Liste taxonomique</div> 
+          <div id="data_list-dropdown" class="dropdown-menu has-tip has-scroll">
+
+          </div>
+     <div style='height:320px;' id='graphic'></div>
+    <!-- <table class="table table-condensed table-striped">
       <tbody>
         <tr>
           <th>Description</th>
@@ -773,7 +1177,7 @@ title: function ()
           <td>${dataPublisher.address}</td>
         </tr>  
       </tbody>
-    </table>
+    </table> -->
   </div>
   </div>
 </div>

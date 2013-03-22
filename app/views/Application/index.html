@@ -1,27 +1,312 @@
 <div class="hero-unit container">
-    <div style="width:800px;float:left;"><p><h3>Le&nbsp;GBIF France est le point nodal français du <a href="http://www.gbif.org" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.gbif.org']);">Global Biodiversity Information Facility</a>,<br/>
+    <div style="width:800px;float:left;"><h3>Le&nbsp;GBIF France est le point nodal français du <a href="http://www.gbif.org" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://www.gbif.org']);">Global Biodiversity Information Facility</a>,<br/>
 		 projet scientifique international&nbsp;qui a pour but de mettre à disposition toute l’information connue sur la&nbsp;biodiversité.</h3>
-	</p>
+
 	</div>
-	<div id="box-img"><img style="float:right;" src="http://www.gbif.fr/wp-content/themes/gbif/img/paint-simple-gbif-logo-120px.png"/></div>
+  <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/index.css'}"/>
+	<div id="box-img"><img style="float:right;height:80px;" src="http://www.gbif.fr/wp-content/themes/gbif/img/paint-simple-gbif-logo-120px.png"/></div>
 </div>
 #{include 'Application/Search/bar.html' /}
 #{set title:'Home' /}
 
 <script src="@{'/public/json/france_institutions.json'}"></script>
-
-      <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
-      <script src="@{'/public/javascripts/nv.d3.min.js'}"></script>
-      <script src="@{'/public/javascripts/pieChart.js'}"></script>
-      
-      
-<script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
-<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/tipsy.css'}">
-<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/pack.css'}">
+<script src="@{'/public/javascripts/jquery.xcolor.js'}"></script>
 
 <script type="text/javascript">
-$(document).ready(function() {
+
+
+function remove_paths()
+{
+  return function ()
+  {
+    if ($('#map path').size()>0)
+    {
+      console.warn($('#map path').size())
+        $('#map path').remove()
+          }
+      
+    }
+}
+var dataset_bboxes=false;
+
+function reset() {
+    
+if (dataset_bboxes==true)
+    {
+
+      bboxes.forEach(function (d)
+      {      
   
+        d.attr("d",path)      
+      })
+    }
+   
+  for (zoom_level in paths)
+{
+paths[zoom_level].forEach(function (d)
+      {        
+        d.attr("d",path)      
+      })
+    }
+    } 
+
+function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+    return [point.x, point.y];
+  }
+
+var path = d3.geo.path().projection(function project(x) {
+    var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+
+    return [point.x, point.y];
+  });
+
+
+$(document).ready(function() {
+
+//we have to join all these geographic functions in a single, separated JS file! (it is used by several pages)
+var o_colors=['gold','lime','orange','orangered','royalblue','blue','gold','lightseagreen','greenyellow','turquoise','darkcyan','blueviolet','cornflowerblue',]
+
+var ramp_colors=new Array();
+var colors=new Array();
+
+var taxa,datapublisher;
+for (i=0;i<o_colors.length-1;i++)
+{
+var new_colors=$.xcolor.analogous(o_colors[i],6,20);
+
+colors[i]=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors[i].push(this_color)
+}
+
+ramp_colors.push(colors[i])
+}
+var num_plotted_taxa=0;
+var plotted_taxa=[]
+  
+map = new L.Map('map',{ 'crs': L.CRS.EPSG900913,
+ center: new L.LatLng( 47.0176,2.3427,2), 
+    zoom: 5
+  });
+map.on("viewreset", reset)
+
+map._initPathRoot() 
+
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
+ 
+bboxes=[]
+paths_taxa={};
+paths={};
+
+function generate_paths (data,zoom_level)
+   {
+
+ for (i=0;i<data.length;i++)
+     {
+features=data[i].features;
+
+var this_taxa=data[i].taxa;
+
+ $('#map_tooltip').append('<h3><b>'+data[i].total+'</b> occurrences du taxon <b>'+this_taxa+'</b>, sur <b>'+data[i].num_clusters+'</b> polygones<br> <span style="color:#D1CB43;font-weight:bold">Minimum</span> '+data[i].min+'   <span style="color:#E66741;font-weight:bold">Maximum </span>'+data[i].max+'</h3>').fadeIn('slow')
+
+  bounds = d3.geo.bounds(features)
+  var opacityScale = d3.scale.linear()
+                     .domain([d3.min(features, function(d) { return d.properties.count; }), d3.max(features, function(d) { return d.properties.count; })])
+                     .range([0.4, 1]);  
+  var count_extent = d3.extent(features, function(d){return d.properties.count});
+
+  var ramp =d3.scale.linear().domain(count_extent).range(ramp_colors[num_plotted_taxa]);
+
+  //num_plotted_taxa++;
+  var this_path='path.'+zoom_level
+  
+   var  path_feature = g.selectAll(this_path).attr('centroid',function (d) {return d.centroid})
+    .data(features,function (d)
+    {
+      var centroid=d.centroid;
+      return d.centroid;
+    })
+  path_feature.enter().append("path").attr("d", path).attr('class','polygons').attr('opacity',0.7).attr('fill',function (d)
+  {
+    return ramp(d.properties.count);
+  }).attr('class','polygons')
+
+  path_feature.each(function (d)
+   {
+    var centroid=d.centroid
+    
+    if (typeof $(this).data('centr')=='undefined')
+    {
+      $(this).data('centr',[])
+      $(this).data('info_taxes_colors',[])
+      $(this).data('info_taxes',[])
+      $(this).data('info_ids',[])
+      $(this).data('info_counts',[])
+      $(this).data('centr').push(centroid);
+      $(this).data('total_counts',0)
+      $(this).data('visualized_items',0)
+    }
+        if ($.inArray(this_taxa,$(this).data('info_taxes'))==-1)   
+    {
+    
+      $(this).data('info_taxes').push(this_taxa);   
+      $(this).data('info_ids').push(d.properties.random_id)
+      $(this).data('info_counts').push(d.properties.count)  
+      $(this).data('info_taxes_colors').push(ramp(d.properties.count)) 
+      var total=$(this).data('total_counts')+d.properties.count 
+      $(this).data('total_counts',total)
+      var visualized_items=$(this).data('visualized_items')
+      $(this).data('visualized_items',visualized_items+1)
+      var info_taxes_colors=$(this).data('info_taxes_colors')        
+      if (info_taxes_colors.length>1)
+      {
+        var new_color=$.xcolor.additive($(this).attr('fill'),ramp(d.properties.count))
+        $(this).attr('fill',new_color)
+        d.fill_color=new_color
+      }
+    else
+    {
+    $(this).attr('fill',info_taxes_colors[0])
+    
+    }
+    } 
+    })
+
+  if (typeof paths[zoom_level]=='undefined') paths[zoom_level]=[]
+
+//if (typeof paths[zoom_level][taxa]=='undefined') paths[zoom_level][taxa]=[]
+    paths[zoom_level].push(path_feature);   
+ 
+  $('path.polygons').tipsy({ 
+                              delayIn: 500, 
+                              fade: true, 
+                              gravity: 'w', 
+                               offset: 0, 
+                               opacity:1,
+                              html: true, 
+                              title: function() {
+
+                              if ($(this).attr('opacity')>0)
+                              {
+
+                                var d = this.__data__;
+                                var info_taxes=$(this).data('info_taxes');
+                                var info_counts=$(this).data('info_counts');
+                                // var text='<b>Total occurrences</b> <b>'+addSeparator($(this).data('total_counts'))+'</b> for '+info_taxes.length+' taxonomies<p>';
+
+                                 var text='';
+
+                                for (i=0;i<info_taxes.length;i++)
+                                {
+                                 text+='<span class="black_tipsy">'+info_taxes[i]+'</span> <b>'+addSeparator(info_counts[i])+'</b></br>';                                 
+                                }
+
+                                return text;
+               }
+               else
+               {
+               return false;
+               }
+                              }
+                            }) 
+
+
+     }
+ 
+
+  }  //end generate_paths
+
+
+
+$('#search-submit').click(function ()
+{
+ taxes_arr= $('#taxa-dropdown li').map(function()
+   {   
+   return jQuery(this).find('b').eq(0).text()   
+   }).get().join(';')
+
+   $('#input-search-taxa').val(taxes_arr)
+
+ // places_arr=$('#places-dropdown li').map(function()
+ //   {   
+ //   return jQuery(this).find('b').eq(0).text()   
+ //   }).get().join(';')
+    var bbox_string=''
+     for (index in rect_bbox)
+     {
+      bbox_string+=rect_bbox[index].toString()+';';
+
+     };
+ var places_arr= $('#places-dropdown li').map(function()
+   {
+   var place=$(this).find('b').eq(0).text().split(',')[0];
+   var bbox=$(this).find(' .bbox_handler').text()
+   //.split(',')
+   return place+';['+bbox+']';  
+   
+   }).get().join(';')+';'+bbox_string;
+
+
+  $('#input-search-place').val(places_arr)
+
+  datapubs_arr=$('#datapublishers-dropdown li').map(function()
+   {   
+   return jQuery(this).find('b').eq(0).text()   
+   }).get().join(';')
+  
+ $('#input-search-dataset').val(datapubs_arr)
+
+
+ })  
+
+
+$('#search-inputs .icon-remove').click(function ()
+{
+$(this).parent().hide()
+})
+
+              // $('#search-inputs i').live('click',function (e)
+              // {
+              //   $target=$(e.target)
+              //   if ($target.hasClass('icon-remove'))
+              //   {
+              // $target.parent().hide()
+              //  // $('.dropdown-menu2').empty().hide()
+
+              //   }
+                
+              // //$(this).hide()
+              // })
+        
+
+
+   
+
+// $(".icon-remove").tipsy({ 
+//                               delayIn: 100, 
+//                               fade: true, 
+//                               live:true,
+//                               gravity: 'n', 
+//                               opacity:1,
+//                                offset: 0, 
+//                               html: true, 
+//                               title: function() {
+//                               var parent_id=$(this).parent().attr('id')
+
+//                               if (parent_id=='search-taxa')
+//                               {
+                        
+//                               return 'Remove all taxas in the filter'
+                              
+//                               }
+//                               }
+//                               })
+
  var show_ajax 
  
 
@@ -30,44 +315,56 @@ $("#ajax_image").hide();
 var rectangle;
 url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
 
-wax.tilejson(url, function(tilejson) {
-          basemap = new wax.leaf.connector(tilejson);
+
+// wax.tilejson(url, function(tilejson) {
+//           basemap = new wax.leaf.connector(tilejson);
          
 
-            map.addLayer(basemap)
-              })
+//            map.addLayer(basemap)
+//               })
 
+map.scrollWheelZoom.disable();
 
-
-map = new L.Map('map',{ 'crs': L.CRS.EPSG900913,
- center: new L.LatLng( 47.0176,2.3427,2), 
-    zoom: 5
-  });
+  
 
 var drawControl = new L.Control.Draw({
       position: 'topleft',
-      polygon: {
+      attr: 'test',
+      rectangle: {
         allowIntersection: false,
         drawError: {
           color: '#b00b00',
           timeout: 1000
         },
         shapeOptions: {
-          color: '#bada55'
-        }
-      },
-      circle: {
-        shapeOptions: {
-          color: '#662d91'
+          color: '#d62727'
         }
       }
     });
     map.addControl(drawControl);
 
+var drawControl2 = new L.Control.Draw({
+      position: 'topright',
+      rectangle: {
+        allowIntersection: false,
+        drawError: {
+          color: '#b00b00',
+          timeout: 1000
+        },
+        shapeOptions: {
+          color: '#8658e8'
+        }
+      }
+    });
+    map.addControl(drawControl2);
+
+  
+
+
     $input_place=$('#input-search-place')
     $('.leaflet-control-draw-circle,.leaflet-control-draw-polygon,.leaflet-control-draw-marker,.leaflet-control-draw-polyline').hide()
 
-    $('.leaflet-control-draw-rectangle').tipsy({ 
+    $('.leaflet-top.leaflet-left .leaflet-control-draw-rectangle').tipsy({ 
                               delayIn: 500, 
                               fade: true, 
                               live:true,
@@ -80,16 +377,44 @@ var drawControl = new L.Control.Draw({
                               return text;                                                              
                             }
                           })
+     
+
+ 
+
+
+
+
+    $('.leaflet-top.leaflet-right .leaflet-control-draw-rectangle').popover({
+                            
+                            trigger:'hover',
+                            placement: 'left',
+                            html: true,
+                            delay: { show: 500, hide: 2000 },
+                            
+   
+                              title: function () {
+                                return 'Requete par bounding box'
+                              },
+                              content: function ()
+                              {
+                                return 'Utilisez cet outil pour dessiner un rectangle sur la carte. </br> On vous donnera des statistiques sur les plus abundants categories taxonomiques'
+                              }
+                            })
 
     var drawnItems = new L.LayerGroup();
-    map.on('draw:poly-created', function (e) {
-      drawnItems.addLayer(e.poly);
-    });
+
+      var drawnItems2 = new L.LayerGroup();
+ 
 
         window.rect_bbox={};
 
     map.on('draw:rectangle-created', function (e) {
+
+      
+     if (kind_bbox=='filter')
+     {
       drawnItems.addLayer(e.rect);
+
       var rect_id=e.rect._leaflet_id;
       e.rect.type='rect';
   
@@ -102,149 +427,361 @@ var drawControl = new L.Control.Draw({
       $('#search-place').show();
 
     }
+     
+     }
+     else
+     {
+      drawnItems2.addLayer(e.rect);
+       
+       $rect=$(e.rect._container)
 
-      $input_place.val(bbox.toString()); //to add final ";" 
+      var rect_id=e.rect._leaflet_id;
+      var rect=e.rect;
 
-      var rect=e.rect
+      var bottom_left_lat=rect._latlngs[0].lat;
+      var bottom_left_lng=rect._latlngs[0].lng;
 
-      $(rect._path).tipsy({ 
+      var top_right_lat=rect._latlngs[2].lat;
+      var top_right_lng=rect._latlngs[2].lng;
+
+      $('#ajax_image').show()
+
+       $(rect._path).attr('stroke','blue').attr('class','stats')
+
+       jQuery.ajax({
+    type: "GET",
+    url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/curl_test_get.php',
+    data: {'top_right_lat':top_right_lat,'top_right_lng':top_right_lng,'bottom_left_lat':bottom_left_lat,'bottom_left_lng':bottom_left_lng},
+    dataType: "jsonp",
+    //jsonp:false,
+    timeout:5000,
+
+    success: function(results)
+          {
+            $('#ajax_image').hide()
+            
+             top_10='genus';
+
+              // $rect.data('kingdoms',results['kingdom'])
+              //  $rect.data('genus',results['genus'])
+
+              $rect.tipsy({ 
+                              delayIn: 200,                              
+                              fade: true, 
+                              gravity: 'w', 
+                               opacity:1,
+                              offset: 15,
+                              html: true, 
+                              title: function() {
+
+                                console.warn($(this).data())
+                            var li=''
+                            var taxas=['kingdom','genus','datasets']
+                              for (var i = 0; i < taxas.length; i++)
+                               {
+                              var this_taxa=taxas[i]
+
+                              if (this_taxa=='kingdom')
+                              {
+                              li+='<div id="top_'+this_taxa+'" ><h2>Top Kingdoms in this area</h2><ul>';  
+                              }
+                              else
+                              {
+                              li+='<div id="top_'+this_taxa+'" style="display:none"><h2>Top 10 '+this_taxa+' in this area</h2><ul>'
+                              }
+                              
+                               var $data=results[taxas[i]];
+                               if (this_taxa!=='datasets')
+                              {
+                                for (var x=0;x<$data.length;x++)
+                              {
+                              var data_name=$data[x].name.slice(0,1).toUpperCase() + $data[x].name.slice(1);
+                                  li+='<li><span class="red_tipsy">'+data_name+' </span> '+addSeparator($data[x].count)+''+'</li>';
+
+                              }
+                             }
+                              else
+                              {
+                                  for (var x=0;x<$data.length;x++)
+                              {
+                              var this_dataset=$data[x].name;
+
+                              li+='<li><span class="red_tipsy_dataset">'+get_dataset_name(this_dataset)+' </span> '+addSeparator($data[x].count)+''+'</li>';
+
+                              }
+
+                              }
+                               li+='</ul><div class="top_link" style="cursor:pointer;" >Next</div></div>';
+                              }
+                     return li;
+                            }
+                            
+                          })   
+                      }                
+                  })
+                   }
+
+               var rect=e.rect
+
+               $(rect._path).tipsy({ 
                               delayIn: 500, 
                               
                               fade: true, 
-                              gravity: 'w', 
+                              gravity: 'e', 
                               opacity:1,
                                offset: 0, 
                                delayOut: 3000,
                               html: true, 
                               title: function() {
-                              var text='<div id="'+rect_id+'_bbox" class="remove_bbox">Remove it</div>';
+
+                                if ($(this).attr('class')=='stats')
+                                {
+                                var text='<div id="'+rect_id+'_bbox" class="remove_bbox">Remove it</div>';
+                                }
+                                else
+                                {
+                                   var text='<div id="'+rect_id+'_bbox" class="remove_bbox">Remove</div>';
+                                }
+                             
                               return text;                                                              
                             }
                           })
-      //$(e.rect._path).fadeOut('slow')
-    
 
-    });
-    map.on('draw:circle-created', function (e) {
-      drawnItems.addLayer(e.circ);
-    });
-    map.on('draw:marker-created', function (e) {
-      drawnItems.addLayer(e.marker);
-    });
+                  });
+   
     map.addLayer(drawnItems);
+      map.addLayer(drawnItems2);
 
-    $('.remove_bbox').live('click',function()
-{
-  var this_id=this.id.split('_')[0]
+     $('.top_link').live('click',function ()
+                      {
+                        $(this).parent().hide().next().show()
+                        // var $taxa_container=$(this).parent()
+                        // $all_container=$taxa_container.parent()
+                        // $container.find('div')
+                        // var this_id=$(this).attr('fakeClass');
+                        // $('#'+this_id).show();
 
-for(index in map._layers)
-{
-if (this_id==index)
-{
-  var the_layer=map._layers[this_id]
-  map.removeLayer(the_layer)
-}
-  
-}
-     delete(rect_bbox[this_id])
-     var bbox_string=''
-     for (index in rect_bbox)
-     {
-      bbox_string+=rect_bbox[index].toString();
 
-     }
-    var current_text=$('#input-search-place').val().split(';')
+                      })  
 
-    var new_text=''
-      for (index in current_text)
-      {
-console.info(current_text[index])
-      if (!current_text[index]=='') //dealing with possible ; at the end of string
-      {
-      var this_indexof=current_text[index].indexOf('[')
-        if (this_indexof==-1)  //dealing with place names
+        //remove a rectangle marking a bounding box
+        $('.remove_bbox').live('click',function()
+          {            
+            var this_id=this.id.split('_')[0]
+          for(index in map._layers)
+          {
+          if (this_id==index)
+          {
+            var the_layer=map._layers[this_id]
+            map.removeLayer(the_layer)
+          }
+            
+          }
+               delete(rect_bbox[this_id])
+               var bbox_string=''
+               for (index in rect_bbox)
+               {
+                bbox_string+=rect_bbox[index].toString();
+
+               }
+              var current_text=$('#input-search-place').val().split(';')
+
+              var new_text=''
+                for (index in current_text)
+                {
+
+                if (!current_text[index]=='') //dealing with possible ; at the end of string
+                {
+                var this_indexof=current_text[index].indexOf('[')
+                  if (this_indexof==-1)  //dealing with place names
+                  {
+                   new_text+=current_text[index]+';';
+                  }
+                  }
+                }           
+               $('#input-search-place').val(new_text+bbox_string);               
+          })
+
+        map.setView(new L.LatLng(47.0701,2.6147),5);
+
+        $('.leaflet-control-draw').show();
+        $('#search-filter-place').click(function()
         {
-         new_text+=current_text[index]+';';
-        }
-        }
-      }
- 
-     $('#input-search-place').val(new_text+bbox_string);
+          if ($(this).hasClass('selected'))
+          {
+          $(this).removeClass('selected')
+          $('.leaflet-control-draw').hide();  
+          }
+          else
+          {
+        $(this).addClass('selected')
+          $('.leaflet-control-draw').show();  
+          }  
+        })
 
+      $('.leaflet-control-draw a').bind('click',function ()
+        {
+        $('.leaflet-control-draw').not(this).removeClass('draw_selected')
+        
+          $(this).parent().toggleClass('draw_selected')
+          if ($(this).parent().parent().hasClass('leaflet-right'))
+            kind_bbox='top_stats';
+          else
+            kind_bbox='filter'
+
+        })
+    //visualizing geographic distribuition of taxa in a dataset
+    $('.map_it').click(function ()
+  {
+   //we get parameters to use in ajax request
+   var degree_cell=$(this).attr('id');
+   var  taxes= $('#taxa-dropdown li').map(function()
+     {        
+     return $(this).find('b').text()+':'+$(this).find('span').text()   
+     }).get().join(';')
+
+   var places= $('#places-dropdown .bbox_handler').map(function()
+     {
+     var _this=$(this).text().split(',')
+     return _this[1]+' '+_this[0]+','+_this[3]+' '+_this[2]  
      
-})
+     }).get().join('|')
 
- 
+   var datapublishers=$('#datapublishers-dropdown b').map(function()
+     {
+     return jQuery(this).next().text()
+     
+     }).get().join(',')
 
-map.setView(new L.LatLng(47.0701,2.6147),5);
+  $.when(remove_paths()())
+    .then(function(){
 
-$('.leaflet-control-draw').show();
-$('#search-filter-place').click(function()
-{
-  if ($(this).hasClass('selected'))
-  {
-  $(this).removeClass('selected')
-  $('.leaflet-control-draw').hide();  
-  }
-  else
-  {
-$(this).addClass('selected')
-  $('.leaflet-control-draw').show();  
-  }  
-})
+    var cell_size=5;
+    $.ajax({
+      url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/autocomplete2.php?taxa='+taxes+'&datapublishers='+datapublishers,
+      type: 'GET',
+      data:{bbox:places,degree_polygon:degree_cell},
+      dataType: "jsonp", 
+      crossDomain : true,
+      success: function(data, textStatus, xhr) {
 
-  //*** Dataset Auto-completion ***/  
-  $("#input-search-dataset").autocomplete().each(function() {
-    var $input = $(this);
-    console.info('autocomplete from index.html')
-    //Set-up the autocomplete widget.
-    $(this).autocomplete({
-      minLength: 3,
-      source : function(req, resp) {
-        $.getJSON("datasets/autocomplete?search=" + req.term, function(data) {
-          var suggestions = [];
-          $.each(data, function(i, val) {
-            var obj = {};
-            obj.label = val.title;
-            obj.id = val.id;
-            suggestions.push(obj);
-          })
-          resp(suggestions);
-        })
-      }  
+      $('#map_tooltip').empty()
+      $('#ajax_image').show()
+      if (data.bboxes.length>0) {
+          for (i=0;i<data.bboxes.length;i++)
+           {
+            
+            bbox_features=data.bboxes[i];
+            var  path_feature = g.selectAll('bboxes')
+                                      .data(data.bboxes)
+            path_feature.enter().append("path").attr("d", path).attr('class','bboxes')
+
+            bboxes.push(path_feature)
+            }
+            dataset_bboxes=true; 
+          }
+          else
+          {
+            dataset_bboxes=false;  
+          }     
+        if (data.main_bbox[0].length= 0) 
+      {
+       alert('some error in bbox??')
+       zoom=2;
+        map.fitWorld()
+      }
+      else
+      {
+      if (typeof data.main_bbox[1]=='undefined') alert('We cannot get any geo-referenced record for this taxa at this selected area;')
+        else
+        {
+    var up_right=data.main_bbox[1].split(',')
+    var bottom_left=data.main_bbox[0].split(',')
+    
+    bounds = new L.LatLngBounds(
+        new L.LatLng(bottom_left[1],bottom_left[0]),
+
+        new L.LatLng(up_right[1],up_right[0]));
+
+    zoom=map.getBoundsZoom(bounds)
+
+    map.fitBounds(bounds) 
+        }
+
+      }
+         generate_paths(data.features,'five_degrees')  
+         $('#ajax_image').hide()
+              
+          }
+        });
+    });
+
+
     })
+
+    var defaultLayer = L.tileLayer.provider('GBIF');
+    map.addLayer(defaultLayer);
+
+    var baseLayers = {
+      "GBIF default": defaultLayer,
+     
+      "OpenStreetMap": L.tileLayer.provider('OpenStreetMap.DE'),
+      "OpenStreetMap Black and White": L.tileLayer.provider('OpenStreetMap.BlackAndWhite'),      
+      "MapQuest OSM": L.tileLayer.provider('MapQuestOpen.OSM'),    
+      "Esri WorldStreetMap": L.tileLayer.provider('Esri.WorldStreetMap'),     
+      "Esri WorldTopoMap": L.tileLayer.provider('Esri.WorldTopoMap'),
+      "Esri WorldImagery": L.tileLayer.provider('Esri.WorldImagery'),
+      "Esri WorldTerrain": L.tileLayer.provider('Esri.WorldTerrain'),
+      "Esri WorldShadedRelief": L.tileLayer.provider('Esri.WorldShadedRelief'),
+      "Esri WorldPhysical": L.tileLayer.provider('Esri.WorldPhysical'),
+      "Esri OceanBasemap": L.tileLayer.provider('Esri.OceanBasemap'),
+      "Esri NatGeoWorldMap": L.tileLayer.provider('Esri.NatGeoWorldMap'),
+      "Esri WorldGrayCanvas": L.tileLayer.provider('Esri.WorldGrayCanvas'),
+      "Nokia Normal Day": L.tileLayer.provider('Nokia.normalDay'),
+      "Nokia Normal Day Grey": L.tileLayer.provider('Nokia.normalGreyDay'),      
+      "Nokia Satellite": L.tileLayer.provider('Nokia.satelliteYesLabelsDay'),
+      "Nokia Terrain": L.tileLayer.provider('Nokia.terrainDay'),
+      "Stamen Toner": L.tileLayer.provider('Stamen.Toner'),      
+      "Stamen Watercolor": L.tileLayer.provider('Stamen.Watercolor')
+    };
+    map.addControl(new L.Control.Layers(baseLayers, '', {collapsed: false}));
+    $('.leaflet-control-layers').hide()
+
+    $('#map').append('<div id="layer_control">Show Layers control</div>')
+    $('#layer_control').click(function ()
+    {
+      if (!$(this).hasClass('selected'))
+      {
+        $(this).addClass('selected').text('Hide Layers control')
+        $('.leaflet-control-layers').show()
+      }
+      else
+      {
+        $(this).removeClass('selected').text('Show Layers control')
+        $('.leaflet-control-layers').hide()
+      }
+    })
+
+    //this should be the way
+    $("#ajax_image")
+    .ajaxStart(function(){
+      //console.warn($(this))
+      alert('ajax')
+      $(this).show();
+    })
+    .ajaxComplete(function(){
+      $(this).hide();
+    });
+
   });
-  
-  //** Taxa Auto-completion ** 
-  $("#input-search-taxa").autocomplete().each(function() {
-    console.info('autocomplete from index.html')
-    var $input = $(this);
-    //Set-up the autocomplete widget.
-    $(this).autocomplete({
-      minLength: 4,
-      source : function(req, resp) {
-        $.getJSON("taxas/autocomplete?search=" + req.term, function(data) {
-          var suggestions = [];
-          $.each(data, function(i, val) {
-            var obj = {};
-            obj.label = val.canonicalName;
-            obj.id = val.id;
-            suggestions.push(obj);
-          })
-          resp(suggestions);
-        })
-      }  
-    })
-  })
-
-});
 </script>
 
 <div class="container">
-<a id='test_geo' href='#' style='display:none' >Show datasets by count georeferenced occurrences (test)</a>
-<div id="map" class="container" style='width:940px;height:600px'>
+  <div id="map_container">
+      <div id="map" class="container" style='width:940px;height:600px'>
+    </div>
+    <div id='map_tooltip' style='display:none'></div>
 
-</div>
-
+  </div>
 </div> 
 

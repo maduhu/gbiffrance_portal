@@ -4,17 +4,73 @@
       <title>#{get 'title' /}</title>
       <meta charset="${_response_encoding}">
       <link rel="stylesheet" media="screen" href="@{'/public/bootstrap/css/bootstrap.css'}">
+          
+    <link rel="stylesheet" href="@{'/public/bootstrap/FortAwesome/css/font-awesome.min.css'}">
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/main.css'}">
-
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.css'}"> 
+      <link rel="stylesheet" media="screen" href="@{'/public/bootstrap/css/jquery.dropdown.css'}"> 
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/site-style.css'}">       
       <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/leaflet.draw.css'}">
        <script src="@{'/public/javascripts/mapping/leaflet-src.js'}"></script>
-
+<!-- <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script> -->
+           // <script src="@{'/public/javascripts/jquery-1.7.1.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+          <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
+<script src="@{'/public/javascripts/jquery.xcolor.js'}"></script>   
 
        <script src="@{'/public/javascripts/mapping/leaflet.draw.js'}"></script>
        <script src="@{'/public/javascripts/mapping/wax.leaf.min.js'}"></script>
+       <script src="@{'/public/javascripts/mapping/leaflet-providers.js'}"></script>
+   <script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
+         <link rel="stylesheet" href="@{'/public/stylesheets/tipsy.css'}"/>
+       <style type="text/css">
+.icon-remove
+{
+  cursor:pointer;
+}
+</style>
 	   <script type="text/javascript">
+
+function get_dataset_name (id)
+{
+return $('#datapublishers_list-dropdown').find('#'+id).text()
+
+}
+var datapub_datasets={"1":[1,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33],"2":[34,35,36,37,38,39,40,41,42,43,44,45],"3":[46],"4":[47,48,49,50],"5":[51],"6":[52],"7":[53],"8":[54],"9":[55],"10":[56],"11":[57],"12":[58],"13":[59],"14":[60],"15":[61],"16":[62,63,64],"17":[65,66,67],"18":[68],"19":[69],"20":[70],"22":[71,72,73],"23":[74],"24":[75],"25":[76],"26":[77],"27":[78],"28":[79],"29":[80],"30":[81],"31":[82],"32":[83,84,85],"33":[86,87]};
+//"21":[1], ???
+
+function get_datapub_id (dataset_id)
+{
+var datapub_id;
+console.info(dataset_id)
+for (var dp_id in datapub_datasets)
+     {
+
+     var x=datapub_datasets[dp_id]
+     console.info(datapub_datasets[dp_id])
+     if (x.indexOf(dataset_id)!==-1)
+     {
+      datapub_id=dp_id;
+      console.warn('my datapub is '+dp_id)
+      }
+     }
+     return datapub_id;
+}
+
+     function toTitleCase(str)
+{
+    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+function addSeparator(nStr) {
+    nStr += '';
+    var x = nStr.split('.');
+    var x1 = x[0];
+    var x2 = x.length > 1 ? '.' + x[1] : '';
+    var rgx = /(\d+)(\d{3})/;
+    while (rgx.test(x1)) {
+        x1 = x1.replace(rgx, '$1' + '.' + '$2');
+    }
+    return x1 + x2;
+}
   	     var _gaq = _gaq || [];
   		 _gaq.push(['_setAccount', 'UA-37018873-1']);
   		 _gaq.push(['_trackPageview']);
@@ -27,9 +83,12 @@
 	  </script>
       
       <link rel="shortcut icon" type="image/png" href="@{'/public/images/favicon.png'}">
-      <script src="@{'/public/javascripts/jquery-1.7.1.js'}" type="text/javascript" charset="${_response_encoding}"></script>
-      <script src="@{'/public/bootstrap/js/bootstrap.js'}" type="text/javascript" charset="${_response_encoding}"></script>
-      <script src="@{'/public/javascripts/jquery-ui-1.8.21.custom.min.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+  
+       
+       <script src="@{'/public/bootstrap/js/jquery.dropdown.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+       <script src="@{'/public/bootstrap/js/bootstrap.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+    
+        <!--<script src="@{'/public/javascripts/jquery-ui-1.8.21.custom.min.js'}" type="text/javascript" charset="${_response_encoding}"></script> -->
       #{get 'moreScripts' /}
     </head>
     <body>
@@ -48,7 +107,7 @@
 			  <li id="menu-item-608" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-608"><a href="http://www.gbif.fr/?page_id=225" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">Documentation</a></li>
 			  <li id="menu-item-1483" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1483"><a href="http://www.gbif.fr/metadata/index.php/metadata" onclick="javascript:_gaq.push(['_trackEvent','outbound-menu','http://www.gbif.fr']);">Métadonnées</a></li>
 			</ul>
-			<div style="float:right;"><img height="70" width="70" style="margin:10px;" src="http://www.gbif.fr/wp-content/themes/gbif/img/paint-simple-gbif-logo-120px.png"></div>
+<!-- 			<div style="float:right;"><img height="70" width="70" style="margin:10px;" src="http://www.gbif.fr/wp-content/themes/gbif/img/paint-simple-gbif-logo-120px.png"></div> -->
 			</div>
 			<div id="sub-menu" style="float:left;"></div>
 		  </div>

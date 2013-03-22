@@ -1,0 +1,88 @@
+.leaflet-right .leaflet-control-layers {
+    margin-right: 10px;
+    max-height: 200px;
+    width:150px;
+    height:250px;
+    overflow-y: auto;
+    overflow-x: none;
+    background: #AFAFC7;
+}
+.leaflet-control-layers input
+{
+ display: inline;
+}
+
+.leaflet-control-layers label
+{
+ width: 120px;
+
+}
+
+.red_tipsy
+{
+  font-weight: bold;
+  color: #d12a2a;
+}
+
+.red_tipsy_dataset
+{
+  font-weight: bold;
+  color: #d12a2a;
+  font-size:14px;
+
+}
+.tipsy-inner li
+{
+  margin:4px;
+}
+.draw_selected
+{
+background:red;
+}
+.black_tipsy
+{
+
+  font-weight: bold;
+  font-size:17px;
+}
+.tipsy-inner 
+{
+  font-size:16px;
+}
+
+.tipsy-inner b
+{
+  font-size:17px;
+  color: #E4364B;
+}
+
+
+#map path.polygons  {
+  stroke-width: 0.7px;
+               stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
+#map path.stats
+{
+     stroke-width: 2px;
+            stroke: #c00ddb;
+            shape-rendering: crispEdges;
+}        
+#map path.bboxes{
+     stroke-width: 2px;
+            stroke: #8C1C8C;
+fill-opacity: 0.05;
+            shape-rendering: crispEdges;
+}
+  #map_tooltip
+  {
+width:auto;position:relative;z-index:50;background:#DDDDDD; color:#6053;font-size: 1.1em;  
+max-height:50px;
+ -webkit-transition:opacity .5s;
+  -moz-transition:opacity .5s;
+  box-shadow:0px 0px 10px #5CACEE;
+  -moz-box-shadow:0px 0px 10px #5CACEE;
+  -webkit-box-shadow:0px 0px 10px #5CACEE; border:2px solid #5CACEE;
+  border-radius:2px;
+
+}

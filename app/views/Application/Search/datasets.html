@@ -4,7 +4,9 @@
   #{if datasets.size > 0}
     <table class="table table-condensed table-bordered">
     #{list items:datasets, as:'dataset'}
-      <tr><td><a href="@{Datasets.show(dataset.id)}">${dataset.title}</a></td><td><a href="@{DataPublishers.show(dataset.dataPublisher.id)}">${dataset.dataPublisher.name}</a></td></tr>
+      <tr><td><i class="icon-trash" style="color:#9C0890;margin-right: 10px;float:left;"></i><a href="@{Datasets.show(dataset.id)}">${dataset.title}</a></td><td><a href="@{DataPublishers.show(dataset.dataPublisher.id)}">${dataset.dataPublisher.name}</a></td>
+        
+      </tr>
     #{/list}
     </table>
   #{/if}

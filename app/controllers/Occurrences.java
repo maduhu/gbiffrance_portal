@@ -21,12 +21,18 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.search.BooleanFilter;
+
+
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.action.count.CountResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+
+//added by Pere to enable sort results
+import org.elasticsearch.search.sort.SortOrder;
+
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
@@ -56,6 +62,7 @@ import org.elasticsearch.index.query.TextQueryBuilder.Operator;
 import org.elasticsearch.index.query.TextQueryBuilder.Type;
 import org.elasticsearch.index.search.geo.GeoDistanceFilter;
 import org.elasticsearch.node.Node;
+// import org.elasticsearch.index.cache.filter;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.facet.FacetBuilders;
@@ -254,6 +261,7 @@ public class Occurrences extends Controller {
 	}
 
 	BoolFilterBuilder f = boolFilter();
+	
 
 	if (search.onlyWithCoordinates == true)
 	{
@@ -273,6 +281,28 @@ public class Occurrences extends Controller {
 	{
 	  ecatFacetBuilder.facetFilter(f);
 	}
+
+	
+	/***
+	 * This facet is working as a SQL "group by dataset"
+	 */
+	TermsFacetBuilder genusFacetBuilder = new TermsFacetBuilder("genus");
+	genusFacetBuilder.field("genus_interpreted");
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  genusFacetBuilder.facetFilter(f);
+	}
+
+	/***
+	 * This facet is working as a SQL "group by dataset"
+	 */
+	TermsFacetBuilder classFacetBuilder = new TermsFacetBuilder("class");
+	classFacetBuilder.field("classs_interpreted");
+	if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0)
+	{
+	  classFacetBuilder.facetFilter(f);
+	}
+
 
 	/***
 	 * This facet is working as a SQL "group by dataset"
@@ -297,12 +327,14 @@ public class Occurrences extends Controller {
 	if (q != null || search.datasetsIds.size() > 0)
 	{
 	  SearchRequestBuilder searchRequest = client.prepareSearch("idx_occurrence").setFrom(from).setSize(pagesize).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(q);
-	  if (withFacets) searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder);
+	  if (withFacets) searchRequest.addFacet(yearFacetBuilder).addFacet(ecatFacetBuilder).addFacet(datasetFacetBuilder).addFacet(genusFacetBuilder).addFacet(classFacetBuilder);
+	  
 	  if (search.onlyWithCoordinates == true || search.datasetsIds.size() > 0 || !search.dataset.isEmpty())
 	  {
 	    searchRequest = searchRequest.setFilter(f);
 	  }
 		
+		// Logger.info("DATASET IDS: " + search.datasetsIds);
 		
 	  Logger.info("Search request: " + searchRequest);
 	  return searchRequest;
@@ -322,6 +354,9 @@ public class Occurrences extends Controller {
    */
   public static void search(String taxaSearch, String placeSearch, String datasetSearch, String dateSearch, boolean onlyWithCoordinates, Integer from) 
   {   
+
+  	 Logger.info("Searching"+taxaSearch);
+
 	int pagesize = 100;
 	if (from == null) from = 0;
 	
@@ -337,7 +372,7 @@ public class Occurrences extends Controller {
 	  List<Occurrence> occurrences = new ArrayList<Occurrence>();
 		Long nbHits = response.getHits().getTotalHits();
 		NameParser nameParser = new NameParser();
-		
+		System.out.println(nbHits);
 		for (SearchHit hit : response.getHits()) {   
 		  Occurrence occurrence = new Occurrence();	
 		  occurrence.id = (Integer) hit.getSource().get("_id");
@@ -346,7 +381,8 @@ public class Occurrences extends Controller {
 		  
 		  occurrence.decimalLatitude = (String) hit.getSource().get("decimalLatitude");
 		  occurrence.decimalLongitude = (String) hit.getSource().get("decimalLongitude");	
-		  
+		//added by Pere 
+		  occurrence.ecatConceptId= (String) hit.getSource().get("ecatConceptId");
 		  ParsedName<String> parsedNameOriginal = nameParser.parse(occurrence.scientificName);
 		  ParsedName<String> parsedNameInterpreted = nameParser.parse((String) hit.getSource().get("specificEpithet_interpreted"));
 		  try
@@ -384,12 +420,53 @@ public class Occurrences extends Controller {
 		  {
 			frequentTaxa.put("taxonId", Long.parseLong(entry.getTerm()));
 			frequentTaxa.put("scientificName", taxa.scientificName);
+			//pere
+			frequentTaxa.put("genus", taxa.genus);
 			frequentTaxa.put("canonicalName", taxa.canonicalName);
 			frequentTaxa.put("count", entry.getCount());
 			frequentTaxas.add(frequentTaxa);
 		  }
 		}
+		//modified by Pere, adding a new facet 
+
+		/***
+		 * ecat facet
+		 */
+		TermsFacet genus_facet = response.getFacets().facet("genus");
+		List<Map<String,Object>> frequentGenus = new ArrayList<Map<String,Object>>();
+		/***
+		 * Renders (max 10) taxas and their occurrences count that are matching with the request
+		 */
 		
+		for (Entry entry : genus_facet.entries())
+		{
+		  Map<String, Object> frequentGenus2 = new HashMap<String, Object>();
+		  Taxa taxa = new Taxa();
+		  frequentGenus2.put("genus", entry.getTerm());
+		   frequentGenus2.put("count", entry.getCount());
+		   	frequentGenus.add(frequentGenus2);
+		}
+
+		//modified by Pere, adding a new facet 
+
+		/***
+		 * ecat facet
+		 */
+		TermsFacet class_facet = response.getFacets().facet("class");
+		List<Map<String,Object>> frequentClass = new ArrayList<Map<String,Object>>();
+		/***
+		 * Renders (max 10) taxas and their occurrences count that are matching with the request
+		 */
+		
+		for (Entry entry : class_facet.entries())
+		{
+		  Map<String, Object> frequentClasses = new HashMap<String, Object>();
+		  Taxa taxa = new Taxa();
+		  frequentClasses.put("class", entry.getTerm());
+		   frequentClasses.put("count", entry.getCount());
+		  
+		  frequentClass.add(frequentClasses);
+		}
 		/***
 		 * dataset facet
 		 */
@@ -459,17 +536,20 @@ public class Occurrences extends Controller {
 		  Gson gson = new Gson();
 		  jsonObject.addProperty("Occurrences", gson.toJson(frequentTaxas));
 		  jsonObject.addProperty("frequentTaxas", gson.toJson(frequentTaxas));
+		  jsonObject.addProperty("frequentGenus", gson.toJson(frequentGenus));
+		  jsonObject.addProperty("frequentClass", gson.toJson(frequentClass));
 		  jsonObject.addProperty("frequentDatasets", gson.toJson(frequentDatasets));
 		  jsonObject.addProperty("frequentYears", gson.toJson(frequentYears));
 		  renderJSON(jsonObject);
+
 		} 
 		else
 		{
-		  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears);
+		  render("Application/Search/occurrences.html", occurrences, search, nbHits, from, occurrencesTotalPages, pagesize, current, frequentTaxas, frequentDatasets, frequentYears,frequentGenus,frequentClass);
 		}
 
 	}
-	else render("Application/Search/occurrences.html", null, search, null, from, null, pagesize, null, null, null, null);
+	else render("Application/Search/occurrences.html", null, search, null, from, null, pagesize, null, null, null, null,null);
 	
   }
   

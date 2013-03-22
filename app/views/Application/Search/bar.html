@@ -1,97 +1,524 @@
 #{extends 'main.html' /}
- <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"/>
+ <!-- <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/charts.css'}"/> -->
 <script src="@{'/public/javascripts/search/search.js'}"></script>
 <script src="@{'/public/javascripts/d3.v2.min.js'}"></script>
-<script src="@{'/public/javascripts/nv.d3.js'}"></script>
-<script src="@{'/public/javascripts/pieChart.js'}"></script>
-
-<script src="@{'/public/javascripts/discreteBar.js'}"></script>
-
-<script src="@{'/public/javascripts/tooltip.js'}"></script>
-<style type="text/css">
-.red
-{
-  color:#db0979;
-}
-
-.remove_bbox
-{
-  cursor: pointer;
-  color: #A910CC;
-  font-weight:bold;
-}
-</style>
+<script src="@{'/public/javascripts/lodash.min.js'}"></script>
+<!--JSON with stats for each dataset; created each time we harvest a new dataset or update it-->
+<script src="@{'/public/json/datasets_stats.json'}"></script>
+<script src="@{'/public/json/datapublishers_stats.json'}"></script>
+<!--tooltip js-->
+<script src="@{'/public/javascripts/jquery.tipsy.js'}"></script>
+<script src="@{'/public/javascripts/jquery.xcolor.js'}"></script>
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/tipsy.css'}"> 
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/bar.css'}"> 
 
 <script type="text/javascript">
+ function tipsy_datapublishers (id)
+{
+var html;
+for (var datapub in datapubs_json)
+{
+
+if (datapub==id)
+{
+  var _this=datapubs_json[dataset]
+  var _this_data=datapubs_json[datapub].data
+html='<h1>'+_this.datapublisher_name+'</h1>';
+html+='<a href="http://localhost:9000/datapublishers/show?id='+id+'" target="_blank">Explore it</a></p>';
+html+='<span class="badge badge-success">'+addSeparator(_this.total)+'</span>  total occurrences</p>'
+html+='<span class="badge badge-error">'+addSeparator(_this.missing)+'</span> occurrences unable to be correctly taxonomized</p>';
+for (var i = 0; i<=_this_data.length - 1;  i++) {
+  var counts=_this.counts[i];
+  var percent=((counts/_this.total)*100).toFixed(2);
+  html+='<span class="badge badge-success">'+_this.data[i]+ '</span> '+addSeparator(_this.counts[i])+' (<b>'+percent+'%)</p>';
+};
+  return html;
+}
+}
+}
+
+ function tipsy_datasets(id,text)
+{
+var html;
+for (var dataset in datasets_json)
+{
+
+if (dataset==id)
+{
+  var _this=datasets_json[dataset]
+  var _this_data=datasets_json[dataset].data
+html='<h3>'+text+'</h3>';
+
+html+='</br><span class="badge badge-success">'+addSeparator(_this.total)+'</span>  total occurrences</br>'
+html+='</br><span class="badge badge-error">'+addSeparator(_this.missing)+'</span> occurrences avec des erreurs</p>';
+//unable to be correctly taxonomized
+for (var i = 0; i<=_this_data.length - 1;  i++) {
+  var counts=_this.counts[i];
+  var percent=((counts/_this.total)*100).toFixed(2);
+  html+='</br><span class="badge badge-success">'+toTitleCase(_this.data[i]) + '</span> '+addSeparator(_this.counts[i])+' (<b>'+percent+'%</b>)</br>';
+};
+html+='</br><a href="http://localhost:9000/datasets/show?id='+id+'" target="_blank">Explorez ce dataset</a></p>';
+  return html;
+}
+}
+}
+
+function check_able_to_map()
+{
+
+if ($('#datapublishers-dropdown li').size()>0 && $('#taxas-dropdown li').size()>0)
+{
+
+$('#geo_alert').hide()
+$('.leaflet-right').show()
+}
+else
+{
+$('#geo_alert').show();
+$('.leaflet-right').hide();
+}
+}
+
 $(document).ready(function() {
 
-  $('.span6').live('click',function (event)
+
+$('.leaflet-top.leaflet-right').hide()
+
+$('#search-outils div').click(function ()
 {
-if ($(event.target).hasClass('pager_class'))
+var fakeClass=$(this).attr('fakeClass')
+
+if (fakeClass=='outil-geo_bbox')
 {
-$("#ajax_image").show()
-$('#occurrences_table,.span3,#sidebar').fadeOut(1000)
-$('.red, .span6 ').removeClass('red')
-$(event.target).addClass('red')
+  $('.leaflet-top.leaflet-right').toggle();
+  $('.leaflet-top.leaflet-right .leaflet-control-draw-rectangle').popover('show')
+ // check_able_to_map();
+}
+else
+{
+  
+$('#'+fakeClass).toggle();
+if (fakeClass=='outil-geo')
+{
+check_able_to_map();
+}
 
 }
 })
-//THIS HTML IS LOADED AT EVERY USER REQUEST. IT SHOULD BE IMPROVED USING AJAX 
-  if ($('#occurrences div').length==0)
+
+
+      $('.taxa_search_popover i').live('click',function ()
+      {
+      
+      $('#outil-taxons').popover('destroy')
+      })
+
+
+var $datapub_list_ul=$('#datapublishers-dropdown ul')
+
+var datasets_obj={"datapublishers":{"ids":[],"names":[]},
+                 "datasets": []
+                  };
+
+
+$('#datapublishers_list-dropdown ul').click(function (event)
+{
+// var $that_ul=$(this)
+$this=$(event.target)
+var li='';
+if ($this.is('input')==true && !$this.hasClass('select_all'))
+{
+var checked=$this.attr('checked')== 'checked' ? true : false;
+$this.attr('checked',checked)
+
+var dataset_id=$this.parent().attr('id');
+var this_class=$this.parent().attr('class')
+var datapublisher_id=this_class.split('_')[1];
+var datapublisher_name=$('#datapublishers_list-dropdown').find('span.'+this_class).text();
+var dataset_name=$this.parent().text().trim();
+var datapublisher_position=$.inArray(datapublisher_id,datasets_obj.datapublishers.ids)
+var id_in_list='list_'+datapublisher_id;
+if (checked==true)  
+{
+if (datapublisher_position==-1) //still not added datapublisher
+{  
+  datasets_obj.datapublishers.ids.push(datapublisher_id)
+  datasets_obj.datapublishers.names.push(datapublisher_name)
+  var this_div='<div id="'+id_in_list+'" class="datapublisher"><span>'+datapublisher_name+'</span></div>';
+
+
+     li+='<li id="dataset_'+dataset_id+'"><i class="icon-remove" style="color:#9C0890;float:left;"></i><b>'+dataset_name+'</b><span class="datapub_class" style="display:none;">'+dataset_id+'</span></li></div>';
+  datasets_obj.datasets[datapublisher_id]={"ids":[dataset_id],"names":[dataset_name]};
+
+  $datapub_list_ul.append(this_div);
+
+}
+else  //we already added datapublisher
+{
+  var this_datasets_obj_ids=datasets_obj.datasets[datapublisher_id].ids
+  var this_datasets_obj_names=datasets_obj.datasets[datapublisher_id].names
+  if (checked==true)
+  {
+     this_datasets_obj_ids.push(dataset_id)
+     this_datasets_obj_names.push(dataset_name)
+
+     li+='<li id="dataset_'+dataset_id+'"><i class="icon-remove" style="color:#9C0890;float:left;"></i><b>'+dataset_name+'</b><span class="datapub_class" style="display:none;">'+dataset_id+'</span></li>';
+  }
+}
+$('#'+id_in_list).append(li);
+var count=$datapub_list_ul.find('li').size();
+
+$('#datapublishers-dropdown-trigger').html('Datasets  <span class="badge_mini badge-warning">'+count+'</span>')
+}   //checked==false
+  else
+  {
+  var this_datasets_obj_ids=datasets_obj.datasets[datapublisher_id].ids
+  var this_datasets_obj_names=datasets_obj.datasets[datapublisher_id].names
+  var dataset_position=this_datasets_obj_ids.indexOf(dataset_id);
+  
+  $datapub_list_ul.find('#dataset_'+dataset_id+' .icon-remove').trigger('click')
+  $datapub_list_ul.find('#dataset_'+dataset_id).remove();
+    if (this_datasets_obj_ids.length==0)
     {
-   //spinner will disappear after occurrences.html is loaded on page
-      $("#ajax_image").show();
-   }
-  /*** Dataset Auto-completion ***/ 
-  $("#input-search-dataset").autocomplete().each(function() {
-    var $input = $(this);
-    // Set-up the autocomplete widget.
-    $(this).autocomplete({
-      minLength: 3,
-      source : function(req, resp) {
-        $.getJSON("datasets/autocomplete?search=" + req.term, function(data) {
-          var suggestions = [];
-          $.each(data, function(i, val) {
-            var obj = {};
-            obj.label = val.title;
-            obj.id = val.id;
-            suggestions.push(obj);
-          })
-          resp(suggestions);
-        })
-      }  
-    })
-  });
+      //console.warn('zero')
+        $('#'+id_in_list).remove();
+      datasets_obj.datapublishers.ids.splice(datapublisher_position,1)
+       datasets_obj.datapublishers.names.splice(datapublisher_position,1)      
+    }
+    var count=$datapub_list_ul.find('li').size();
+
+$('#datapublishers-dropdown-trigger').html('Datasets  <span class="badge_mini badge-warning">'+count+'</span>')
+  }
+
+
+}
+
+})
+
+$('#datapublishers_list-dropdown .select_all').click(function ()
+{
+var datapublisher_id=this.id.split('_')[1]
+var $this=$(this)
+var this_class=$this.parent().attr('class');
+var checked=$this.attr('checked')== 'checked' ? true : false;
+var $lis=$("#datapublishers_list-dropdown li.datapub_"+datapublisher_id)
+$lis.find('input').attr('checked',checked)
+
+var datapublisher_name=$('#datapublishers_list-dropdown').find('span.datapub_'+datapublisher_id).text();
+
+var dataset_name=$this.parent().text().trim();
+var datapublisher_position=$.inArray(datapublisher_id,datasets_obj.datapublishers.ids)
+var id_in_list='list_'+datapublisher_id;
+var $datapub_list_ul=$('#datapublishers-dropdown ul')
+var id_in_list='list_'+datapublisher_id;
+$lis_inputs=$lis.find('input').parent()
+
+var datasets_id=$lis_inputs.map(function ()
+{
+return this.id
+}).toArray()
+
+var datasets_name=$lis_inputs.parent().map(function ()
+{
+return $(this).text().trim()
+}).toArray()
+
+if (checked==true)
+{
+
+ datasets_obj.datasets[datapublisher_id]={"ids":[],"names":[]};
+ var this_datasets_obj_ids=datasets_obj.datasets[datapublisher_id].ids
+  var this_datasets_obj_names=datasets_obj.datasets[datapublisher_id].names
+for (var i = 0;i<datasets_id.length;i++) 
+{
+ this_datasets_obj_ids.push(datasets_id[i])
+ this_datasets_obj_names.push(datasets_name[i])
   
-  /*** Taxa Auto-completion ***/ 
-  $("#input-search-taxa").autocomplete().each(function() {
-    var $input = $(this);
+};
 
-    // Set-up the autocomplete widget.
-    $(this).autocomplete({
-      minLength: 4,
-      source : function(req, resp) {
+  var this_div='<div id="'+id_in_list+'" class="datapublisher"><span>'+datapublisher_name+'</span></div>';
+
+   $datapub_list_ul.append(this_div);
+//  console.warn('checked true')
+  var to_append='';
+$lis.each(function ()
+{
+  var text=$(this).text()
+
+to_append+='<li id="dataset_'+this.id+'"><i class="icon-remove" style="color:#9C0890;float:left;"></i><b>'+text+'</b><span class="datapub_class" style="display:none;">'+this.id+'</span></li>';
+
+})
+$('#'+id_in_list).append(to_append);
+
+}
+else
+{
+
+$('#'+id_in_list).find('.icon-remove').trigger('click')
+$('#'+id_in_list).remove();
+
+datasets_obj.datapublishers.ids.splice(datapublisher_position,1)
+datasets_obj.datapublishers.names.splice(datapublisher_position,1)  
+}
+
+check_able_to_map();
+
+var count=$datapub_list_ul.find('li').size();
+
+$('#datapublishers-dropdown-trigger').html('Datasets  <span class="badge_mini badge-warning">'+count+'</span>')
+
+})
 
 
-        $.getJSON("taxas/autocomplete?search=" + req.term, function(data) {
-          var suggestions = [];
-          $.each(data, function(i, val) {
-            var obj = {};
-            obj.label = val.canonicalName;
-            obj.id = val.id;
-            suggestions.push(obj);
-          })
-          resp(suggestions);
+
+$('#selected_filters_container .icon-remove').live('click',function (event)
+              {          
+              var $li=$(event.target).parent();
+              var $ul=$li.parent()              
+              var $div=$ul.parent()              
+              $li.remove();
+
+              if ($div.attr('id')=='taxa-dropdown')
+              {
+              $li.remove();
+                var count=$ul.find('li').size();
+                $('#taxa-dropdown-trigger').html('Taxons  <span class="badge_mini badge-success">'+count+'</span>')
+              }
+                     if ($div.attr('id')=='places-dropdown')
+              {
+                var count=$ul.find('li').size();
+                $('#places-dropdown-trigger').html('Lieux  <span class="badge_mini badge-warning">'+count+'</span>')
+              }
+              
+              if ($ul.attr('class')=='datapublisher')  //in this case, ul==div...
+              {
+                            
+                var datapublisher_id=$ul.attr('id').split('_')[1];
+                var dataset_id=$li.attr('id').split('_')[1];
+                 
+               $('#datapublishers_list-dropdown').find('#'+dataset_id+' input').attr('checked',false)
+
+                  var count=$ul.find('li').size();
+                
+                $('#datapublishers-dropdown-trigger').html('Datasets <span class="badge_mini badge-warning">'+count+'</span>');
+
+               if ($ul.find('li').size()==0)
+               {
+                var datapublisher_position=$.inArray(datapublisher_id,datasets_obj.datapublishers.ids)
+
+                $('#list_'+datapublisher_id).remove(); //removing datapublisher title
+                 datasets_obj.datapublishers.ids.splice(datapublisher_position,1)
+                 datasets_obj.datapublishers.names.splice(datapublisher_position,1)
+               } 
+              }
+              })
+
+$('input').empty().attr('autocomplete', 'off')
+
+$('#search-inputs div').hide()
+
+
+$('#input-search-taxa,#input-search-taxa2,').bind('keypress',function ()
+{
+
+$(this).next().show()
+})
+
+$('#input-search-taxa').typeahead({
+  items:50,
+  search_type:'taxes',
+  minLength:3,
+  source: _.debounce(function (query, process) {
+   
+    if ( this.xhr ) {    
+        this.xhr.abort();
+        //console.log('aborting previous request')
+      }
+
+   this.xhr=jQuery.ajax({
+   type: "GET",   
+   url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/dataportal/autocomplete_taxa.php?taxa='+query,
+    dataType: "jsonp",
+    timeout:5000,
+    success: function(results){
+        
+         if (!results.length) { return; }
+                
+        $('#search-taxa').find('.icon-spinner').hide()
+        var labels = [];
+        $.each(results, function (index, data) {
+           var this_html='<b>'+data.name+'</b> <span  class="taxa_level">'+data.taxa_level+'</span>';
+          labels.push(this_html);
+        });        
+        process(labels);
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown)
+    {      
+        // $('#search-taxa').popover(
+        // {
+        //     trigger: 'manual',
+
+        //     html: true,
+        //     // delay: {  hide: 7000 },
+        //     title:  '<button type="button" class="close" data-dismiss="popover" aria-hidden="true">×</button>',
+        //     content:  "<div class='unknown_taxa'> It seems the <strong>server is down</strong><p>Add your taxa  anyway</div>"                     
+        // })
+
+       // $('#search-taxa').popover('show');
+        
+    }
+});
+ } ,200)
+})
+
+
+$('#input-search-taxa2').typeahead({
+  items:50,
+  search_type:'taxes2',
+  minLength:3,
+  source: _.debounce(function (query, process) {
+
+      if ( this.xhr ) {    
+        this.xhr.abort();
+        //console.log('aborting previous request')
+      }
+
+    this.xhr=jQuery.ajax({
+    type: "GET",   
+    url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/dataportal/autocomplete_taxa.php?taxa='+query,
+    dataType: "jsonp",   
+    timeout:5000,
+
+    success: function(results){
+        //icon-spin
+      //  var results=eval(results);
+         if (!results.length) { return; }
+        
+        
+        $('#outil-taxons').find('.icon-spinner').hide()
+        var labels = [];
+
+        $.each(results, function (index, data) {
+           var this_html='<b>'+data.name+'</b> <span  class="taxa_level">'+data.taxa_level+'</span>';
+          labels.push(this_html);
+        });
+        
+        process(labels);
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown){
+      
+        
+    }
+});
+ } ,200)
+})
+
+$('#input-search-place').typeahead({search_type:'places',
+  source: _.debounce(function (query, process) {
+    $.getJSON(
+      'http://nominatim.openstreetmap.org/search/?json_callback=?',
+      {
+        'q': query,
+        'format': 'json',
+        'limit': 10
+      },
+      function (data) {
+            
+        if (!data.length) { return; }
+        var labels = [];        
+        $.each(data, function (index, location) {        
+        switch (location.display_name)
+        {
+          case ('Africa') : var bbox_text="-35.3,-25.2,38.0,60.6";break;        
+          case ('Asia') : var bbox_text="-12.9,25.0,81.8,174.1";break;
+          case ('Europe') : var bbox_text="33.9,-28.0,82.7,74.1";break;
+          case ('North America') : 
+          var bbox_text="-12.9,25.0,81.7,-168.4";break;
+          case ('South America') : var bbox_text="-56.5,-94.0,13.1,-32.6";break; 
+          case ('Alps') : var bbox_text="4.91,43.17,17.16,48.81";break;
+          default:  var bbox=location.boundingbox;
+          
+                  var bbox_text;
+                     for (var i in bbox)
+                  {                   
+                  bbox_text=bbox[0]+','+bbox[2]+','+bbox[1]+','+bbox[3];
+                  }
+                    var bbox=location.boundingbox;
+                     break;           
+                  }
+                  var this_html='<b>'+location.display_name+'</b> <span  class="bbox_handler">'+bbox_text+'</span>';
+                    labels.push(this_html);
+                  });        
+        process(labels);
+      }
+    );
+  }, 300),
+  minLength: 3
+});
+
+        //zoom to a location area on click
+        $('.icon-eye-open').live('click',function ()
+        {
+        var bbox_text=$(this).parent().find('.bbox_handler').text()
+        bbox_array=bbox_text.split(',');
+
+        var sw_array=[];
+        sw_array.push(parseFloat(bbox_array[0]));
+        sw_array.push(parseFloat(bbox_array[1]));
+
+        var ne_array=[];
+        ne_array.push(parseFloat(bbox_array[2]));
+        ne_array.push(parseFloat(bbox_array[3]));
+
+        var bbox=[]
+        bbox.push(sw_array)
+        bbox.push(ne_array)
+
+        map.fitBounds(bbox)
         })
-      }  
-    })
-  })
-  
+
+        //show statistical info about a dataset on click
+        $('#datapublishers_list-dropdown li').popover(
+        {
+          trigger:'click',
+            html: true,
+            delay: { show: 500, hide: 2000 },
+            style: 'datasets_tipsy',
+           title: function () {
+                                  $('.popover').not(this).hide()
+                                    var text=$(this).text()
+                                     return tipsy_datasets (this.id,text) 
+                                      }
+        })
+
+        //same as above but over datapublisher span
+        $('#datapublishers_list-dropdown  span').tipsy({
+                            delayIn: 500, 
+                        //  delayOut: 70000,
+                              fade: true, 
+                              gravity: 'w', 
+                              opacity:1,
+                              className: 'datasets_tipsy',
+                               offset: 0, 
+                              html: true, 
+                              title: function () {                           
+                              var id=$(this).parent().attr('id');
+                              return tipsy_datapublishers (id);                               
+                              }
+})
+
+      //calculation where to position spinnner
+      var ajax_x=$('#map').width()/2
+      var ajax_y=$('#map').height()/2
+
+      $('#map_container').append('<img id="ajax_image" style="display:none;position:relative;width:50px;height:50px;left:'+ajax_x+'px;top:-'+ajax_y+'px" src="../../../public/images/spinner3-greenie.gif"/>')
+
+
 });
 </script>
 <div class="container">
   <div class="form-search">
-    #{form @Application.search(), id:'searchForm', class:'form-search alert alert-info'}
+     #{form @Application.search(), id:'searchForm', target:"_blank", class:'form-search alert alert-info'} 
       <span>&{'info_bar'}<br/></span>      
       <div class="btn-group" id="search-filters">   
           <div class="btn btn-info btn-tiny search-filter" id="search-filter-taxa">&{'taxa'}</div>
@@ -99,37 +526,160 @@ $(event.target).addClass('red')
           <div class="btn btn-primary btn-tiny search-filter" id="search-filter-date">&{'date'}</div>
           <div class="btn btn-danger search-filter" id="search-filter-dataset">&{'dataset'}</div>
           <div class="btn btn-success btn-tiny search-filter" id="search-filter-coordinates">&{'onlyWithCoordinates'}</div>
-          
-          <!-- <div class="btn btn-success btn-tiny search-filter" id="search-filter-area">Draw and search by area</div> -->          
       </div> 
+
+     <div class="navbar" style='float:left;padding-left:50px;'>     
+       <div id="selected_filters_container">
+           <a id='datapublishers-dropdown-trigger' href="#" data-dropdown="#datapublishers-dropdown">Datasets  <span class="badge_mini badge-error">0</span></a>
+     <div id="datapublishers-dropdown" class="dropdown-menu has-tip">          
+                                 <ul>                             
+                                 </ul>
+                                 
+          
+       </div> 
+
+      <a id='taxa-dropdown-trigger' href="#" data-dropdown="#taxa-dropdown">Taxons  <span class="badge_mini badge-error">0</span></a>
+     <div id="taxa-dropdown" class="dropdown-menu has-tip">          
+                                 <ul>                             
+                                 </ul>
+       </div>
+          
+    <a id='places-dropdown-trigger' href="#" data-dropdown="#places-dropdown">Lieux  <span class="badge_mini badge-error">0</span></a>
+     <div id="places-dropdown" class="dropdown-menu has-tip">          
+                                 <ul>                             
+                                 </ul>                                           
+       </div> 
+       </div> 
+</div> 
+
       <div id="search-main-box">
-        <div id="search-inputs">
+        <div id="search-inputs" style="width: 390px;float:left;">
           <div id="search-taxa" class="search-input btn btn-large btn-info">
+            <i class="icon-remove"></i>
             <label><h5>&{'taxa'}</h5></label>
-            <input class="input-large search-query" type="text" id="input-search-taxa" name="searchTaxa" value=#{if search && search.taxaText}"${search.taxaText}"#{/if}#{else}""#{/else}/>
+
+            <input class="search-query" type="text" style="background-color:#B3B9B9;" id="input-search-taxa" name="searchTaxa" data-provide="typeahead" value="${taxa?.list}">
+
+            <i class="icon-spinner icon-spin" style="display:none"></i></input>
           </div>
           <div id="search-place" class="search-input btn btn-large btn-warning">
+             <i class="icon-remove" ></i>
             <label><h5>&{'place'}</h5></label>
-            <input class="input search-query" type="text" id="input-search-place" name="searchPlace" value=#{if search && search.placeText}"${search.placeText}"#{/if}#{else}""#{/else}/>
+            <input class="search-query" type="text" style="background-color:#B3B9B9;" id="input-search-place" name="searchPlace" data-provide="typeahead" value="${place?.list}">
+             <i class="icon-spinner icon-spin" style="display:none"></i></input>
           </div>
           <div id="search-dataset" class="search-input btn btn-large btn-danger">
+            <i class="icon-remove" ></i>
             <label><h5>&{'dataset'}</h5></label>
             <input class="input search-query" type="text" id="input-search-dataset" name="searchDataset" value=#{if search && search.dataset}"${search.dataset}"#{/if}#{else}""#{/else}/>
-          </div>
+          </div> 
+
+        <div id='datapublishers_list-dropdown-trigger' style='display:none;cursor:pointer' href="#" data-dropdown="#datapublishers_list-dropdown">Datasets</div> 
+          <div id="datapublishers_list-dropdown" class="dropdown-menu has-tip has-scroll">          
+                                 <ul> 
+                                  
+
+            <!-- this is a dirty workaround for test purposes-->
+            <span class="datapub_1">Service du Patrimoine Naturel</span></br>
+            <input type="checkbox" id="datapub_1" class="select_all">Sélectionner tout</input><li class="datapub_1" id="1"><input type="checkbox">CBN Aquitaine-Poitou-Charentes</input></li><li class="datapub_1" id="2"><input type="checkbox">Insectes Coléoptères Scarabéidés Laparostici de France</input></li><li class="datapub_1" id="3"><input type="checkbox">Mammifères de France</input></li><li class="datapub_1" id="4"><input type="checkbox">Loup en France</input></li><li class="datapub_1" id="5"><input type="checkbox">Espèces Végétales Menacées de France métropolitaine</input></li><li class="datapub_1" id="6"><input type="checkbox">Amphibiens et Reptiles de France (Enquête 1)</input></li><li class="datapub_1" id="7"><input type="checkbox">Oiseaux hivernants de France</input></li><li class="datapub_1" id="8"><input type="checkbox">Insectes Orthoptères de France</input></li><li class="datapub_1" id="9"><input type="checkbox">Poissons d'eau douce de France</input></li><li class="datapub_1" id="10"><input type="checkbox">Oiseaux nicheurs de France</input></li><li class="datapub_1" id="11"><input type="checkbox">Enquête carnivores</input></li><li class="datapub_1" id="12"><input type="checkbox">Insectes Hétéroptères Mirides de France</input></li><li class="datapub_1" id="13"><input type="checkbox">Flore de Sologne</input></li><li class="datapub_1" id="14"><input type="checkbox">Flore du Limousin</input></li><li class="datapub_1" id="15"><input type="checkbox">Flore de l'Ain</input></li><li class="datapub_1" id="16"><input type="checkbox">Fichier communal des ongulés</input></li><li class="datapub_1" id="17"><input type="checkbox">Flore d'Ille-et-Vilaine</input></li><li class="datapub_1" id="18"><input type="checkbox">Flore protégée du Dauphiné</input></li><li class="datapub_1" id="19"><input type="checkbox">Flore Franco-Belge</input></li><li class="datapub_1" id="20"><input type="checkbox">Crustacés Décapodes de France</input></li><li class="datapub_1" id="21"><input type="checkbox">Flore du Massif Armoricain</input></li><li class="datapub_1" id="22"><input type="checkbox">insectes Coléoptères Saproxylophages de France</input></li><li class="datapub_1" id="23"><input type="checkbox">Programme national espèces végétales de la Directive Habitat</input></li><li class="datapub_1" id="24"><input type="checkbox">CBN Alpin de Gap</input></li><li class="datapub_1" id="25"><input type="checkbox">CBN Bailleul</input></li><li class="datapub_1" id="26"><input type="checkbox">CBN Brest</input></li><li class="datapub_1" id="27"><input type="checkbox">CBN de Midi-Pyrénées</input></li><li class="datapub_1" id="28"><input type="checkbox">CBN du Massif Central</input></li><li class="datapub_1" id="29"><input type="checkbox">CBN Méditerranéen de Porquerolles</input></li><li class="datapub_1" id="30"><input type="checkbox">Données sur Tamias sibiricus (Ecureuil de Corée)</input></li><li class="datapub_1" id="31"><input type="checkbox">Atlas de la flore de Lorraine</input></li><li class="datapub_1" id="32"><input type="checkbox">Inventaire du Parc national du Mercantour</input></li><li class="datapub_1" id="33"><input type="checkbox">Données ONEMA sur les poissons et écrevisses d'eau douce</input></li><span class="datapub_2">Muséum d'Histoire Naturelle de Paris</span></br>
+            <input type="checkbox" id="datapub_2" class="select_all">Sélectionner tout</input><li class="datapub_2" id="34"><input type="checkbox">Coleoptera specimens of the Muséum national d'Histoire naturelle</input></li><li class="datapub_2" id="35"><input type="checkbox">Crustaceans specimens</input></li><li class="datapub_2" id="36"><input type="checkbox">Cryptogams herbarium specimens</input></li><li class="datapub_2" id="37"><input type="checkbox">Echinoderm specimens</input></li><li class="datapub_2" id="38"><input type="checkbox">Fish collections of Museum national d'Histoire naturelle</input></li><li class="datapub_2" id="39"><input type="checkbox">Herbarium specimens - Harmas de J. H. Fabre</input></li><li class="datapub_2" id="40"><input type="checkbox">Molluscs specimens</input></li><li class="datapub_2" id="41"><input type="checkbox">Nematoda specimens</input></li><li class="datapub_2" id="42"><input type="checkbox">Ornithology specimens</input></li><li class="datapub_2" id="43"><input type="checkbox">Orthoptera collection at the Muséum national d'Histoire naturelle</input></li><li class="datapub_2" id="44"><input type="checkbox">Paleontology specimens data</input></li><li class="datapub_2" id="45"><input type="checkbox">Phanerogams herbarium specimens</input></li><span class="datapub_3">Conservatoire botanique national du Bassin parisien</span></br>
+            <li class="datapub_3" id="46"><input type="checkbox">Observations du Conservatoire botanique national du Bassin parisien</input></li><span class="datapub_4">IRD</span></br>
+          <li class="datapub_4" id="47"><input type="checkbox">ecoscope_observation_database</input></li><li class="datapub_4" id="48"><input type="checkbox">Herbier de la Guyane</input></li><li class="datapub_4" id="49"><input type="checkbox">observe_tuna_bycatch_ecoscope</input></li><li class="datapub_4" id="50"><input type="checkbox">observe_tuna_ecoscope</input></li><span class="datapub_5">Agoralogie</span></br>
+            <li class="datapub_5" id="51"><input type="checkbox">iHerbarium</input></li><span class="datapub_6">Association des Naturalistes de la Vallée du Loing et du massif de Fontainebleau</span></br>
+          <li class="datapub_6" id="52"><input type="checkbox">Herbarium specimens data </input></li><span class="datapub_7">INRA Lusignan</span></br>
+            <li class="datapub_7" id="53"><input type="checkbox">The French National Collection of forage and turf species (grasses and legumes).</input></li><span class="datapub_8">Centre de Ressources Biologiques de l Institut Pasteur</span></br>
+           <li class="datapub_8" id="54"><input type="checkbox">Centre de Ressources Biologiques de l Institut Pasteur </input></li><span class="datapub_9">Centre International de Ressources Microbiennes-Levures</span></br>
+           <li class="datapub_9" id="55"><input type="checkbox">CIRM-Levures</input></li><span class="datapub_10">Collection Française de Bactéries Phytopathogènes - CFBP</span></br>
+          <li class="datapub_10" id="56"><input type="checkbox">Collection Francaise de Bacteries Phytopathogenes</input></li><span class="datapub_11">Herbarium of Université de Montpellier 2, Institut de Botanique</span></br>
+            <li class="datapub_11" id="57"><input type="checkbox">Herbarium specimens </input></li><span class="datapub_12">Herbarium specimens of Bamboo collection Prafrance Générargue (BAMBO)</span></br>
+           <li class="datapub_12" id="58"><input type="checkbox">Herbarium specimens </input></li><span class="datapub_13">Herbier de l'université de Limoges</span></br>
+         <li class="datapub_13" id="59"><input type="checkbox">Herbarium specimens data </input></li><span class="datapub_14">Herbier des conservatoires et jardins botaniques de Nancy</span></br>
+         <li class="datapub_14" id="60"><input type="checkbox">Herbarium specimens</input></li><span class="datapub_15">Herbiers Universitaires de Clermont-Ferrand</span></br>
+           <li class="datapub_15" id="61"><input type="checkbox">Institut des Herbiers Universitaires de Clermont-Ferrand </input></li><span class="datapub_16">IFREMER - French Research Institute for Exploitation of the Sea</span></br>
+          <li class="datapub_16" id="62"><input type="checkbox">Quadrige</input></li><li class="datapub_16" id="63"><input type="checkbox">comarge</input></li><li class="datapub_16" id="64"><input type="checkbox">Ifremer</input></li><span class="datapub_17">INRA Antilles-Guyane</span></br>
+          <li class="datapub_17" id="65"><input type="checkbox">Guadeloupe_Herbier</input></li><li class="datapub_17" id="66"><input type="checkbox">Guadeloupe_Ignames</input></li><li class="datapub_17" id="67"><input type="checkbox">Guadeloupe_Insectes</input></li><span class="datapub_18">Institut Scientifique, Mohamed V University</span></br>
+           <li class="datapub_18" id="68"><input type="checkbox">Herbarium specimens - Institut Scientifique </input></li><span class="datapub_19">Laboratoire de Paléobotanique et Paléoécologie</span></br>
+           <li class="datapub_19" id="69"><input type="checkbox">Collection de paleobotanique</input></li><span class="datapub_20">Lycée Félix Esclangon. Comité du Patrimoine Manosquin. Herbier G. Fenoul</span></br>
+           <li class="datapub_20" id="70"><input type="checkbox">Herbarium specimens</input></li><span class="datapub_22">Musée Zoologique de la Ville de Strasbourg</span></br>
+           <li class="datapub_22" id="71"><input type="checkbox">Aves MZS</input></li><li class="datapub_22" id="72"><input type="checkbox">Cnidaria MZS</input></li><li class="datapub_22" id="73"><input type="checkbox">Porifera MZS</input></li><span class="datapub_23">Museum Henri-Lecoq de Clermont-Ferrand</span></br>
+           <li class="datapub_23" id="74"><input type="checkbox">Collection entomologique Barthelemy </input></li><span class="datapub_24">Muséum d'Histoire Naturelle d'Autun, Herbarium</span></br>
+          <li class="datapub_24" id="75"><input type="checkbox">Herbarium specimens </input></li><span class="datapub_25">Muséum d'Histoire Naturelle de Bourges</span></br>
+           <li class="datapub_25" id="76"><input type="checkbox">Mammiferes sauf Chiropteres du Museum d'Histoire Naturelle de la ville de Bourges (BOUM)</input></li><span class="datapub_26">Muséum d'Histoire Naturelle de Nice</span></br>
+        <li class="datapub_26" id="77"><input type="checkbox">Collection d'animaux marins et plantes du Museum d'Histoire Naturelle de Nice</input></li><span class="datapub_27">Museum d'Histoire Naturelle of Aix-en-Provence, Herbarium</span></br>
+        <li class="datapub_27" id="78"><input type="checkbox">Herbarium specimens </input></li><span class="datapub_28">Museum George Sand et de la Vallee Noire</span></br>
+       <li class="datapub_28" id="79"><input type="checkbox">Baillon Collection</input></li><span class="datapub_29">Observatoire Océanologique de Banyuls sur mer</span></br>
+         <li class="datapub_29" id="80"><input type="checkbox">Microbial Observatory of the Laboratoire Arago</input></li><span class="datapub_30">Société Botanique de Franche-Comté/Conservatoire Botanique National de Franche-Comté</span></br>
+         <li class="datapub_30" id="81"><input type="checkbox">Flore de France-Comté</input></li><span class="datapub_31">Société des Sciences Naturelles et Mathématiques de Cherbourg</span></br>
+         <li class="datapub_31" id="82"><input type="checkbox">Herbarium specimens</input></li><span class="datapub_32">Université de Strasbourg</span></br>
+          <li class="datapub_32" id="83"><input type="checkbox">Herbier de Strasbourg</input></li><li class="datapub_32" id="84"><input type="checkbox">Herbier de nouvelle-caledonie</input></li><li class="datapub_32" id="85"><input type="checkbox">Herbier de Wallis et Futuna</input></li><span class="datapub_33">Tela-Botanica</span></br>
+         <li class="datapub_33" id="86"><input type="checkbox">Phytochorologie des départements français</input></li><li class="datapub_33" id="87"><input type="checkbox">Carnet en ligne</input></li>
+
+                                 </ul>
+          </div> 
+
           <div id="search-date" class="search-input btn btn-large btn-primary">
+            <i class="icon-remove" ></i>
             <label><h5>&{'date'}</h5></label>
             <input id="input-search-date" class="input-small search-query" name="searchDate" value=#{if search && search.dateText}"${search.dateText}"#{/if}#{else}""#{/else}/>            
           </div>
-          <div id="search-coordinates" class="search-input btn btn-large btn-success">
+          <div id="search-coordinates" class="search-input btn btn-small btn-success" style="display: block; width: 160px;">
+           <i class="icon-remove" style="top:0px;position:relative;color:#9C0890;float:left;"></i> 
             <h4>&{'onlyWithCoordinates'}</h4>
             <input class="input search-query" type="hidden" id="input-search-coordinates" name="searchCoordinates" value=#{if search && search.onlyWithCoordinates}"${search.onlyWithCoordinates}"#{/if}
-                                                                                                                               #{elseif search && search.placeText && search.placeText.substring(0,1).equals('[')}"true"#{/elseif}
-                                                                                                                               #{else}"false"#{/else}/>
-          </div>       
-          <input class="btn btn-large" style="float:right;"id="search-submit" type="submit" value="&{'search'}"/>
-        </div>       
+#{elseif search && search.placeText && search.placeText.substring(0,1).equals('[')}"true"#{/elseif}
+#{else}"false"#{/else}/>
+          </div>  
+           <input class="btn btn-large" id="search-submit" type="submit" value="&{'searchButton'}"/>
+          
+        </div>  
+ 
       </div>
 
     #{/form}
+
+  
+
   </div>
-   <img id='ajax_image' src="@{'/public/images/spinner3-greenie.gif'}" style='height:50px;width:50px;display:none;position:relative;'/>
+
+    <div id="extra_outils" class="form-search alert-info">
+ 
+      <span>Utilisez ces outils pour explorer les donnés avant d'apliquer des filtres<br/>
+      </span> 
+
+         <div class="btn-group" id="search-outils">   
+   <div class="btn btn-info btn-tiny" fakeClass='outil-taxons' id="search-filter-taxa">Taxons in datasets</div>
+  <div class="btn btn-warning btn-tiny" fakeClass='outil-geo' id="search-filter-place">Geographic distribution</div>
+  <div class="btn btn-warning btn-tiny" fakeClass='outil-geo_bbox' id="search-filter-place">Explore geo</div>
+          </div>
+
+
+         <div id="outil-taxons" style="display:none" class="search-input btn btn-large btn-info">
+            <i class="icon-remove" ></i>
+            <label><h5>&{'taxa'}</h5></label>
+
+            <input class="search-query" type="text" style="background-color:#B3B9B9;" id="input-search-taxa2" name="searchTaxa" data-provide="typeahead" value="${taxa?.list}">
+
+            <i class="icon-spinner icon-spin" style="display:none"></i></input>
+          </div>
+
+        <div id="outil-geo" style="display:none">
+    <div id='geo_alert' class="alert alert-block alert-error fade in">Au minimum 1 dataset et un nom taxon est requis</div>
+    <button id='all_dataset_5deg' class="btn btn-info map_it">Distribution 5 degrés</button>
+    <button id='all_dataset_1deg' class="btn btn-success map_it">Distribution 1 degrés</button>
+
+    </div>
+    </div>
+
+   <div id='search_taxa_div' style="height:auto;display:none;">
+<!-- class='modal hide fade'>-->
+<div class="modal-header">
+<a class="close" data-dismiss="modal">×</a>
+<h3>Type a taxa</h3>
+</div>
+
+<div class="modal-body" style="height:100%;max-width:250px;overflow-y:visible">
+<input id='test-input' type="text" data-provide="typeahead"/>
+<button id='search_all_genus' class="btn input-medium search-query">Search</button>
+<div id='search_all_genus_results' style='width:320px'></div>
+</div>
+</div>

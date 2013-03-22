@@ -11,17 +11,34 @@
 <
   <script src="http://lully.snv.jussieu.fr/gbif/mapping/test_maps/wax/dist/wax.leaf.min.js"></script>
 <style type="text/css">
+.tipsy-inner 
+{
+  font-size:16px;
+}
+
+.tipsy-inner b
+{
+  font-size:17px;
+  color: #E4364B;
+}
+#map path {
+            
+             stroke-width: 0.7px;
+            stroke: #3b3535;
+            shape-rendering: crispEdges;
+        }
+
 .selected
 {
   color: #C60F0F;
   font-weight: bold;
 }
-        path  {
+ /*       path  {
             
              stroke-width: 1px;
             stroke: #3b3535;
             shape-rendering: crispEdges;
-        }
+        }*/
 
   #map_tooltip
   {
@@ -186,7 +203,7 @@ function generate_paths (features,zoom_level,options)
     $('path').tipsy({ 
                               delayIn: 500, 
                               fade: true, 
-                           
+                           fadeOut:50000,
                               gravity: 'w', 
                                offset: 0, 
                                opacity:1,
@@ -194,7 +211,7 @@ function generate_paths (features,zoom_level,options)
                               title: function() {
                                  var d = this.__data__;
                                 // alert(d)
-                                 var text=d.properties.count+' occurrences of taxa <b>'+options.taxa+'</b> in this area'
+                                 var text=d.properties.count+' occurrences du taxon <b>'+options.taxa+'</b> dans cet polygon'
                                 return text;
                               }
                               })
@@ -217,7 +234,8 @@ $.ajax({
    generate_paths(features, zoom_level,options)  
    var current_zoom=map.getZoom()
 
-   $('#map_tooltip').html('<b>'+data.total+'</b> occurrences of taxa <b>'+data.taxa+'</b> in '+datapublisher_name+' distributed in <b>'+data.num_clusters+'</b> polygons<br> <span style="color:#D1CB43;font-weight:bold">Minimum</span> '+data.min+'   <span style="color:#E66741;font-weight:bold">Maximum</span> '+data.max).fadeIn('slow')
+   // $('#map_tooltip').html('<b>'+data.total+'</b> occurrences of taxa <b>'+data.taxa+'</b> in '+datapublisher_name+' distributed in <b>'+data.num_clusters+'</b> polygons<br> <span style="color:#D1CB43;font-weight:bold">Minimum</span> '+data.min+'   <span style="color:#E66741;font-weight:bold">Maximum</span> '+data.max).fadeIn('slow')
+      $('#map_tooltip').html('<b>'+data.total+'</b> occurrences du taxon <b>'+data.taxa+'</b> au '+datapublisher_name+' distribués sur <b>'+data.num_clusters+'</b> polygones <br> <span style="color:#D1CB43;font-weight:bold">Minimum</span> '+data.min+'   <span style="color:#E66741;font-weight:bold">Maximum</span> '+data.max).fadeIn('slow')
 
    $('#ajax_image').hide()
 
@@ -268,6 +286,7 @@ $.ajax({
     })
 $('#map_it div').tipsy({
   delayIn: 500, 
+
                               fade: true, 
                            
                               gravity: 'n', 
@@ -278,7 +297,8 @@ $('#map_it div').tipsy({
 
   title: function ()
   {
-  var text='Visualize spatial distribution of '
+  //var text='Visualize spatial distribution of '
+  var text='Visualiser la distribution spatiale de '
    switch (this.id)
    {
    case 'polygon_specie': 
@@ -301,7 +321,7 @@ $('#map_it div').tipsy({
    text+=' Kingdom <b>'+kingdom_taxa+'</b>'
    break;
  }
- return text+' in '+datapublisher_name
+ return text;//+' au '+datapublisher_name
   }
 })
 
@@ -365,13 +385,14 @@ $('#map_container').append('<img id="ajax_image" style="display:none;position:re
       <!-- to extend to all taxa levels, this is just for testing   -->
 
 <div class="btn-group" id="map_it">   
-          <div class="btn btn-new btn-tiny" id='polygon_specie'>Specie distribution</div>
-            <div class="btn btn-new btn-tiny" id='polygon_genus'>Genus distribution</div>
-            <div class="btn btn-new btn-tiny" id='polygon_phylum'>Phylum distribution</div>
-            <div class="btn btn-new btn-tiny" id='polygon_class'>Class distribution</div>
-            <div class="btn btn-new btn-tiny" id='polygon_kingdom'>Kingdom distribution</div>
+          <div class="btn btn-new btn-tiny" id='polygon_specie'>Distribution Espèce </div>
+            <div class="btn btn-new btn-tiny" id='polygon_genus'>Distribution Gènre</div>
+            <div class="btn btn-new btn-tiny" id='polygon_phylum'>Distribution Phylum </div>
+            <div class="btn btn-new btn-tiny" id='polygon_class'>Distribution  Class</div>
+            <div class="btn btn-new btn-tiny" id='polygon_kingdom'>Distribution Règne </div>
 
-<label for="degree_cell" style='width:450px;padding-top:40px'>Select degree cell size to calculate spatial distribution</label>            
+<!-- <label for="degree_cell" style='width:450px;padding-top:40px'>Select degree cell size to calculate spatial distribution</label> -->
+<label for="degree_cell" style='width:450px;padding-top:40px'>Selectionez le degrée de la grille</label>           
 <select  id="degree_cell">
   <option value="0.2">0.2</option>
   <option default value="0.5">0.5</option>

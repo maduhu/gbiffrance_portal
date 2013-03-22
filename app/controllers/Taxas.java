@@ -20,34 +20,46 @@ public class Taxas extends Controller {
 
   public static void autocomplete(String search)
   {
+//correct one
+  	
 	search = Util.normalize(search);
 	search = search.toLowerCase();  
 	search = search.replaceAll(" ", "%20");
+	//FAILS BECAUSE OF ESPACE!! (SCIENTIFICNAME 'PICA PICA')
 	List<Taxa> taxas = new ArrayList<Taxa>();	
 	NameParser nameParser = new NameParser();
 	HttpResponse ecatResponse;
-	ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?&pagesize=30&rkey=1&count=true&q=" + search).get();
+
+	ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?&pagesize=750&rkey=1&count=true&q=" + search).get();
+System.out.println("http://ecat-dev.gbif.org/ws/usage/?&pagesize=750&rkey=1&count=true&q=" + search);
 	if(ecatResponse.success())
 	{
+System.out.println("some answer");
 	  int count = ecatResponse.getJson().getAsJsonObject().get("totalHits").getAsInt(); 
+System.out.println(count);
+int max_display=50;
+	  // if (count<= 750)
+	  // {
 
-	  if (count < 30)
-	  {
 		for (int i = 0; i < count; ++i)
 		{		 
+			if (i<50)
+			{
+
 		  Taxa taxa = new Taxa();
 		  ParsedName<String> parsedName = nameParser.parse(ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("scientificName").getAsString());	
-		  
+		  System.out.println(parsedName);
 		  if (parsedName != null)
 		  {
 			taxa.canonicalName = parsedName.canonicalName();
 			taxa.accordingTo = parsedName.authorshipComplete();
 			taxa.rank = ecatResponse.getJson().getAsJsonObject().get("data").getAsJsonArray().get(i).getAsJsonObject().get("rank").getAsString();
 			taxas.add(taxa);
-		  }		  	
+		  }		
+		  }  	
 		}		
 	  }
-	}
+	//}
 	renderJSON(taxas);
   }
   
@@ -61,7 +73,7 @@ public class Taxas extends Controller {
 	NameParser nameParser = new NameParser();
 	HttpResponse ecatResponse;
 
-	ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?&pagesize=30&rkey=1&count=true&q=" + search).get();
+	ecatResponse = WS.url("http://ecat-dev.gbif.orgs/ws/usage/?&pagesize=30&rkey=1&count=true&q=" + search).get();
 
 	//System.out.println("http://ecat-dev.gbif.org/ws/usage/?rank=g&rkey=1&count=true&q=" + search);
 	if(ecatResponse.success())
@@ -251,6 +263,7 @@ public class Taxas extends Controller {
 	//ECAT Information
 	char rank;  
 	HttpResponse ecatResponse;
+	System.out.println(specificEpithet);
 	if (specificEpithet == null)
 	{
 	  rank = 'g';
@@ -260,6 +273,8 @@ public class Taxas extends Controller {
 	else
 	{
 	  rank = 's';  
+	  System.out.println("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=100&rank=" + rank 
+		  + "&q=" + genus + "%20" + specificEpithet);
 	  ecatResponse = WS.url("http://ecat-dev.gbif.org/ws/usage/?rkey=1&sort=alpha&pagesize=100&rank=" + rank 
 		  + "&q=" + genus + "%20" + specificEpithet).get();
 	}

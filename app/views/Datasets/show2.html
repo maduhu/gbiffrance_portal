@@ -1,0 +1,747 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+
+<script src="@{'/public/javascripts/highcharts.js'}"></script>
+<script src="@{'/public/javascripts/exporting.js'}"></script>
+<script src="@{'/public/javascripts/jquery.xcolor.js'}"></script>   
+<link rel="stylesheet" media="screen" href="@{'/public/stylesheets/dataset_styles.css'}"> 
+<script type="text/javascript">
+var data;
+var datapublishers_json;
+
+  var my_dataset_id=parseInt("${dataset.id}")
+  var dataset_name="${dataset.title}";
+  var datapublisher_id=get_datapub_id(my_dataset_id);
+  var datapublisher_name="${dataset.dataPublisher.name}";
+
+var colors=['blue','turquoise','darkcyan','blueviolet','cornflowerblue','lightseagreen','lime','orange','orangered','royalblue','greenyellow','gold',]
+var ramp_colors=new Array();
+
+
+var num_plotted_taxa=0;
+for (i=0;i<colors.length-1;i++)
+{
+
+var c=d3.rgb(colors[i]);
+colors[i]=new Array();
+colors[i].push(c.brighter(1).toString()); // 
+colors[i].push(c.darker(1).toString()); 
+ramp_colors.push(colors[i])
+}
+
+function compareCount(a, b)
+ {
+ var my_a=parseInt(a[1]);
+ var my_b=parseInt(b[1]);           
+   if (my_a > my_b) return -1;
+   if (my_a < my_b) return 1;
+   return 0;
+ }
+ 
+ function compareName(a, b)
+ {
+    if (a[0] < b[0]) return -1;
+   if (a[0] > b[0]) return 1;
+   return 0;
+ }
+orderby= function(type,big_array,to_plot)
+            {
+var sorted_array=big_array.sort(compareCount);           
+return sorted_array;
+}
+  
+  
+var new_colors=$.xcolor.analogous('#a5db97',30);
+colors=new Array();
+for (d in new_colors)
+{
+var this_color_obj=new_colors[d]
+var this_color='rgb('+this_color_obj.r+','+this_color_obj.g+','+this_color_obj.b+')'
+colors.push(this_color)
+}
+
+function render_highchart (render_to,this_array,title)
+{
+  chart = new Highcharts.Chart({
+            chart: {
+               backgroundColor: '#E1F5E8',
+                renderTo: render_to,
+                //'graph_freq_taxa',
+               
+                plotBorderWidth: null,
+                plotShadow: false
+               
+            },
+            colors:colors,
+            title: {
+                text: title
+            },
+            tooltip: {
+              useHTML: true,
+
+            formatter: function(){
+                return '<span class="my_highcart_tooltip">'+this.point.name+' '+addSeparator(this.point.y)+' ('+this.point.percentage.toFixed(2)+'%)</span>';
+            },
+          //    pointFormat: '<b>{point.y}</b> ({point.percentage})%</b>',
+              backgroundColor: 'rgba(20,19,19,1)',
+
+              
+              percentageDecimals: 1,
+              style: {
+                    
+                    borderWidth: 2,
+                    borderColor: '#AAA',
+                    color:'white',
+                    overflow:'auto',
+                    width:'200px',
+                    fontSize: '10pt',
+                padding: 10,
+                fontWeight: 'bold'
+            }
+            },
+            plotOptions: {
+                pie: {
+                    //showInLegend:true,
+                    allowPointSelect: true,
+                    borderColor: '#DAE4E8',
+                     borderWidth: 1,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+
+                        style: {
+                          
+                          color:'black',
+                          fontSize: '12px'
+                        },
+                        useHTML:true,
+                        formatter: function () 
+                        {
+                          var label_type;
+                          var this_name=this.point.name;
+                          if (render_to=='graph_freq_taxa')                        
+                        {
+                           label_type='taxa_label';
+                            if (this_name.length>20)
+                          {
+                            this_name=this_name.split(' ');
+                            this_name=this_name[0]+' '+this_name[1]
+                          }
+                        }
+                             if (render_to=='graph_freq_dataset')                        
+                        {
+                             label_type='datasets_label';
+                        }
+                          
+                          
+
+                    return '<div style="max-width:100px;height:auto;" class="'+label_type+'" id="'+this.point.config[2]+'"><b>'+this_name+'</b></div>';
+                  //  return '<div id="'+this.point.config[2]+'"><b>'+this.point.name+'</b></div>'
+                          // : '+this.y+' occurrences
+                         } 
+                     }
+                    ,
+                    // showInLegend: true
+                }
+            },
+              legend: {
+            align: 'right',
+            verticalAlign: 'top',
+            width:100,  
+            x: -100,
+            y: 100
+          },
+            series: [{
+                type: 'pie',
+                
+                data: this_array,
+                 events: {
+                                  click: function(e) {
+                                  //    alert ('A series was added');
+                                  console.warn(e.point)
+                                 console.info(e.point.config[0])
+              
+                                  }
+                              }
+            }]
+        });
+
+ function search_ecatID (this_taxa)
+ {
+        return function ()
+  {
+  
+  $.getJSON('http://ecat-dev.gbif.org/ws/usage/?rkey=1&q='+this_taxa+'&searchType=canonical&callback=?',
+       { format:'JSONP'},
+       function(json, textStatus) 
+    {
+      var id=json.data[0].taxonID;
+      console.warn(id)
+      return id;
+    });
+  }
+ }
+ 
+ } 
+
+jQuery(document).ready(function($) {
+
+$('#extra_outils').hide()
+var interaction;
+
+var datapublishers_json = (function () {
+    var json = null;
+    $.ajax({
+        'async': false,
+        'global': false,       
+         'url': '/public/json/datapub_stats/taxa_graphic_simple/datapublisher_'+datapublisher_id+'_graphic.json',
+        'dataType': "json",
+        'success': function (data) {
+            json = data;
+            
+            for (dataset_id in data)
+            {
+              
+              if (dataset_id==my_dataset_id)
+              {
+
+               var html='<tr id="dataset_'+dataset_id+'">';
+                var dataset_info=data[dataset_id]['dataset_info'][0];
+                console.warn('dataset info to be appended here')
+                console.dir(dataset_info)                  
+                for (info in dataset_info)
+                {
+
+                html+='<td>'+dataset_info[info]+'</td>';
+                }
+                html+='</tr>';
+                
+                $('#datasets_table tr:first').after(html)
+         
+              }
+              }                           
+        }
+    });
+    return json;
+})(); 
+var taxa_array=null;
+function get_data (taxa_level,dataset_id,top,to_plot,data_type,datapublisher_id)
+{
+
+$.ajax({
+        url: 'http://lully.snv.jussieu.fr/gbif/mapping/php/dataportal/parsing_json.php',
+        data:{'taxa_level':taxa_level,'dataset':dataset_id,'datapublisher':datapublisher_id},
+        dataType: 'jsonp',
+        success: function (data) {
+            taxa_array=data[taxa_level];
+            var top_taxa=[];
+            var top;
+            
+            if (i>=10)
+            {
+              top=10;
+            }
+            else
+            {
+              top=taxa_array.length;
+            }
+            for (var i = 0; i <top; i++) 
+            {
+              top_taxa.push(taxa_array[i])
+
+            };
+          
+
+          var order_by_count=orderby('count',taxa_array,'testing') 
+          var html='<ul>'
+          
+          $(order_by_count).each(function(i,d)
+          {           
+          html+='<li>'+d[0]+'  '+addSeparator(d[1])+'</li>';
+          })
+          html+='</ul>';
+          if (data_type=='graphic')
+          {
+          render_highchart('graphic',top_taxa,'test occurrences d\'un  total de 234') 
+           $('#data_list-dropdown').append(html)
+          }
+           else
+           {
+          to_plot.find('#my_data').append(html)  
+           }
+
+          }
+
+        })
+return taxa_array;
+}
+
+var lat=48.856930;
+var lng=2.341200;
+var latlng=new L.LatLng(lat,lng);
+
+
+ map = new L.Map('map',{ 'crs': L.CRS.EPSG900913});
+map.addLayer(new L.Marker(latlng)); 
+
+var create_circles=function(data,options)
+ {
+ 
+maxValue=data.total;
+cluster_degree=data.cluster_degree;
+var zoom=options.zoom;
+
+ min_range=7;
+   max_range=20;
+
+var rScale = d3.scale.linear()
+                     .domain([0, d3.max(data.features, function(d) { return d.properties.count; })])
+                     .range([min_range, max_range]);
+
+var count_extent = d3.extent( data.features, function(d){return d.properties.count});
+
+
+
+   var ramp =d3.scale.linear().domain(count_extent).range(ramp_colors[num_plotted_taxa]);
+   //.interpolate(d3.cie.interpolateLch);
+
+    /* Add a LatLng object to each item in the dataset */
+  
+    data.features.forEach(function(d) {
+
+      d.LatLng = new L.LatLng(d.geometry.coordinates[1],d.geometry.coordinates[0])
+    })
+
+
+
+var circle = g.selectAll("circle").attr('taxa_gbif_id',function (d) {
+
+  return d.properties.point_id;})
+      .data(data.features,function (d){ 
+        
+
+d.total_occurrences=data.total;
+d.number_clusters=data.num_clusters;
+
+return d.properties.point_id});
+
+
+      
+      circle.enter().append("circle")//.attr('taxa_gbif_id',function (d) {d.properties.random_id})
+circle.attr('taxa_gbif_id',function (d) {return d.properties.point_id;});
+
+function first_update() 
+    {
+      console.warn('first update')
+      circle.attr("cx",function(d) { return map.latLngToLayerPoint(d.LatLng).x})
+      circle.attr("cy",function(d) { return map.latLngToLayerPoint(d.LatLng).y}).attr("stroke", "black")
+
+      circle.on("mouseover", function(d) {})
+
+      .on("mouseout", function(d) {
+         var _this=d3.select(this)
+     })
+//attr('r',0).transition().duration(50).
+      circle.attr("r", function(d) {
+       // console.warn(rScale(d.properties.count))
+        return rScale(d.properties.count);
+      }).attr('fill',function (d){ 
+ 
+  return ramp(d.properties.count)
+        })
+                        .attr('opacity',0.7)
+
+          console.info(circle.attr('r'))
+ 
+    }
+first_update()
+}  //end create_circles
+
+
+var datapublisher_info=datapublishers_json.datapublisher_info[0];
+
+var datapublisher_name=datapublishers_json.datapublisher_name;
+$('#map_tooltip').html('<h2><b>'+addSeparator(datapublisher_info.datapublisher_geo_count)+'</b> occurrences géoreferencés').fadeIn('slow')
+
+
+if (datapublisher_name!=='undefined')
+{
+
+ var simple_datapublisher_url='http://www.gbif.fr/mbtiles/datasets/dataset_'+my_dataset_id+'/metadata.jsonp';
+
+$('#map').append("<div id='mouseover_span' style='position:relative;cursor:pointer;width:20px;height:20px;opacity:0.001;'></div>")
+
+
+         url='http://a.tiles.mapbox.com/v3/peregbif.map-meicnbch.jsonp';
+     wax.tilejson(url, function(tilejson) {
+        console.warn('added basemap')
+          basemap = new wax.leaf.connector(tilejson);
+         map.addLayer(basemap,true);
+         })
+
+
+
+ // var simple_datapublisher_url='http://www.gbif.fr/mbtiles/dataset_1_2/metadata.jsonp';
+    wax.tilejson(simple_datapublisher_url, function(tilejson) {
+          this_datapublisher = new wax.leaf.connector(tilejson);
+             this_datapublisher.bringToFront()
+
+         map.addLayer(this_datapublisher,false);
+ 
+         console.warn('added MY MAP')
+         this_datapublisher.setOpacity(1)
+  
+        var center=tilejson.center.split(',')
+         var lat=center[1];
+        var lng=center[0];
+        var zoom=center[2];
+        var latlng=new L.LatLng(lat,lng);
+
+                 map.setView(latlng, zoom);
+ 
+ map._initPathRoot() 
+
+ svg = d3.select("#map").select("svg")
+ g = svg.append("g");
+
+map.on('viewreset dragend',function(e)
+{
+  // console.warn(map.getZoom()>parseInt(tilejson.maxzoom))
+  // console.warn(map.getZoom()+">"+parseInt(tilejson.maxzoom))
+  // console.warn('attaching events on viewreset zoom '+map.getZoom())
+
+   $("#mouseover_span").attr('original-title','');
+  if (map.getZoom()>parseInt(tilejson.maxzoom))
+  {
+     //g.selectAll("circle").remove()
+var ne=e.target.getBounds()._northEast;
+var sw=e.target.getBounds()._southWest;
+ne_bounds=ne.lng+' '+ne.lat;
+sw_bounds=sw.lng+' '+sw.lat;
+
+var bbox='BOX('+sw_bounds+','+ne_bounds+')'
+
+var url = 'http://lully.snv.jussieu.fr/gbif/mapping/php/dataportal/get_d3.php?dataset_id='+my_dataset_id+'&datapublisher_id='+datapublisher_id+'&BBOX='+bbox;
+
+   jQuery.ajax({
+    type: "GET",
+    url: url,
+    dataType: "jsonp",
+    timeout:5000,
+
+    success: function(data){
+     var ajax_params={zoom:map.getZoom()}
+     create_circles.call(this,data,ajax_params);
+
+    }
+
+  })
+  }
+  else
+  {
+    console.warn('remove circles if present map.getZoom()>='+tilejson.maxzoom)
+    g.selectAll("circle").remove()
+   //if (g.selectAll("circle").remove()
+  }
+
+})
+
+var content;
+          interaction= wax.leaf.interaction(this_datapublisher)
+    .map(map)
+    .tilejson(tilejson)     
+    .on({
+      on: function(o) {
+  
+          
+         if (o.e.type !== 'mousemove') 
+        {
+    var $map=$('#map').get(0)
+       var relativeX = o.e.pageX - $map.offsetLeft-10; 
+var relativeY = o.e.pageY - $map.offsetTop-10;
+var obj=o.data;
+console.info(obj)
+
+      if (typeof obj.point_id!=='undefined') point_id=obj.point_id
+        else point_id=obj.oid
+
+      content='<div class="hoverbox" style="z-index:10000"><div id="point_centroid" class="'+point_id+'"/></br><div id="tooltip_datapublisher_id" class="'+datapublisher_id+'" > Datapublisher <b>'+datapublisher_name+'</b></div></br><div id="tooltip_dataset_id" class='+obj.dataset_id+'>Dataset <b>'+dataset_name+'</b></div></br><b>'+obj.count_occurrences+'</b> occurrences</br></div>';
+   
+// //                content='<div onClick="show_species('+>Number of species '+obj.count_scientificname+'</br>';
+//     content+='<div id="show_genus_id"><b>'+obj.count_genus+'</b> different Genus</div></br>';
+//                 // content+='<div id="show_family_id"><b>'+obj.count_family+'</b> different Families</div></br>';
+//                 content+='<div id="show_scientificname_id"><b>'+obj.count_scientificname+'</b> different Species</div></br>';
+//                 content+='<div id="show_phylum_id"><b>'+obj.count_phylum+'</b> different Phylums</div></br>';
+//                   content+='<div id="show_class_id"><b>'+obj.count_classs+'</b> different Class</div></br>';
+//                     content+='<div id="show_order_id"><b>'+obj.count_orderr+'</b> different Order</div>';
+ console.info(content)
+
+$('#mouseover_span').css({'top':relativeY+'px','left':relativeX+'px'})
+
+ $('#mouseover_span').tipsy({fade: false, delayOut:2000,gravity: 'e', html: true, 
+title: function () 
+ {
+ return content;//content
+}
+                       
+  });
+
+
+        }
+      }
+
+              })
+
+   })
+
+
+ $('#occurrences a').click(function(event)
+{
+
+ this_datapublisher.setOpacity(1)
+  $('#map').animate({'height':'500px'})
+  
+ // map.invalidateSize()
+  event.preventDefault()
+}) 
+}
+
+
+$('#datasets_table tr').find('td:gt(2)').popover(
+        {
+            trigger: 'click',
+            delay: { show: 300, hide: 5800 },
+            html: true,
+            placement: 'bottom',
+             container: 'body',
+            title: function () 
+            {
+
+
+              return '<span id="dataset_id">Dataset information</span><i class="icon-remove" style="color:black;float:right;"></i>';
+            },
+            content: function ()
+            { 
+
+            var td_pos=this.cellIndex;
+         $('.td_selected').removeClass('td_selected');
+
+           //$(this).css({'cursor':'pointer','background':'#3e71f0'})
+
+            
+              var taxa_level=$('#datasets_table th').eq(td_pos).attr('class');
+
+              $('.popover').not(this).hide()
+
+               $(this).addClass('td_selected');
+
+
+              var dataset_id=$(this).parent().attr('id').split('_')[1]
+
+            return "<div id='plot_graphic' class='"+dataset_id+'_'+taxa_level+"'> Plot as graphic</div><div id='plot_list' class='"+dataset_id+'_'+taxa_level+"'> Plot as list</div><div id='my_data' style='overflow-y:auto;max-height:250px'></div>"
+                  }
+    }).bind('hover',function ()
+  {
+   //$(this).css({'cursor':'pointer','background':'#3e71f0'})
+    $(this).addClass('td_hovered')  
+  }).bind('mouseout',function ()
+  {
+  $(this).removeClass('td_hovered')
+  })
+
+
+
+$('.popover').live('click',function (event)
+{
+var $this=$(this) 
+
+var $target=$(event.target)
+var splitted_class=$target.attr('class').split('_')
+console.info(splitted_class)
+var dataset_id=splitted_class[0]
+var taxa_level=splitted_class[1]
+
+if ($(event.target).hasClass('icon-remove'))
+{
+$(this).hide();
+$('.td_selected').removeClass('td_selected');
+}
+else
+{
+if (event.target.id=='plot_graphic')  
+{
+var top=10;
+ get_data (taxa_level,dataset_id,top,$this.find(".popover-content"),'graphic',datapublisher_id)  
+}
+else
+{
+  
+get_data (taxa_level,dataset_id,top,$this.find(".popover-content"),'list',datapublisher_id)  
+}
+}
+
+})
+
+
+
+
+
+}) 
+
+
+</script>
+<div class="container">
+  <div class="well">
+    <h1>${dataset.title}</h1>
+    <h3>${dataset.dataPublisher.name}</h3>    
+  </div>
+
+     <div id="map_container">
+    <div id="map" style='width:100%;height:300px;position:relative'></div>
+   <div id='map_tooltip' style='display:none'></div>
+   </div>
+
+      <h3>Dataset statistics</h3>
+      <div class="btn-group">
+      <table id='datasets_table' class="taxa_table table-condensed">
+      <tbody>
+          <tr>
+          <th>Dataset</th>
+          <th>Total occurrences</th>
+           <th>Occurrences géoréferencés</th>
+          <th class='scientificName'>Èspeces</th>
+          <th class='genus'>Genus</th>
+          <th class='family'>Family</th>
+          <th class='orderr'>Order</th>
+          <th class='classs'>Class</th>
+          <th class='phylum'>Phylum</th>
+          <th class='kingdom'>Kingdom</th>   
+        </tr>       
+      </tbody>
+    </table>
+      </div>
+
+      <div id='data_list-dropdown-trigger' style='cursor:pointer' href="#" data-dropdown="#data_list-dropdown">List</div> 
+          <div id="data_list-dropdown" class="dropdown-menu has-tip has-scroll">
+
+          </div>
+     <div style='height:320px;background-color:#E1F5E8;' id='graphic'></div>
+
+  <div id="dataset-basic-info" class="row">
+    <div id="dataset-basic-info-description" class="span6">
+      <h3>Description</h3><hr>
+      #{if !dataset.description}
+        <i>Information non fournie.</i>
+      #{/if}
+      #{else}
+        ${dataset.description}
+      #{/else}
+    </div>
+    <div class="span6">
+    <div id="dataset-basic-info-others">
+      <table class="table table-condensed">
+        <tr>
+          <th>Resource Language</th>
+          <td>${dataset.resourceLanguage}</td>
+        </tr>          
+        <tr>
+          <th>Basis of Record</th>
+          <td>${dataset.basisOfRecord}</td>
+        </tr>
+      </table>  
+    </div>
+    <div id="dataset-external-links" class="">
+      <table class="table table-condensed">
+        <tr>
+          <th>Home Page</th>
+          <td>${dataset.homePageLink}</td>
+        </tr>          
+        <tr>
+          <th>Dwc-A Link</th>
+          <td>${dataset.dwcArchiveLink}</td>
+        </tr>
+      </table>  
+    </div>
+    <div id="dataset-geographic-info">
+    <table class="table table-condensed">
+      <tr>
+        <th>Geographic Coverage</th>
+        <td>${dataset.geographicCoverageDescription}</td>
+      </tr>          
+      <tr>
+        <th>Bounding box</th>
+        <td>${dataset.geographicCoverageBoundingCoordinates}</td>
+      </tr>
+    </table>  
+  </div>
+  <div id="dataset-taxonomic-info">
+    <table class="table table-condensed">
+      <tr>
+        <th>Taxonomic Coverage</th>
+        <td>${dataset.taxonomicCoverageDescription}</td>
+      </tr>          
+      <tr>
+        <th>Taxon List</th>
+        <td>${taxonomicCoverageTaxonList}</td>
+      </tr>
+    </table>  
+  </div>
+  <div id="dataset-temporal-info">
+    <table class="table table-condensed">
+      <tr>
+        <th>Temporal Coverage</th>
+        <td>${dataset.temporalCoverageDate}</td>
+      </tr>           
+    </table>  
+  </div>
+  <div id="dataset-sampling-info">
+    <table class="table table-condensed">
+      <tr>
+        <th>Sampling Description</th>
+        <td>${dataset.samplingDescription}</td>
+      </tr>           
+    </table>  
+  </div>
+  </div>
+  </div>
+  <div id="dataset-contact-info" class="">
+    <table class="table table-striped table-condensed">
+      <h3>Contacts</h3>
+      <tr>
+        <th/>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Address</th>
+        <th>Email</th>
+        <th>Telephone</th>
+      </tr>
+      <tr>
+        <td>Resource Contact</td>  
+        <td>${dataset.resourceContactName}</td>
+        <td>${dataset.resourceContactRole}</td>
+        <td>${dataset.resourceContactAddress}</td>
+        <td>${dataset.resourceContactEmail}</td>
+        <td>${dataset.resourceContactTelephone}</td>
+      </tr>
+      <tr>
+        <td>Resource Creator</td>  
+        <td>${dataset.resourceCreatorName}</td>
+        <td>${dataset.resourceCreatorRole}</td>
+        <td>${dataset.resourceCreatorAddress}</td>
+        <td>${dataset.resourceCreatorEmail}</td>
+        <td>${dataset.resourceCreatorTelephone}</td>
+      </tr>
+      <tr>
+        <td>Metadata Provider</td>  
+        <td>${dataset.metadataProviderName}</td>
+        <td>${dataset.metadataProviderRole}</td>
+        <td>${dataset.metadataProviderAddress}</td>
+        <td>${dataset.metadataProviderEmail}</td>
+        <td>${dataset.metadataProviderTelephone}</td>
+      </tr>
+    </table>
+  </div>
+  
+  
+  
+</div>
